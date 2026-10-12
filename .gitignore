@@ -1,0 +1,29 @@
+# secrets
+openalex_key.txt
+.env
+
+# fetched / cached API data (re-created by `python run.py fetch`)
+data/cache/
+data/raw/
+data/processed/
+data/*.log
+
+# third-party bulk data (downloaded automatically)
+data/external/sjr_journals.rda
+data/external/sjr_lookup.pkl
+
+# test-sample runs
+data/raw_sample/
+data/processed_sample/
+outputs_sample/
+report_sample/
+dashboard/index_sample.html
+
+# internal team notes
+QUESTIONS_FOR_PROFESSOR.md
+report/
+
+__pycache__/
+*.pyc
+.vscode/
+.claude/

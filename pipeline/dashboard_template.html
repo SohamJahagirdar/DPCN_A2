@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Group 18 Research Map</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f3f2ee; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --accent:#2a78d6;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --other:#b5b3ab;
+  --q1:#184f95; --q2:#3987e5; --q3:#86b6ef; --q4:#cde2fb; --qna:#d6d4cc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --accent:#3987e5;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --other:#5c5b56;
+    --q1:#86b6ef; --q2:#3987e5; --q3:#256abf; --q4:#184f95; --qna:#45443f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --accent:#3987e5;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --other:#5c5b56;
+  --q1:#86b6ef; --q2:#3987e5; --q3:#256abf; --q4:#184f95; --qna:#45443f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px 0;position:sticky;top:0;z-index:10}
+.top{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{font-size:18px;margin:0;font-weight:650}
+.sub{color:var(--ink-2);font-size:13px}
+.controls{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--ink-2);border:0;padding:6px 12px;font:inherit;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+.iconbtn{background:transparent;border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
+nav{display:flex;gap:2px;overflow-x:auto;margin-top:12px;scrollbar-width:thin}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;color:var(--ink-2);font:inherit;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+main{padding:20px 24px 48px;max-width:1400px;margin:0 auto}
+.banner{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--s4);padding:10px 14px;border-radius:8px;margin-bottom:16px;color:var(--ink-2)}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
+.card h3{margin:0 0 2px;font-size:14px;font-weight:600}
+.card .hint{color:var(--muted);font-size:12px;margin-bottom:8px}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
+@media (max-width:1000px){.c8,.c6,.c4{grid-column:span 12}.c3{grid-column:span 6}}
+@media (max-width:560px){main{padding:16px}header{padding:12px 16px 0}.c3{grid-column:span 12}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.tile .v{font-size:24px;font-weight:650;margin-top:2px}
+.tile .l{color:var(--ink-2);font-size:12px}
+.tile .d{color:var(--muted);font-size:11px}
+.plot{width:100%;height:340px}
+.plot.tall{height:440px}
+.net{width:100%;height:560px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+.tablewrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--grid);vertical-align:top}
+th{position:sticky;top:0;background:var(--surface-2);font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--surface-2)}
+a{color:var(--accent)}
+input[type=search],select{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font:inherit}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:11px;color:var(--ink-2)}
+.tab{display:none}.tab.on{display:block}
+.note{color:var(--ink-2);font-size:13px}
+.note li{margin:4px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>Research map: IISc Bangalore &amp; TIFR Mumbai, 2016–2026</h1>
+      <div class="sub" id="subtitle"></div>
+    </div>
+    <div class="controls">
+      <div class="seg" id="instSeg"></div>
+      <button class="iconbtn" id="themeBtn" title="Toggle light/dark">◐</button>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <div id="banner"></div>
+
+  <section class="tab" data-tab="Overview">
+    <div class="tiles" id="kpis"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c8"><h3>Publications per year</h3><div class="hint">Unique papers by publication year; joint IISc–TIFR papers count for both institutions</div><div id="ovTrend" class="plot"></div></div>
+      <div class="card c4"><h3>Journal quartile share</h3><div class="hint">SCImago best quartile in publication year (journals only)</div><div id="ovQuart" class="plot"></div></div>
+      <div class="card c6"><h3>Research areas (top fields)</h3><div class="hint">OpenAlex primary-topic field</div><div id="ovFields" class="plot"></div></div>
+      <div class="card c6"><h3>Top Indian partner institutions</h3><div class="hint">Co-authored papers, 2016–2026</div><div id="ovPartners" class="plot"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Publications">
+    <div class="grid">
+      <div class="card c12"><h3>Publication trend by venue type</h3><div class="hint">Papers per year, 2016–2026 (2026 is a partial year)</div><div id="pubTrend" class="plot"></div></div>
+      <div class="card c6"><h3>Quartile mix by year</h3><div class="hint">Journal papers per year by SJR quartile</div><div id="pubQYear" class="plot"></div></div>
+      <div class="card c6"><h3>Citations received, by publication year</h3><div class="hint">Total OpenAlex citations of papers published in each year (older papers have had longer to accrue citations)</div><div id="pubCites" class="plot"></div></div>
+      <div class="card c6"><h3>Conference rank (CORE 2023)</h3><div class="hint">Conference papers only</div><div id="pubCore" class="plot"></div></div>
+      <div class="card c6"><h3>Most-cited papers (top 10)</h3><div class="hint">Citation count at collection date</div><div id="pubTop" class="tablewrap"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Faculty">
+    <div class="grid">
+      <div class="card c12"><h3>Faculty performance</h3>
+        <div class="hint">Click a column to sort. h-index = h-index of the faculty member's 2016–2026 papers at this institution; "career h" = OpenAlex lifetime h-index.</div>
+        <div class="row"><input type="search" id="facSearch" placeholder="Search name, department, journal…" size="34"><select id="facDept"></select><span class="pill" id="facCount"></span></div>
+        <div id="facTable" class="tablewrap"></div></div>
+      <div class="card c6"><h3>h-index distribution of faculty</h3><div class="hint">2016–2026 papers at the institution</div><div id="facHist" class="plot"></div></div>
+      <div class="card c6"><h3>Departments by publication output</h3><div class="hint">Sum of faculty paper counts (a joint paper counts once per faculty member)</div><div id="facDeptBar" class="plot tall"></div></div>
+      <div class="card c12"><h3>Department summary</h3><div id="deptTable" class="tablewrap"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Journals">
+    <div class="grid">
+      <div class="card c6"><h3>Top 5 journals</h3><div class="hint">By paper count</div><div id="jTop5" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Quartile distribution</h3><div class="hint">Journal papers by SJR quartile</div><div id="jQuart" class="plot"></div></div>
+      <div class="card c12"><h3>Top 15 journals</h3><div id="jTop15" class="plot tall"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Research areas">
+    <div class="grid">
+      <div class="card c6"><h3>Publication share by field</h3><div id="raFields" class="plot tall"></div></div>
+      <div class="card c6"><h3>Top 20 subfields</h3><div id="raSub" class="plot tall"></div></div>
+      <div class="card c12"><h3>Domains</h3><div id="raDom" class="plot"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Citation network">
+    <div class="tiles" id="citTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Citation network: most influential papers (PageRank)</h3>
+        <div class="hint">Directed graph: an arrow A→B means paper A cites paper B. Shown: the 350 highest-PageRank papers in the connected core of the corpus citation graph. Node size = PageRank; colour = institution. Drag, scroll to zoom, hover for details.</div>
+        <div id="citNet" class="net"></div>
+        <div class="legend" id="citLegend"></div></div>
+      <div class="card c8"><h3>Top 10 papers by PageRank</h3><div class="hint"><label><input type="checkbox" id="citMega"> include mega-collaboration papers (&gt; 50 authors; mostly CMS)</label></div><div id="citTop" class="tablewrap"></div></div>
+      <div class="card c4"><h3>In-degree distribution</h3><div class="hint">Citations received from within the corpus (log–log)</div><div id="citDeg" class="plot"></div></div>
+      <div class="card c6"><h3>Citation flow with other Indian institutions, by year</h3><div class="hint">In = citing papers from other Indian institutes; Out = our papers citing them (year of the citing paper)</div><div id="flowYear" class="plot"></div></div>
+      <div class="card c6"><h3>Top 10 Indian institutes citing our work</h3><div id="flowTop" class="plot"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Co-authorship network">
+    <div class="tiles" id="auTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Faculty collaboration network</h3>
+        <div class="hint">Undirected graph: nodes = faculty, edges = co-authored papers (mega-collaborations excluded), width = number of joint papers. Colour by <select id="auColor"><option value="comm">Louvain community</option><option value="inst">institution</option></select> · show links with ≥ <select id="auMinW"><option>1</option><option selected>2</option><option>3</option><option>5</option></select> joint papers</div>
+        <div id="auNet" class="net"></div>
+        <div class="legend" id="auLegend"></div></div>
+      <div class="card c6"><h3>Most collaborative faculty (degree centrality)</h3><div id="auDeg" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Bridging faculty (betweenness centrality)</h3><div id="auBtw" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Collaboration communities (Louvain)</h3><div id="auComm" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Hub authors bridging Indian institutions</h3><div class="hint">Distinct other Indian institutions among co-authors</div><div id="auHubs" class="tablewrap"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Indian connectivity">
+    <div class="tiles" id="icTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c6"><h3>Partner institutions by shared papers</h3><div id="icPartners" class="plot tall"></div></div>
+      <div class="card c6"><h3>Shared papers by partner cluster</h3><div class="hint">Cross-cluster = any cluster other than IISc/TIFR/IISER</div><div id="icClusters" class="plot tall"></div></div>
+      <div class="card c12"><h3>Connectivity map</h3><div class="hint">Topic similarity = Jaccard over OpenAlex subfields (binary: subfields ≥0.5% of output; weighted: share-vector overlap)</div><div id="icTable" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Citation flow by partner cluster</h3><div id="icFlowCl" class="plot"></div></div>
+      <div class="card c6"><h3>Most topic-similar partners</h3><div id="icJac" class="tablewrap"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Method">
+    <div class="card"><div id="method" class="note"></div></div>
+  </section>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+const INSTS = Object.keys(DATA.meta.institutions);
+const TABS = ["Overview","Publications","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
+let state = {inst: "All", tab: "Overview"};
+try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
+// deep links: #tab=Faculty&inst=TIFR
+new URLSearchParams(location.hash.slice(1)).forEach((v,k) => {
+  if (k in state) state[k] = decodeURIComponent(v);
+  if (k === "theme" && (v === "light" || v === "dark")) document.documentElement.dataset.theme = v;
+});
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SER = () => [1,2,3,4,5,6,7,8].map(i => css("--s"+i));
+const instColor = i => i==="IISc" ? css("--s1") : i==="TIFR" ? css("--s2") : i.includes(";") ? css("--s7") : css("--other");
+const fmt = (x, d=0) => x==null ? "–" : Number(x).toLocaleString("en-IN", {maximumFractionDigits:d, minimumFractionDigits:d});
+const pct = x => x==null ? "–" : (100*x).toFixed(1)+"%";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const doiLink = d => d ? `<a href="${esc(d)}" target="_blank" rel="noopener">DOI</a>` : "";
+
+function layout(extra={}) {
+  return Object.assign({
+    margin:{l:48,r:16,t:8,b:40}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
+    font:{family:'system-ui,-apple-system,"Segoe UI",sans-serif', size:12, color:css("--ink-2")},
+    xaxis:{gridcolor:css("--grid"), linecolor:css("--axis"), zeroline:false, tickfont:{color:css("--muted")}},
+    yaxis:{gridcolor:css("--grid"), linecolor:css("--axis"), zeroline:false, tickfont:{color:css("--muted")}, automargin:true},
+    legend:{orientation:"h", y:1.12, x:0, font:{color:css("--ink-2")}},
+    hoverlabel:{bgcolor:css("--surface"), bordercolor:css("--border"), font:{color:css("--ink")}},
+    bargap:0.25, barcornerradius:4,
+  }, extra);
+}
+const CFG = {displaylogo:false, responsive:true, modeBarButtonsToRemove:["lasso2d","select2d"]};
+const plot = (id, traces, lay) => Plotly.react(id, traces, layout(lay), CFG);
+
+function table(id, rows, cols, opts={}) {
+  const el = document.getElementById(id);
+  if (!rows || !rows.length) { el.innerHTML = `<div class="note" style="padding:12px">No data available.</div>`; return; }
+  let sortKey = opts.sort || null, asc = false;
+  const render = () => {
+    let r = rows.slice();
+    if (sortKey) r.sort((a,b) => { const x=a[sortKey], y=b[sortKey]; if (x==null) return 1; if (y==null) return -1;
+      return (typeof x==="number" ? x-y : String(x).localeCompare(String(y))) * (asc?1:-1); });
+    el.innerHTML = `<table><thead><tr>${cols.map(c=>`<th class="${c.n?'n':''}" data-k="${c.k}">${c.t}${sortKey===c.k?(asc?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${
+      r.map(x=>`<tr>${cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(x[c.k],x):esc(x[c.k])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    el.querySelectorAll("th").forEach(th => th.onclick = () => { const k=th.dataset.k; asc = sortKey===k ? !asc : false; sortKey=k; render(); });
+  };
+  render();
+}
+
+function tiles(id, items) {
+  document.getElementById(id).innerHTML = items.map(([l,v,d]) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div>${d?`<div class="d">${d}</div>`:""}</div>`).join("");
+}
+const B = () => DATA.inst[state.inst];
+const instList = () => state.inst==="All" ? INSTS : [state.inst];
+
+// ------------------------------------------------------------------ renderers
+function renderOverview() {
+  const k = B().kpis;
+  tiles("kpis", [
+    ["Papers", fmt(k.papers), state.inst==="All" ? `${fmt(k.shared_with_other)} joint IISc–TIFR` : ""],
+    ["Citations", fmt(k.citations), `mean ${fmt(k.mean_citations,1)} per paper`],
+    ["Institutional h-index", fmt(k.h_index), "2016–2026 papers"],
+    ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
+    ["Faculty with papers", fmt(k.faculty), ""],
+    ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
+  ]);
+  const yrs = DATA.inst.All.trend.years;
+  plot("ovTrend", instList().map(i => ({x:yrs, y:DATA.inst[i].trend.total, name:i, type:"scatter", mode:"lines+markers",
+    line:{width:2,color:instColor(i)}, marker:{size:8,color:instColor(i),line:{width:2,color:css("--surface")}},
+    hovertemplate:`${i} %{x}: %{y:,} papers<extra></extra>`})), {hovermode:"x unified"});
+  quartDonut("ovQuart");
+  const f = Object.entries(B().fields).slice(0,10).reverse();
+  plot("ovFields", [{type:"bar", orientation:"h", x:f.map(d=>d[1]), y:f.map(d=>d[0]), marker:{color:css("--s1")},
+    hovertemplate:"%{y}: %{x:,} papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const parts = instList().flatMap(i => DATA.connectivity[i].top_partners.slice(0, state.inst==="All"?6:10).map(p=>({...p, inst:i})));
+  parts.sort((a,b)=>a.shared_papers-b.shared_papers);
+  plot("ovPartners", [{type:"bar", orientation:"h", x:parts.map(p=>p.shared_papers), y:parts.map(p=>(state.inst==="All"?p.inst+" · ":"")+short(p.partner_inst)),
+    marker:{color:parts.map(p=>instColor(p.inst))}, hovertemplate:"%{y}: %{x:,} shared papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+}
+const short = s => (s||"").length>42 ? s.slice(0,40)+"…" : s;
+
+function quartDonut(id) {
+  const q = B().quartile, keys = ["Q1","Q2","Q3","Q4","Unranked/NA"];
+  const cols = [css("--q1"),css("--q2"),css("--q3"),css("--q4"),css("--qna")];
+  plot(id, [{type:"pie", hole:.55, sort:false, direction:"clockwise", labels:keys, values:keys.map(k=>q[k]||0),
+    marker:{colors:cols, line:{color:css("--surface"), width:2}}, textinfo:"label+percent", textposition:"outside",
+    hovertemplate:"%{label}: %{value:,} papers (%{percent})<extra></extra>"}], {showlegend:false, margin:{l:24,r:24,t:24,b:24}});
+}
+
+function renderPublications() {
+  const t = B().trend, s = SER();
+  const types = [["journal","Journal",s[0]],["conference","Conference",s[1]],["other","Other (books, repositories)",s[2]]];
+  plot("pubTrend", types.filter(([k])=>t[k]).map(([k,n,c]) => ({type:"bar", x:t.years, y:t[k], name:n, marker:{color:c},
+    hovertemplate:`${n} %{x}: %{y:,}<extra></extra>`})), {barmode:"stack", hovermode:"x unified"});
+  const qy = B().quartile_by_year, qk = [["Q1","--q1"],["Q2","--q2"],["Q3","--q3"],["Q4","--q4"],["NA","--qna"]];
+  plot("pubQYear", qk.filter(([k])=>qy[k]).map(([k,c]) => ({type:"bar", x:qy.years, y:qy[k], name:k==="NA"?"Unranked/NA":k,
+    marker:{color:css(c), line:{color:css("--surface"),width:1}}, hovertemplate:`${k} %{x}: %{y:,}<extra></extra>`})), {barmode:"stack", hovermode:"x unified"});
+  plot("pubCites", instList().map(i => ({type:"bar", x:t.years, y:DATA.inst[i].trend.citations, name:i, marker:{color:instColor(i)},
+    hovertemplate:`${i} %{x}: %{y:,} citations<extra></extra>`})), {barmode:"group"});
+  const ranks = ["A*","A","B","C","Unranked"], c = B().core;
+  plot("pubCore", [{type:"bar", x:ranks, y:ranks.map(r=>c[r]||0), marker:{color:ranks.map(r=>r==="Unranked"?css("--qna"):css("--s1"))},
+    hovertemplate:"CORE %{x}: %{y:,} papers<extra></extra>"}], {});
+  table("pubTop", B().most_cited, [{k:"title",t:"Title",f:(v)=>esc(short(v))},{k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},
+    {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"homes",t:"Inst."},{k:"doi",t:"",f:doiLink}]);
+}
+
+function renderFaculty() {
+  const all = DATA.faculty.filter(f => (state.inst==="All" || f.inst===state.inst));
+  const depts = [...new Set(all.map(f=>f.department).filter(Boolean))].sort();
+  const sel = document.getElementById("facDept");
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">All departments</option>` + depts.map(d=>`<option>${esc(d)}</option>`).join("");
+  if (depts.includes(prev)) sel.value = prev;
+  const draw = () => {
+    const q = document.getElementById("facSearch").value.toLowerCase(), d = sel.value;
+    const rows = all.filter(f => (!d || f.department===d) && (!q || [f.name,f.department,f.top_journal].join(" ").toLowerCase().includes(q)));
+    document.getElementById("facCount").textContent = `${rows.length} faculty`;
+    table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department"},
+      {k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"h_index",t:"h-index",n:1},
+      {k:"h_index_career",t:"Career h",n:1},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
+      {k:"faculty_source",t:"Source",f:v=>`<span class="pill">${esc(v)}</span>`}], {sort:"papers"});
+  };
+  document.getElementById("facSearch").oninput = draw; sel.onchange = draw; draw();
+  plot("facHist", instList().map(i => ({type:"histogram", x:DATA.inst[i].h_values, name:i, xbins:{size:2},
+    marker:{color:instColor(i), line:{color:css("--surface"),width:1}}, 
+    hovertemplate:`${i}: h %{x} → %{y} faculty<extra></extra>`})), {barmode:"group", bargap:0.15, xaxis:{title:"h-index", gridcolor:css("--grid")}, yaxis:{title:"faculty", gridcolor:css("--grid"), automargin:true}});
+  const dep = B().departments.slice(0,20).reverse();
+  plot("facDeptBar", [{type:"bar", orientation:"h", x:dep.map(d=>d.papers), y:dep.map(d=>short(d.department)), marker:{color:css("--s1")},
+    customdata:dep.map(d=>d.faculty), hovertemplate:"%{y}: %{x:,} faculty-papers, %{customdata} faculty<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  table("deptTable", B().departments, [{k:"department",t:"Department"},{k:"faculty",t:"Faculty",n:1},{k:"papers",t:"Faculty-papers",n:1,f:v=>fmt(v)},
+    {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"median_h",t:"Median h",n:1,f:v=>fmt(v,1)},{k:"mean_q1_share",t:"Mean Q1 share",n:1,f:pct}], {sort:"papers"});
+}
+
+function renderJournals() {
+  const cols = [{k:"venue",t:"Journal"},{k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"quartile",t:"Quartile"}];
+  if (state.inst==="All") {
+    const rows = INSTS.flatMap(i => DATA.inst[i].top_journals.slice(0,5).map(j=>({...j, inst:i})));
+    table("jTop5", rows, [{k:"inst",t:"Inst."}, ...cols]);
+  } else table("jTop5", B().top_journals.slice(0,5), cols);
+  quartDonut("jQuart");
+  const j = B().top_journals.slice().reverse();
+  plot("jTop15", [{type:"bar", orientation:"h", x:j.map(d=>d.papers), y:j.map(d=>short(d.venue)),
+    marker:{color:j.map(d=>({Q1:css("--q1"),Q2:css("--q2"),Q3:css("--q3"),Q4:css("--q4")}[d.quartile]||css("--qna")))},
+    customdata:j.map(d=>d.quartile||"NA"), hovertemplate:"%{y}: %{x:,} papers (%{customdata})<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+}
+
+function renderAreas() {
+  const f = Object.entries(B().fields).reverse();
+  plot("raFields", [{type:"bar", orientation:"h", x:f.map(d=>d[1]), y:f.map(d=>d[0]), marker:{color:css("--s1")},
+    hovertemplate:"%{y}: %{x:,}<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const s = Object.entries(B().subfields).reverse();
+  plot("raSub", [{type:"bar", orientation:"h", x:s.map(d=>d[1]), y:s.map(d=>short(d[0])), marker:{color:css("--s1")},
+    hovertemplate:"%{y}: %{x:,}<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const doms = Object.keys(DATA.inst.All.domains);
+  plot("raDom", instList().map(i => ({type:"bar", x:doms, y:doms.map(d=>DATA.inst[i].domains[d]||0), name:i, marker:{color:instColor(i)},
+    hovertemplate:`${i} %{x}: %{y:,}<extra></extra>`})), {barmode:"group"});
+}
+
+let citNet=null, auNet=null;
+function renderCitation() {
+  const c = DATA.citation, s = c.summary;
+  const fl = instList().map(i=>DATA.flows[i]);
+  const sum = k => fl.reduce((a,f)=>a+(f[k]||0),0);
+  tiles("citTiles", [["Papers (nodes)", fmt(s.nodes)], ["Internal citation edges", fmt(s.edges)],
+    ["Largest connected component", pct(s.largest_wcc_share)], ["Mean in-degree", fmt(s.mean_in_degree,2)],
+    ["Cited by other Indian institutes", fmt(sum("inflow")), fl[0].inflow_mode==="aggregate" ? "citing works (per-batch distinct)" : fl[0].inflow_mode==="internal only" ? "IISc↔TIFR only – full flows not fetched yet" : "citation links"],
+    ["Citing other Indian institutes", fl.every(f=>f.outflow_available) ? fmt(sum("outflow")) : "pending", fl.every(f=>f.outflow_available) ? "citation links" : "out-flow not fetched yet"],
+    ["Impact ratio (in / out)", fl.every(f=>f.impact_ratio!=null) ? fmt(fl.reduce((a,f)=>a+f.inflow,0)/fl.reduce((a,f)=>a+(f.inflow_mode==="aggregate"?f.outflow_batch_works:f.outflow),0),2) : "pending", "same unit in & out"]]);
+  const keep = new Set(c.vis.nodes.filter(n => state.inst==="All" || n.inst.split(";").includes(state.inst)).map(n=>n.id));
+  const maxPr = Math.max(...c.vis.nodes.map(n=>n.pr), 1e-9);
+  const nodes = c.vis.nodes.filter(n=>keep.has(n.id)).map(n => ({id:n.id, value:Math.sqrt(n.pr/maxPr), color:{background:instColor(n.inst), border:css("--surface")},
+    title:`${n.title}\n${n.year} · ${n.inst} · ${n.field||""}\nPageRank ${n.pr.toExponential(2)} · in-degree ${n.indeg} · ${n.cites} citations`}));
+  const edges = c.vis.edges.filter(([a,b])=>keep.has(a)&&keep.has(b)).map(([a,b])=>({from:a,to:b,arrows:"to"}));
+  if (citNet) citNet.destroy();
+  citNet = new vis.Network(document.getElementById("citNet"), {nodes, edges}, {
+    nodes:{shape:"dot", scaling:{min:7,max:34}, borderWidth:1.5},
+    edges:{color:{color:css("--muted"), opacity:.45}, width:.7, arrows:{to:{scaleFactor:.4}}, smooth:false},
+    physics:{solver:"forceAtlas2Based", stabilization:{iterations:250}, forceAtlas2Based:{gravitationalConstant:-40}}, interaction:{hover:true, tooltipDelay:80}});
+  citNet.once("stabilizationIterationsDone", () => citNet.setOptions({physics:false}));
+  document.getElementById("citLegend").innerHTML = ["IISc","TIFR","IISc;TIFR"].map(i=>`<span><i style="background:${instColor(i)}"></i>${i==="IISc;TIFR"?"Joint IISc–TIFR":i}</span>`).join("");
+  document.getElementById("citMega").onchange = renderCitation;
+  table("citTop", document.getElementById("citMega").checked ? c.top_pagerank : c.top_pagerank_nonmega, [{k:"title",t:"Title",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
+    {k:"in_degree",t:"In-degree",n:1},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"pagerank",t:"PageRank",n:1,f:v=>v==null?"–":v.toExponential(2)},{k:"doi",t:"",f:doiLink}]);
+  const dd = Object.entries(c.indegree_dist).filter(([k])=>+k>0);
+  plot("citDeg", [{type:"scatter", mode:"markers", x:dd.map(d=>+d[0]), y:dd.map(d=>d[1]), marker:{size:8,color:css("--s1"),line:{width:2,color:css("--surface")}},
+    hovertemplate:"in-degree %{x}: %{y:,} papers<extra></extra>"}], {xaxis:{type:"log",dtick:1,title:"in-degree",gridcolor:css("--grid")}, yaxis:{type:"log",dtick:1,title:"papers",gridcolor:css("--grid"),automargin:true}});
+  const yrs = DATA.inst.All.trend.years;
+  const tr = [];
+  instList().forEach(i => {
+    tr.push({x:yrs, y:DATA.flows[i].by_year.inflow, name:`${i} in`, mode:"lines+markers", line:{width:2,color:instColor(i)}, marker:{size:8}});
+    tr.push({x:yrs, y:DATA.flows[i].by_year.outflow, name:`${i} out`, mode:"lines+markers", line:{width:2,color:instColor(i),dash:"dot"}, marker:{size:8,symbol:"diamond"}});
+  });
+  plot("flowYear", tr, {hovermode:"x unified"});
+  const top = instList().flatMap(i=>DATA.flows[i].top_citing.map(t=>({...t, inst:i}))).sort((a,b)=>b.citations-a.citations).slice(0,10).reverse();
+  plot("flowTop", [{type:"bar", orientation:"h", x:top.map(t=>t.citations), y:top.map(t=>(state.inst==="All"?t.inst+" ← ":"")+short(t.partner_name)),
+    marker:{color:top.map(t=>instColor(t.inst))}, customdata:top.map(t=>t.partner_cluster), hovertemplate:"%{y}: %{x:,} citations (%{customdata})<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+}
+
+function renderAuthorship() {
+  const a = DATA.authorship, s = a.summary;
+  tiles("auTiles", [["Faculty nodes", fmt(s.faculty_nodes)], ["Faculty–faculty links", fmt(s.faculty_edges)],
+    ["Louvain communities", fmt(s.n_communities), s.modularity!=null?`modularity ${fmt(s.modularity,2)}`:""],
+    ["Isolated faculty", fmt(s.isolated_faculty), "no faculty co-author"], ["Raw co-authorship edges", fmt(s.raw_edges), `${fmt(s.raw_cross_edges)} cross-institution`],
+    ["Mega-collab. papers excluded", fmt(s.mega_papers_excluded), `> ${DATA.meta.mega_threshold} authors`]]);
+  const mode = document.getElementById("auColor").value;
+  const ser = SER();
+  const commColor = c => c>=0 && c<8 ? ser[c] : css("--other");
+  const minW = +document.getElementById("auMinW").value;
+  const edgesW = a.vis.edges.filter(e => e[2] >= minW);
+  const linked = new Set(edgesW.flatMap(e => [e[0], e[1]]));
+  const nodes = a.vis.nodes.filter(n => (state.inst==="All" || n.inst===state.inst) && linked.has(n.id));
+  const keep = new Set(nodes.map(n=>n.id));
+  const topBtw = new Set(nodes.slice().sort((x,y)=>y.btw-x.btw).slice(0,25).map(n=>n.id));
+  const vn = nodes.map(n => ({id:n.id, label: topBtw.has(n.id) ? n.name : undefined, value:n.deg,
+    color:{background: mode==="inst" ? instColor(n.inst) : commColor(n.comm), border:css("--surface")},
+    font:{color:css("--ink-2"), size:11},
+    title:`${n.name} (${n.inst})\n${n.dept||""}\n${n.deg} faculty co-authors · ${n.papers} papers\ncommunity ${n.comm} · betweenness ${n.btw.toFixed(4)}`}));
+  const ve = edgesW.filter(([x,y])=>keep.has(x)&&keep.has(y)).map(([x,y,w])=>({from:x,to:y,value:w, title:`${w} joint papers`}));
+  if (auNet) auNet.destroy();
+  auNet = new vis.Network(document.getElementById("auNet"), {nodes:vn, edges:ve}, {
+    nodes:{shape:"dot", scaling:{min:6,max:30}, borderWidth:1.5},
+    edges:{color:{color:css("--muted"), opacity:.4}, scaling:{min:.6,max:6}, smooth:false},
+    physics:{solver:"forceAtlas2Based", stabilization:{iterations:300}, forceAtlas2Based:{gravitationalConstant:-45, springLength:80}},
+    interaction:{hover:true, tooltipDelay:80}});
+  auNet.once("stabilizationIterationsDone", () => auNet.setOptions({physics:false}));
+  document.getElementById("auLegend").innerHTML = mode==="inst"
+    ? INSTS.map(i=>`<span><i style="background:${instColor(i)}"></i>${i}</span>`).join("")
+    : a.communities.slice(0,8).map(c=>`<span><i style="background:${commColor(c.community)}"></i>C${c.community}: ${esc(c.top_departments.split(",")[0])} (${c.size})</span>`).join("") + `<span><i style="background:${css("--other")}"></i>other communities</span>`;
+  const filt = r => r.filter(x => state.inst==="All" || x.inst===state.inst);
+  table("auDeg", filt(a.top_degree), [{k:"name",t:"Faculty"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:v=>esc(short(v))},
+    {k:"n_faculty_coauthors",t:"Co-authors",n:1},{k:"degree_centrality",t:"Degree c.",n:1,f:v=>fmt(v,3)}]);
+  table("auBtw", filt(a.top_betweenness), [{k:"name",t:"Faculty"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:v=>esc(short(v))},
+    {k:"betweenness",t:"Betweenness",n:1,f:v=>fmt(v,4)},{k:"community",t:"Comm.",n:1}]);
+  table("auComm", a.communities, [{k:"community",t:"ID",n:1},{k:"size",t:"Size",n:1},{k:"insts",t:"Institutions"},{k:"top_departments",t:"Main departments"},{k:"key_members",t:"Key members"}]);
+  table("auHubs", filt(a.hubs), [{k:"name",t:"Faculty"},{k:"inst",t:"Inst."},{k:"n_partner_institutions",t:"Partner institutions",n:1},{k:"papers",t:"Papers",n:1}]);
+}
+document.getElementById("auColor").onchange = renderAuthorship;
+document.getElementById("auMinW").onchange = renderAuthorship;
+
+function renderConnectivity() {
+  const ci = instList().map(i=>DATA.connectivity[i]);
+  const allP = instList().flatMap(i=>DATA.connectivity[i].top_partners.map(p=>({...p, inst:i})));
+  const cross = allP.filter(p=>p.cross_cluster).length;
+  tiles("icTiles", [["Indian partner institutions", fmt(ci.reduce((a,c)=>a+c.n_partners,0)), "co-authored ≥1 paper"],
+    ["Top partner", allP.length ? short(allP.sort((a,b)=>b.shared_papers-a.shared_papers)[0].partner_inst) : "–"],
+    ["Cross-cluster partners", `${cross} of top ${allP.length}`, "cluster other than IISc/TIFR/IISER"]]);
+  const p = allP.slice().sort((a,b)=>b.shared_papers-a.shared_papers).slice(0,20).reverse();
+  plot("icPartners", [{type:"bar", orientation:"h", x:p.map(d=>d.shared_papers), y:p.map(d=>(state.inst==="All"?d.inst+" · ":"")+short(d.partner_inst)),
+    marker:{color:p.map(d=>instColor(d.inst))}, customdata:p.map(d=>d.partner_cluster), hovertemplate:"%{y}: %{x:,} papers (%{customdata})<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const cl = [...new Set(instList().flatMap(i=>Object.keys(DATA.connectivity[i].clusters)))];
+  plot("icClusters", instList().map(i=>({type:"bar", orientation:"h", y:cl, x:cl.map(c=>DATA.connectivity[i].clusters[c]||0), name:i, marker:{color:instColor(i)},
+    hovertemplate:`${i} · %{y}: %{x:,} shared papers<extra></extra>`})), {barmode:"group", margin:{l:8,r:16,t:8,b:36}});
+  table("icTable", allP, [{k:"inst",t:"Our inst."},{k:"partner_inst",t:"Partner"},{k:"partner_cluster",t:"Cluster"},
+    {k:"cross_cluster",t:"Cross-cluster",f:v=>v?"✔ yes":"no"},{k:"shared_papers",t:"Shared papers",n:1,f:v=>fmt(v)},
+    {k:"total_citations",t:"Citations of shared papers",n:1,f:v=>fmt(v)},{k:"citations_received_from_partner",t:"Cites in",n:1,f:v=>fmt(v)},
+    {k:"citations_given_to_partner",t:"Cites out",n:1,f:v=>fmt(v)},{k:"topic_jaccard",t:"Jaccard",n:1,f:v=>fmt(v,2)},{k:"topic_weighted_jaccard",t:"Weighted J.",n:1,f:v=>fmt(v,2)}], {sort:"shared_papers"});
+  const clusters = [...new Set(instList().flatMap(i=>Object.keys(DATA.flows[i].clusters)))];
+  const tr = [];
+  instList().forEach(i => { tr.push({type:"bar", x:clusters, y:clusters.map(c=>(DATA.flows[i].clusters[c]||{}).inflow||0), name:`${i} in`, marker:{color:instColor(i)}});
+    tr.push({type:"bar", x:clusters, y:clusters.map(c=>(DATA.flows[i].clusters[c]||{}).outflow||0), name:`${i} out`, marker:{color:instColor(i), pattern:{shape:"/", fgcolor:css("--surface")}}}); });
+  plot("icFlowCl", tr, {barmode:"group", margin:{l:48,r:16,t:8,b:90}});
+  const jac = instList().flatMap(i=>DATA.connectivity[i].jaccard.map(j=>({...j, inst:i}))).sort((a,b)=>b.topic_weighted_jaccard-a.topic_weighted_jaccard).slice(0,15);
+  table("icJac", jac, [{k:"inst",t:"Our inst."},{k:"partner_inst",t:"Partner"},{k:"partner_cluster",t:"Cluster"},{k:"topic_weighted_jaccard",t:"Weighted J.",n:1,f:v=>fmt(v,2)},{k:"topic_jaccard",t:"Jaccard",n:1,f:v=>fmt(v,2)}]);
+}
+
+function renderMethod() {
+  const m = DATA.meta;
+  document.getElementById("method").innerHTML = `
+  <h3>Data &amp; method</h3>
+  <ul>
+   <li><b>Source:</b> OpenAlex (works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}; types article, review, letter, book chapter). Generated ${esc(m.generated)}. ${fmt(m.n_papers)} unique papers, ${fmt(m.n_rows)} dataset rows.</li>
+   <li><b>Faculty:</b> official rosters (IISc Directory 2025-26: ${m.roster_size.IISc}; TIFR department pages: ${m.roster_size.TIFR}) matched to OpenAlex author IDs by name. Former faculty who left before the rosters were compiled are added by a heuristic (≥8 papers over ≥4 years, ≥30% as last or corresponding author). Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
+   <li><b>TIFR scope:</b> TIFR Mumbai only. OpenAlex often tags authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) with the main TIFR ID; such authorships are recognised from their affiliation text and excluded (NCBS belongs to Group 23).</li>
+   <li><b>Long author lists:</b> OpenAlex lists at most 100 authors per work, so on some mega-collaboration papers our authors are not visible; those papers are kept (the institution query matched them) with author "[not listed]".</li>
+   <li><b>Departments:</b> roster department; for heuristic faculty, the most frequent department parsed from OpenAlex raw affiliation strings.</li>
+   <li><b>Quartile:</b> SCImago SJR best quartile of the journal in the publication year (2026 papers use SJR 2025). Conference rank: CORE 2023 (matched by acronym or title).</li>
+   <li><b>h-index:</b> per faculty from their 2016–2026 papers at the institution; "career h" = OpenAlex lifetime h-index.</li>
+   <li><b>Citation network:</b> nodes = papers in the IISc+TIFR corpus, edges = OpenAlex referenced_works within the corpus; PageRank α = 0.85. Cross-institute edges to/from other Indian institutions (works with ≥1 Indian affiliation that do not involve the same institution) are in citation_network.csv only.</li>
+   <li><b>Authorship network:</b> nodes = faculty, edges = co-authored papers; papers with &gt; ${m.mega_threshold} authors (CMS, ALICE, Belle, …) are excluded. Louvain communities (seed 42), degree and betweenness centrality via NetworkX.</li>
+   <li><b>Indian connectivity:</b> partner institutions = Indian (country code IN) institutions in the authorships; clusters follow the course PPT (IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University) plus other categories.</li>
+  </ul>
+  ${m.flows_available ? "" : "<p><b>Note:</b> citation flows with other Indian institutions have not been fetched yet (they need an OpenAlex API key). Flow numbers currently only cover IISc↔TIFR citations within the corpus.</p>"}`;
+}
+
+const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Faculty":renderFaculty,"Journals":renderJournals,
+  "Research areas":renderAreas,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
+
+function render() {
+  try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}
+  document.querySelectorAll("#instSeg button").forEach(b=>b.classList.toggle("on", b.dataset.i===state.inst));
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.t===state.tab));
+  document.querySelectorAll(".tab").forEach(s=>s.classList.toggle("on", s.dataset.tab===state.tab));
+  RENDER[state.tab]();
+}
+document.getElementById("instSeg").innerHTML = ["All",...INSTS].map(i=>`<button data-i="${i}">${i==="All"?"Both":i}</button>`).join("");
+document.getElementById("instSeg").onclick = e => { if (e.target.dataset.i) { state.inst = e.target.dataset.i; render(); } };
+document.getElementById("nav").innerHTML = TABS.map(t=>`<button data-t="${t}">${t}</button>`).join("");
+document.getElementById("nav").onclick = e => { if (e.target.dataset.t) { state.tab = e.target.dataset.t; render(); } };
+document.getElementById("themeBtn").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = cur==="dark" ? "light" : "dark"; render();
+};
+document.getElementById("subtitle").textContent = `DPCN Research Mapping Project · Group ${DATA.meta.group} · data generated ${DATA.meta.generated}`;
+if (DATA.meta.sample) document.getElementById("banner").innerHTML = `<div class="banner"><b>Test sample:</b> this dashboard was built from a small sample, not the full dataset.</div>`;
+if (!TABS.includes(state.tab)) state.tab = "Overview";
+render();
+</script>
+</body>
+</html>

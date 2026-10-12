@@ -1,0 +1,11 @@
+person,name,inst,department,papers,n_faculty_coauthors,joint_papers,degree_centrality,betweenness,community,n_partner_institutions
+R:IISc:141,Ambarish Ghosh,IISc,Centre for Nano Science and Engineering,185,38,122,0.0454,0.063686,2,28
+R:IISc:75,Chakravortty Dipshikha,IISc,Microbiology and Cell Biology,121,28,94,0.033453,0.043905,0,35
+R:IISc:84,Chattopadhyay K,IISc,Materials Engineering,164,30,178,0.035842,0.035908,3,33
+R:IISc:45,Amrutur Bharadwaj,IISc,Robert Bosch Centre for Cyber Physical Systems,44,16,34,0.019116,0.033517,1,11
+R:TIFR:627,A Thamizhavel,TIFR,Condensed Matter Physics and Materials Science,178,14,96,0.016726,0.033199,8,44
+R:IISc:241,Prabal Kumar Maiti,IISc,Physics,154,23,63,0.027479,0.032919,2,37
+R:IISc:227,Pramod Kumar,IISc,Interdisciplinary Centre for Energy Research,126,16,58,0.019116,0.029775,5,22
+R:IISc:56,Chiranjib Bhattacharyya,IISc,Computer Science and Automation,30,8,9,0.009558,0.028875,1,10
+R:IISc:323,Rudra Pratap,IISc,Centre for Nano Science and Engineering,110,23,89,0.027479,0.028858,11,18
+R:IISc:152,Jagadeesh Gopalan,IISc,Aerospace Engineering,127,21,82,0.02509,0.028173,5,24
