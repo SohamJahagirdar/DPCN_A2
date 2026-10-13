@@ -105,6 +105,16 @@ def compute_stats(t, nets):
         st["inst"][inst] = inst_block(p, fac, inst)
         st["inst"][inst]["kpis"]["shared_with_other"] = int(papers["homes"].str.contains(";").sum())
 
+    # Instructor's flag: every paper with more than 10 co-authors, with our faculty authors on it
+    ds = t["dataset"]
+    fac_names = (ds[ds["is_faculty"]].groupby("openalex_work_id")["author"]
+                 .agg(lambda s: "; ".join(dict.fromkeys(s))))
+    fl = papers[papers["many_authors"]].sort_values(["citations", "year"], ascending=False).copy()
+    fl["faculty_authors"] = fl["work_id"].map(fac_names).fillna("")
+    fl["title"] = fl["title"].fillna("").str.slice(0, 220)
+    st["flagged"] = records(fl, ["title", "year", "homes", "venue", "venue_type", "n_authors", "n_coauthors",
+                                 "is_mega", "citations", "field", "faculty_authors", "doi"])
+
     st["faculty"] = records(fac.sort_values("papers", ascending=False),
                             ["name", "inst", "department", "designation", "papers", "citations", "h_index",
                              "h_index_nonmega", "h_index_career", "papers_coauthors_gt_10", "q1_share", "top_journal", "first_year",

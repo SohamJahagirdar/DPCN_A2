@@ -81,7 +81,7 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
    - Partner institutes are ranked by shared papers.
    - Each is assigned a cluster following the course PPT: IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University, plus Other DAE, Govt R&D, Medical, Industry and other universities. Partners outside our own cluster are flagged as cross-cluster.
    - Topic similarity is Jaccard on OpenAlex subfield profiles. We report two versions: binary (presence of a subfield) and weighted by share of output.
-10. **Co-author flag:** papers with more than 10 co-authors are flagged (`coauthors_gt_10`), as requested by the instructor.
+10. **Co-author flag:** papers with more than 10 co-authors are flagged (`coauthors_gt_10`), as requested by the instructor. The dashboard's **Flagged papers** tab lists all of them (searchable, filterable, with a CSV download).
 11. **Statistics and dashboard** (`pipeline/stats.py`, `pipeline/dashboard.py`): all metrics go into one self-contained HTML file. The data and the chart libraries (Plotly, vis-network) are embedded, so the file works fully offline and can be sent as a single attachment. It has 9 tabs, an IISc / TIFR / Both switch, and light and dark mode.
 
 ### 3.3 Headline numbers

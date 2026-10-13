@@ -120,6 +120,22 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="Flagged papers">
+    <div class="tiles" id="flTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Papers with more than 10 co-authors</h3>
+        <div class="hint">Flag requested by the instructor: papers with more than 10 co-authors (12 or more authors), column <code>coauthors_gt_10</code> in group18_data.csv. Use the IISc / TIFR / Both switch above; click a column to sort.</div>
+        <div class="row">
+          <input type="search" id="flSearch" placeholder="Search title, journal, faculty, field…" size="36">
+          <select id="flSize"><option value="">All sizes</option><option value="s">11–20 co-authors</option><option value="m">21–50 co-authors</option><option value="l">More than 50 co-authors</option></select>
+          <select id="flYear"></select>
+          <span class="pill" id="flCount"></span>
+          <button class="iconbtn" id="flDownload">Download CSV</button>
+        </div>
+        <div id="flTable" class="tablewrap" style="max-height:640px"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Faculty">
     <div class="grid">
       <div class="card c12"><h3>Faculty performance</h3>
@@ -195,7 +211,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
 <script>
 const DATA = /*__DATA__*/null;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Flagged papers","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -256,8 +272,9 @@ function renderOverview() {
     ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
     ["Faculty with papers", fmt(k.faculty), ""],
     ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
-    ["Papers with > 10 co-authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers (flagged)`],
+    ["Papers with > 10 co-authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers · <a href="#" id="toFlagged">see the list →</a>`],
   ]);
+  document.getElementById("toFlagged").onclick = e => { e.preventDefault(); state.tab = "Flagged papers"; render(); window.scrollTo(0,0); };
   const yrs = DATA.inst.All.trend.years;
   plot("ovTrend", instList().map(i => ({x:yrs, y:DATA.inst[i].trend.total, name:i, type:"scatter", mode:"lines+markers",
     line:{width:2,color:instColor(i)}, marker:{size:8,color:instColor(i),line:{width:2,color:css("--surface")}},
@@ -487,7 +504,54 @@ function renderMethod() {
   ${m.flows_available ? "" : "<p><b>Note:</b> citation flows with other Indian institutions have not been fetched yet (they need an OpenAlex API key). Flow numbers currently only cover IISc↔TIFR citations within the corpus.</p>"}`;
 }
 
-const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Faculty":renderFaculty,"Journals":renderJournals,
+function flaggedRows() {
+  return DATA.flagged.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
+}
+function renderFlagged() {
+  const all = flaggedRows();
+  const k = B().kpis;
+  const med = arr => { const s = arr.slice().sort((a,b)=>a-b); return s.length ? s[Math.floor(s.length/2)] : null; };
+  tiles("flTiles", [
+    ["Flagged papers", fmt(all.length), `${pct(k.many_author_share)} of all papers`],
+    ["11–50 co-authors", fmt(all.filter(r=>r.n_coauthors<=50).length), "large teams"],
+    ["More than 50 co-authors", fmt(all.filter(r=>r.n_coauthors>50).length), "mega-collaborations (CMS, ALICE, …)"],
+    ["Median co-authors", fmt(med(all.map(r=>r.n_coauthors))), "among flagged papers"],
+    ["Citations of flagged papers", fmt(all.reduce((a,r)=>a+(r.citations||0),0)), `mean ${fmt(all.length ? all.reduce((a,r)=>a+(r.citations||0),0)/all.length : 0,1)} per paper`],
+  ]);
+  const ys = document.getElementById("flYear"), prevY = ys.value;
+  ys.innerHTML = `<option value="">All years</option>` + DATA.inst.All.trend.years.map(y=>`<option>${y}</option>`).join("");
+  ys.value = prevY;
+  const filt = () => {
+    const q = document.getElementById("flSearch").value.toLowerCase(), sz = document.getElementById("flSize").value, y = ys.value;
+    return all.filter(r => (!y || String(r.year)===y)
+      && (!sz || (sz==="s" && r.n_coauthors<=20) || (sz==="m" && r.n_coauthors>20 && r.n_coauthors<=50) || (sz==="l" && r.n_coauthors>50))
+      && (!q || [r.title, r.venue, r.faculty_authors, r.field].join(" ").toLowerCase().includes(q)));
+  };
+  const draw = () => {
+    const rows = filt();
+    document.getElementById("flCount").textContent = `${fmt(rows.length)} papers`;
+    table("flTable", rows, [{k:"title",t:"Title",f:v=>esc(v)},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
+      {k:"venue",t:"Journal / conference",f:v=>esc(short(v))},
+      {k:"n_coauthors",t:"Co-authors",n:1,f:(v,r)=>r.n_authors>=100?"99+":fmt(v)},
+      {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"faculty_authors",t:"Our faculty",f:v=>esc(v)},
+      {k:"field",t:"Field",f:v=>esc(v)},{k:"doi",t:"",f:doiLink}], {sort:"citations"});
+  };
+  document.getElementById("flSearch").oninput = draw;
+  document.getElementById("flSize").onchange = draw;
+  ys.onchange = draw;
+  document.getElementById("flDownload").onclick = () => {
+    const cols = ["title","year","homes","venue","venue_type","n_authors","n_coauthors","citations","field","faculty_authors","doi"];
+    const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+    const csv = [cols.join(","), ...filt().map(r => cols.map(c => q(r[c])).join(","))].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], {type:"text/csv"}));
+    a.download = `group18_flagged_coauthors_gt10_${state.inst}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  draw();
+}
+
+const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Flagged papers":renderFlagged,"Faculty":renderFaculty,"Journals":renderJournals,
   "Research areas":renderAreas,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
