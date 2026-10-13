@@ -103,7 +103,8 @@ def build_networks(t):
     papers["in_degree"] = pd.Series(dict(G.in_degree()))
     papers["out_degree"] = pd.Series(dict(G.out_degree()))
     papers["pagerank"] = pd.Series(pr)
-    papers[["work_id", "doi", "title", "year", "homes", "venue", "citations", "in_degree", "out_degree", "pagerank"]] \
+    papers[["work_id", "doi", "title", "year", "homes", "venue", "citations", "n_authors", "n_coauthors",
+            "many_authors", "in_degree", "out_degree", "pagerank"]].rename(columns={"many_authors": "coauthors_gt_10"}) \
         .sort_values("pagerank", ascending=False).to_csv(config.OUTPUTS / "citation_paper_metrics.csv",
                                                          index=False, encoding="utf-8")
     wcc = sorted((len(c) for c in nx.weakly_connected_components(G)), reverse=True) if len(G) else [0]
@@ -199,6 +200,7 @@ def build_networks(t):
             continue
         others = g[(g["own_insts"] == "") & (g["indian_inst_ids"] != "")]
         doi, year = papers.at[wid, "doi"], papers.at[wid, "year"]
+        n_auth_w = int(papers.at[wid, "n_authors"])
 
         def lab(r):
             if r.own_insts:
@@ -212,12 +214,14 @@ def build_networks(t):
         orows = list(own.itertuples())
         for a, b in itertools.combinations(orows, 2):
             arows.append((nm(a), nm(b), doi, lab(a), lab(b), year, a.author_id, b.author_id,
-                          lab(a) != lab(b), wid))
+                          lab(a) != lab(b), wid, n_auth_w, n_auth_w - 1 > config.COAUTHOR_FLAG_THRESHOLD))
         for a in orows:
             for b in others.itertuples():
-                arows.append((nm(a), nm(b), doi, lab(a), lab(b), year, a.author_id, b.author_id, True, wid))
+                arows.append((nm(a), nm(b), doi, lab(a), lab(b), year, a.author_id, b.author_id, True, wid,
+                              n_auth_w, n_auth_w - 1 > config.COAUTHOR_FLAG_THRESHOLD))
     am = pd.DataFrame(arows, columns=["author_a", "author_b", "paper_doi", "inst_a", "inst_b", "year",
-                                      "author_a_id", "author_b_id", "cross_institution", "work_id"])
+                                      "author_a_id", "author_b_id", "cross_institution", "work_id",
+                                      "paper_n_authors", "paper_coauthors_gt_10"])
     am.to_csv(config.OUTPUTS / "authorship_network.csv", index=False, encoding="utf-8")
     print(f"[networks] authorship_network.csv: {len(am)} co-authorship edges "
           f"({am['cross_institution'].sum()} cross-institution); mega-collaboration papers "

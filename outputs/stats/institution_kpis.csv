@@ -1,4 +1,4 @@
-institution,papers,citations,mean_citations,h_index,journal_papers,conference_papers,q1_share_journals,q1_share_all,quartile_coverage,faculty,mega_papers,with_indian_coauthor,median_fwci,shared_with_other
-IISc,35819,610269,17.037578,217,26600,7173,0.690437,0.490606,0.956842,692,763,0.403222,0.7112,845
-TIFR,7648,158344,20.703975,145,6211,1034,0.712181,0.562631,0.97279,146,1335,0.442076,0.63365,845
-All,42622,737911,17.312914,237,32019,8187,0.694946,0.500657,0.958993,838,1423,0.408897,0.6821,845
+institution,papers,citations,mean_citations,h_index,journal_papers,conference_papers,q1_share_journals,q1_share_all,quartile_coverage,faculty,mega_papers,many_author_papers,many_author_share,with_indian_coauthor,median_fwci,shared_with_other
+IISc,35819,610269,17.037578,217,26600,7173,0.690437,0.490606,0.956842,692,763,1935,0.054022,0.403222,0.7112,845
+TIFR,7648,158344,20.703975,145,6211,1034,0.712181,0.562631,0.97279,146,1335,2122,0.277458,0.442076,0.63365,845
+All,42622,737911,17.312914,237,32019,8187,0.694946,0.500657,0.958993,838,1423,3363,0.078903,0.408897,0.6821,845

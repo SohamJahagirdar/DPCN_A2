@@ -51,6 +51,10 @@ TIFR_CENTRE_PATTERN = (r"national cent(er|re) for biological|\bncbs\b|radio astr
 # network and from faculty seniority heuristics.
 MEGA_AUTHOR_THRESHOLD = 50
 
+# Instructor request (13 Oct 2026): "flag those papers having co-authors greater than 10".
+# n_coauthors = n_authors - 1 (co-authors of any one author); flag = n_coauthors > 10, i.e. >= 12 authors.
+COAUTHOR_FLAG_THRESHOLD = 10
+
 # Faculty heuristic thresholds (used only when no official roster match exists)
 FACULTY_MIN_PAPERS = 8
 FACULTY_MIN_YEARS = 4

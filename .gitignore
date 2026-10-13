@@ -26,3 +26,6 @@ report/
 __pycache__/
 *.pyc
 .vscode/
+
+# downloaded JS libraries (embedded into the dashboard at build time)
+data/external/vendor/

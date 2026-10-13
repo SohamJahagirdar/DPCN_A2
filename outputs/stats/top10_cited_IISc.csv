@@ -1,11 +1,11 @@
-title,venue,year,citations,doi,homes
-Guidelines for the use and interpretation of assays for monitoring autophagy (3rd edition),Autophagy,2016,5860,https://doi.org/10.1080/15548627.2015.1100356,IISc
-Earth beyond six of nine planetary boundaries,Science Advances,2023,3199,https://doi.org/10.1126/sciadv.adh2458,IISc
-The complete sequence of a human genome,Science,2022,3065,https://doi.org/10.1126/science.abj6987,IISc
-China and India lead in greening of the world through land-use management,Nature Sustainability,2019,2962,https://doi.org/10.1038/s41893-019-0220-7,IISc
-Guidelines for the use and interpretation of assays for monitoring autophagy (4th edition) 1,Autophagy,2021,2611,https://doi.org/10.1080/15548627.2020.1797280,IISc
-Importance and vulnerability of the world’s water towers,Nature,2019,2103,https://doi.org/10.1038/s41586-019-1822-y,IISc
-"Multiancestry genome-wide association study of 520,000 subjects identifies 32 loci associated with stroke and stroke subtypes",Nature Genetics,2018,1606,https://doi.org/10.1038/s41588-018-0058-3,IISc
-Safe and just Earth system boundaries,Nature,2023,1385,https://doi.org/10.1038/s41586-023-06083-8,IISc
-Genetic analysis of over 1 million people identifies 535 new loci associated with blood pressure traits,Nature Genetics,2018,1379,https://doi.org/10.1038/s41588-018-0205-x,IISc
-Guided wave based structural health monitoring: A review,Smart Materials and Structures,2016,1043,https://doi.org/10.1088/0964-1726/25/5/053001,IISc
+title,venue,year,citations,doi,homes,n_authors,n_coauthors,many_authors
+Guidelines for the use and interpretation of assays for monitoring autophagy (3rd edition),Autophagy,2016,5860,https://doi.org/10.1080/15548627.2015.1100356,IISc,100,99,True
+Earth beyond six of nine planetary boundaries,Science Advances,2023,3199,https://doi.org/10.1126/sciadv.adh2458,IISc,29,28,True
+The complete sequence of a human genome,Science,2022,3065,https://doi.org/10.1126/science.abj6987,IISc,100,99,True
+China and India lead in greening of the world through land-use management,Nature Sustainability,2019,2962,https://doi.org/10.1038/s41893-019-0220-7,IISc,15,14,True
+Guidelines for the use and interpretation of assays for monitoring autophagy (4th edition) 1,Autophagy,2021,2611,https://doi.org/10.1080/15548627.2020.1797280,IISc,100,99,True
+Importance and vulnerability of the world’s water towers,Nature,2019,2103,https://doi.org/10.1038/s41586-019-1822-y,IISc,32,31,True
+"Multiancestry genome-wide association study of 520,000 subjects identifies 32 loci associated with stroke and stroke subtypes",Nature Genetics,2018,1606,https://doi.org/10.1038/s41588-018-0058-3,IISc,100,99,True
+Safe and just Earth system boundaries,Nature,2023,1385,https://doi.org/10.1038/s41586-023-06083-8,IISc,51,50,True
+Genetic analysis of over 1 million people identifies 535 new loci associated with blood pressure traits,Nature Genetics,2018,1379,https://doi.org/10.1038/s41588-018-0205-x,IISc,100,99,True
+Guided wave based structural health monitoring: A review,Smart Materials and Structures,2016,1043,https://doi.org/10.1088/0964-1726/25/5/053001,IISc,2,1,False

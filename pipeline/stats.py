@@ -59,6 +59,8 @@ def inst_block(p, fac, inst):
                   q1_share_all=float((jq == "Q1").sum() / len(p)) if len(p) else None,
                   quartile_coverage=float(jq.notna().mean()) if len(jr) else None,
                   faculty=int(len(f)), mega_papers=int(p["is_mega"].sum()),
+                  many_author_papers=int(p["many_authors"].sum()),
+                  many_author_share=float(p["many_authors"].mean()) if len(p) else 0,
                   with_indian_coauthor=float(p["indian_inst_ids"].map(
                       lambda x: bool(set(filter(None, x.split(";"))) - own)).mean()) if len(p) else 0,
                   median_fwci=float(p["fwci"].median()) if p["fwci"].notna().any() else None),
@@ -69,7 +71,15 @@ def inst_block(p, fac, inst):
         quartile_by_year=dict(years=years, **{k: qyear[k].tolist() for k in qyear.columns}),
         core=conf["core_rank"].fillna("Unranked").value_counts().to_dict(),
         top_journals=records(topj),
-        most_cited=records(most, ["title", "venue", "year", "citations", "doi", "homes"]),
+        most_cited=records(most, ["title", "venue", "year", "citations", "doi", "homes", "n_authors", "n_coauthors",
+                                  "many_authors"]),
+        many_authors_by_year=dict(years=years,
+                                  many=p[p["many_authors"]].groupby("year").size().reindex(years, fill_value=0).tolist(),
+                                  few=p[~p["many_authors"]].groupby("year").size().reindex(years, fill_value=0).tolist(),
+                                  citations_many=p[p["many_authors"]].groupby("year")["citations"].mean()
+                                  .reindex(years).tolist(),
+                                  citations_few=p[~p["many_authors"]].groupby("year")["citations"].mean()
+                                  .reindex(years).tolist()),
         fields=p["field"].fillna("Unknown").value_counts().to_dict(),
         domains=p["domain"].fillna("Unknown").value_counts().to_dict(),
         subfields=p["subfield"].fillna("Unknown").value_counts().head(20).to_dict(),
@@ -97,7 +107,7 @@ def compute_stats(t, nets):
 
     st["faculty"] = records(fac.sort_values("papers", ascending=False),
                             ["name", "inst", "department", "designation", "papers", "citations", "h_index",
-                             "h_index_nonmega", "h_index_career", "q1_share", "top_journal", "first_year",
+                             "h_index_nonmega", "h_index_career", "papers_coauthors_gt_10", "q1_share", "top_journal", "first_year",
                              "last_year", "faculty_source", "orcid"]
                             if "h_index_nonmega" in fac else None)
 

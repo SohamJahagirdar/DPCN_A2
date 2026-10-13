@@ -113,6 +113,8 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
       <div class="card c12"><h3>Publication trend by venue type</h3><div class="hint">Papers per year, 2016–2026 (2026 is a partial year)</div><div id="pubTrend" class="plot"></div></div>
       <div class="card c6"><h3>Quartile mix by year</h3><div class="hint">Journal papers per year by SJR quartile</div><div id="pubQYear" class="plot"></div></div>
       <div class="card c6"><h3>Citations received, by publication year</h3><div class="hint">Total OpenAlex citations of papers published in each year (older papers have had longer to accrue citations)</div><div id="pubCites" class="plot"></div></div>
+      <div class="card c6"><h3>Papers with more than 10 co-authors (flagged)</h3><div class="hint">Instructor's flag: papers per year with &gt; 10 co-authors (12 or more authors) vs ≤ 10 co-authors. Dataset column <code>coauthors_gt_10</code>.</div><div id="pubMany" class="plot"></div></div>
+      <div class="card c6"><h3>Mean citations: &gt; 10 vs ≤ 10 co-authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
       <div class="card c6"><h3>Conference rank (CORE 2023)</h3><div class="hint">Conference papers only</div><div id="pubCore" class="plot"></div></div>
       <div class="card c6"><h3>Most-cited papers (top 10)</h3><div class="hint">Citation count at collection date</div><div id="pubTop" class="tablewrap"></div></div>
     </div>
@@ -254,6 +256,7 @@ function renderOverview() {
     ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
     ["Faculty with papers", fmt(k.faculty), ""],
     ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
+    ["Papers with > 10 co-authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers (flagged)`],
   ]);
   const yrs = DATA.inst.All.trend.years;
   plot("ovTrend", instList().map(i => ({x:yrs, y:DATA.inst[i].trend.total, name:i, type:"scatter", mode:"lines+markers",
@@ -288,11 +291,21 @@ function renderPublications() {
     marker:{color:css(c), line:{color:css("--surface"),width:1}}, hovertemplate:`${k} %{x}: %{y:,}<extra></extra>`})), {barmode:"stack", hovermode:"x unified"});
   plot("pubCites", instList().map(i => ({type:"bar", x:t.years, y:DATA.inst[i].trend.citations, name:i, marker:{color:instColor(i)},
     hovertemplate:`${i} %{x}: %{y:,} citations<extra></extra>`})), {barmode:"group"});
+  const m = B().many_authors_by_year;
+  plot("pubMany", [
+    {type:"bar", x:m.years, y:m.few, name:"≤ 10 co-authors", marker:{color:css("--s1")}, hovertemplate:"≤ 10 co-authors %{x}: %{y:,}<extra></extra>"},
+    {type:"bar", x:m.years, y:m.many, name:"> 10 co-authors (flagged)", marker:{color:css("--s2")}, hovertemplate:"> 10 co-authors %{x}: %{y:,}<extra></extra>"}],
+    {barmode:"stack", hovermode:"x unified"});
+  plot("pubManyCit", [
+    {x:m.years, y:m.citations_few, name:"≤ 10 co-authors", mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
+    {x:m.years, y:m.citations_many, name:"> 10 co-authors", mode:"lines+markers", line:{width:2,color:css("--s2")}, marker:{size:8,symbol:"diamond"}}],
+    {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
   const ranks = ["A*","A","B","C","Unranked"], c = B().core;
   plot("pubCore", [{type:"bar", x:ranks, y:ranks.map(r=>c[r]||0), marker:{color:ranks.map(r=>r==="Unranked"?css("--qna"):css("--s1"))},
     hovertemplate:"CORE %{x}: %{y:,} papers<extra></extra>"}], {});
   table("pubTop", B().most_cited, [{k:"title",t:"Title",f:(v)=>esc(short(v))},{k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},
-    {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"homes",t:"Inst."},{k:"doi",t:"",f:doiLink}]);
+    {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"homes",t:"Inst."},
+    {k:"n_coauthors",t:"Co-authors",n:1,f:(v,r)=>`${r.n_authors>=100?'99+':fmt(v)}${r.many_authors?' <span class="pill">flag &gt;10</span>':''}`},{k:"doi",t:"",f:doiLink}]);
 }
 
 function renderFaculty() {
@@ -308,7 +321,7 @@ function renderFaculty() {
     document.getElementById("facCount").textContent = `${rows.length} faculty`;
     table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department"},
       {k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"h_index",t:"h-index",n:1},
-      {k:"h_index_career",t:"Career h",n:1},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
+      {k:"h_index_career",t:"Career h",n:1},{k:"papers_coauthors_gt_10",t:"Papers >10 co-authors",n:1,f:v=>fmt(v)},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
       {k:"faculty_source",t:"Source",f:v=>`<span class="pill">${esc(v)}</span>`}], {sort:"papers"});
   };
   document.getElementById("facSearch").oninput = draw; sel.onchange = draw; draw();
@@ -463,6 +476,7 @@ function renderMethod() {
    <li><b>Faculty:</b> official rosters (IISc Directory 2025-26: ${m.roster_size.IISc}; TIFR department pages: ${m.roster_size.TIFR}) matched to OpenAlex author IDs by name. Former faculty who left before the rosters were compiled are added by a heuristic (≥8 papers over ≥4 years, ≥30% as last or corresponding author). Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
    <li><b>TIFR scope:</b> TIFR Mumbai only. OpenAlex often tags authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) with the main TIFR ID; such authorships are recognised from their affiliation text and excluded (NCBS belongs to Group 23).</li>
    <li><b>Long author lists:</b> OpenAlex lists at most 100 authors per work, so on some mega-collaboration papers our authors are not visible; those papers are kept (the institution query matched them) with author "[not listed]".</li>
+   <li><b>Co-author flag (instructor's request):</b> <code>coauthors_gt_10</code> = TRUE when a paper has more than 10 co-authors, i.e. <code>n_coauthors = n_authors − 1 &gt; 10</code> (12 or more authors). It appears in group18_data.csv, authorship_network.csv and citation_paper_metrics.csv; flagged papers are still counted everywhere.</li>
    <li><b>Departments:</b> roster department; for heuristic faculty, the most frequent department parsed from OpenAlex raw affiliation strings.</li>
    <li><b>Quartile:</b> SCImago SJR best quartile of the journal in the publication year (2026 papers use SJR 2025). Conference rank: CORE 2023 (matched by acronym or title).</li>
    <li><b>h-index:</b> per faculty from their 2016–2026 papers at the institution; "career h" = OpenAlex lifetime h-index.</li>
