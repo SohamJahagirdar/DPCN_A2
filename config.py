@@ -51,9 +51,9 @@ TIFR_CENTRE_PATTERN = (r"national cent(er|re) for biological|\bncbs\b|radio astr
 # network and from faculty seniority heuristics.
 MEGA_AUTHOR_THRESHOLD = 50
 
-# Instructor request (13 Oct 2026): "flag those papers having co-authors greater than 10".
-# n_coauthors = n_authors - 1 (co-authors of any one author); flag = n_coauthors > 10, i.e. >= 12 authors.
-COAUTHOR_FLAG_THRESHOLD = 10
+# Instructor's flag (updated 15 Oct 2026): papers with more than 12 authors (column authors_gt_12),
+# i.e. 13 or more authors - papers with 11 or 12 authors are common and are not flagged.
+AUTHOR_FLAG_THRESHOLD = 12
 
 # Faculty heuristic thresholds (used only when no official roster match exists)
 FACULTY_MIN_PAPERS = 8

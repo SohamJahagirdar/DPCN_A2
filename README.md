@@ -42,9 +42,9 @@ Supporting outputs:
 ### Columns of `group18_data.csv`
 **Required columns:** `group, institution, author, title, year, type, journal_name, issn, doi, citations, quartile, coauthor_institutes, cites_indian_inst, cited_by_indian_inst`
 
-**Extra columns we added:** `n_coauthors, coauthors_gt_10, is_faculty, department, author_openalex_id, openalex_work_id, sjr_quartile, core_rank, field, subfield, domain, n_authors, mega_collaboration, n_refs_to_indian_inst, n_cites_from_indian_inst, openalex_type`
+**Extra columns we added:** `n_authors, authors_gt_12, is_faculty, department, author_openalex_id, openalex_work_id, sjr_quartile, core_rank, field, subfield, domain, mega_collaboration, n_refs_to_indian_inst, n_cites_from_indian_inst, openalex_type`
 
-**`coauthors_gt_10`** (requested by the instructor) is TRUE when the paper has **more than 10 co-authors**, i.e. `n_coauthors = n_authors − 1 > 10` (12 or more authors). The same flag is in `authorship_network.csv` (`paper_coauthors_gt_10`) and `citation_paper_metrics.csv`. `n_authors` is capped at 100 because OpenAlex lists at most 100 authors per paper, so 100 means 100 or more.
+**`authors_gt_12`** (requested by the instructor) is TRUE when the paper has **more than 12 authors** (13 or more; papers with 11–12 authors are common and are not flagged). The same flag is in `authorship_network.csv` (`paper_authors_gt_12`) and `citation_paper_metrics.csv`. `n_authors` is the full author count (from single-work lookups where the list API truncated it at 100).
 
 ---
 
@@ -82,7 +82,7 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
    - Each is assigned a cluster following the course PPT: IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University, plus Other DAE, Govt R&D, Medical, Industry and other universities. Partners outside our own cluster are flagged as cross-cluster.
    - Topic similarity is Jaccard on OpenAlex subfield profiles, computed for every partner with at least 10 shared papers. We report two versions: binary (presence of a subfield) and weighted by share of output.
    - Shared papers are given both with and without mega-collaborations (`shared_papers`, `shared_papers_excl_mega`).
-10. **Co-author flag:** papers with more than 10 co-authors are flagged (`coauthors_gt_10`), as requested by the instructor. The dashboard's **Flagged papers** tab lists all of them (searchable, filterable, with a CSV download).
+10. **Large-team flag:** papers with more than 12 authors are flagged (`authors_gt_12`), as requested by the instructor. The dashboard's **Flagged papers** tab lists all of them (searchable, filterable, with a CSV download).
 11. **Statistics and dashboard** (`pipeline/stats.py`, `pipeline/dashboard.py`): all metrics go into one self-contained HTML file. The data and the chart libraries (Plotly, vis-network) are embedded, so the file works fully offline and can be sent as a single attachment. It has 9 tabs, an IISc / TIFR / Both switch, and light and dark mode.
 
 ### 3.3 Headline numbers
@@ -96,7 +96,7 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
 | Institutional h-index (2016–2026 papers) | 217 | 162 | 247 |
 | Q1 share of journal papers (SJR) | 69.0% | 71.7% | 69.6% |
 | Faculty with papers | 720 | 159 | 879 |
-| Papers with more than 10 co-authors (flag `coauthors_gt_10`) | 1,935 (5.4%) | 2,226 (28.7%) | 3,467 (8.1%) |
+| Papers with more than 12 authors (flag `authors_gt_12`) | 1,698 (4.7%) | 2,112 (27.2%) | 3,119 (7.3%) |
 | Mega-collaboration papers (> 50 authors) | 763 | 1,439 | 1,527 |
 | Papers with a co-author from another Indian institute | 42.0% | 56.3% | 43.1% |
 | Citations from other Indian institutes (in-flow links) | 106,000 | 12,408 | — |
@@ -158,7 +158,7 @@ These are the definitions we chose where the instruction note leaves room for in
 | Publication types | Journal article, review, letter, book chapter, conference paper. arXiv-only preprints are excluded. | Counts peer-reviewed output only and avoids double counting with published versions. |
 | Faculty | Official 2025-26 rosters, plus former faculty identified by a publication rule (§3.2). | The rosters are current lists, but the study covers 2016–2026. |
 | Dataset rows | One row per paper × institution × faculty author. Papers without a matched faculty author get one row (`is_faculty = FALSE`). | Matches the "author" column of the template; every paper is still present. |
-| Co-author flag | `coauthors_gt_10` = TRUE if the paper has more than 10 co-authors (12 or more authors). Flagged papers stay in all counts; the dashboard shows them per year and compares their citations. | Instructor's request (13 Oct 2026). Threshold is `COAUTHOR_FLAG_THRESHOLD` in `config.py`. |
+| Large-team flag | `authors_gt_12` = TRUE if the paper has more than 12 authors. Flagged papers stay in all counts; the dashboard shows them per year, compares their citations and lists them all (Flagged papers tab). | Instructor's request (updated 15 Oct 2026: > 12 authors, because papers with 11–12 authors are common). Threshold is `AUTHOR_FLAG_THRESHOLD` in `config.py`. |
 | Mega-collaborations (> 50 authors) | Kept in the dataset and publication counts (flag `mega_collaboration`). Excluded from the co-authorship network. h-index reported with and without them. | CMS/ALICE-style author lists would otherwise dominate the networks. |
 | h-index | Shown in three versions: 2016–2026 papers at the institute, the same without mega-collaborations, and OpenAlex lifetime h-index. | The template does not specify which one. |
 | Quartile | SCImago best quartile of the journal in the publication year; 2026 papers use SJR 2025. For conference papers, the CORE 2023 rank. | Matches the Q1–Q4 / A*–C scheme in the template. |

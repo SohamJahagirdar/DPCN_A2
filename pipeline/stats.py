@@ -71,8 +71,7 @@ def inst_block(p, fac, inst):
         quartile_by_year=dict(years=years, **{k: qyear[k].tolist() for k in qyear.columns}),
         core=conf["core_rank"].fillna("Unranked").value_counts().to_dict(),
         top_journals=records(topj),
-        most_cited=records(most, ["title", "venue", "year", "citations", "doi", "homes", "n_authors", "n_coauthors",
-                                  "many_authors"]),
+        most_cited=records(most, ["title", "venue", "year", "citations", "doi", "homes", "n_authors", "many_authors"]),
         many_authors_by_year=dict(years=years,
                                   many=p[p["many_authors"]].groupby("year").size().reindex(years, fill_value=0).tolist(),
                                   few=p[~p["many_authors"]].groupby("year").size().reindex(years, fill_value=0).tolist(),
@@ -105,19 +104,19 @@ def compute_stats(t, nets):
         st["inst"][inst] = inst_block(p, fac, inst)
         st["inst"][inst]["kpis"]["shared_with_other"] = int(papers["homes"].str.contains(";").sum())
 
-    # Instructor's flag: every paper with more than 10 co-authors, with our faculty authors on it
+    # Instructor's flag: every paper with more than 12 authors, with our faculty authors on it
     ds = t["dataset"]
     fac_names = (ds[ds["is_faculty"]].groupby("openalex_work_id")["author"]
                  .agg(lambda s: "; ".join(dict.fromkeys(s))))
     fl = papers[papers["many_authors"]].sort_values(["citations", "year"], ascending=False).copy()
     fl["faculty_authors"] = fl["work_id"].map(fac_names).fillna("")
     fl["title"] = fl["title"].fillna("").str.slice(0, 220)
-    st["flagged"] = records(fl, ["title", "year", "homes", "venue", "venue_type", "n_authors", "n_coauthors",
+    st["flagged"] = records(fl, ["title", "year", "homes", "venue", "venue_type", "n_authors",
                                  "is_mega", "citations", "field", "faculty_authors", "doi"])
 
     st["faculty"] = records(fac.sort_values("papers", ascending=False),
                             ["name", "inst", "department", "designation", "papers", "citations", "h_index",
-                             "h_index_nonmega", "h_index_career", "papers_coauthors_gt_10", "q1_share", "top_journal", "first_year",
+                             "h_index_nonmega", "h_index_career", "papers_authors_gt_12", "q1_share", "top_journal", "first_year",
                              "last_year", "faculty_source", "orcid"]
                             if "h_index_nonmega" in fac else None)
 

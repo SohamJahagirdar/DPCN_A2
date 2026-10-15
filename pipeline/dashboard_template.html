@@ -113,8 +113,8 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
       <div class="card c12"><h3>Publication trend by venue type</h3><div class="hint">Papers per year, 2016–2026 (2026 is a partial year)</div><div id="pubTrend" class="plot"></div></div>
       <div class="card c6"><h3>Quartile mix by year</h3><div class="hint">Journal papers per year by SJR quartile</div><div id="pubQYear" class="plot"></div></div>
       <div class="card c6"><h3>Citations received, by publication year</h3><div class="hint">Total OpenAlex citations of papers published in each year (older papers have had longer to accrue citations)</div><div id="pubCites" class="plot"></div></div>
-      <div class="card c6"><h3>Papers with more than 10 co-authors (flagged)</h3><div class="hint">Instructor's flag: papers per year with &gt; 10 co-authors (12 or more authors) vs ≤ 10 co-authors. Dataset column <code>coauthors_gt_10</code>.</div><div id="pubMany" class="plot"></div></div>
-      <div class="card c6"><h3>Mean citations: &gt; 10 vs ≤ 10 co-authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
+      <div class="card c6"><h3>Papers with more than 12 authors (flagged)</h3><div class="hint">Instructor's flag: papers per year with &gt; 12 authors vs ≤ 12 authors. Dataset column <code>authors_gt_12</code>.</div><div id="pubMany" class="plot"></div></div>
+      <div class="card c6"><h3>Mean citations: &gt; 12 vs ≤ 12 authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
       <div class="card c6"><h3>Conference rank (CORE 2023)</h3><div class="hint">Conference papers only</div><div id="pubCore" class="plot"></div></div>
       <div class="card c6"><h3>Most-cited papers (top 10)</h3><div class="hint">Citation count at collection date</div><div id="pubTop" class="tablewrap"></div></div>
     </div>
@@ -123,11 +123,11 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
   <section class="tab" data-tab="Flagged papers">
     <div class="tiles" id="flTiles"></div>
     <div class="grid" style="margin-top:16px">
-      <div class="card c12"><h3>Papers with more than 10 co-authors</h3>
-        <div class="hint">Flag requested by the instructor: papers with more than 10 co-authors (12 or more authors), column <code>coauthors_gt_10</code> in group18_data.csv. Use the IISc / TIFR / Both switch above; click a column to sort.</div>
+      <div class="card c12"><h3>Papers with more than 12 authors</h3>
+        <div class="hint">Flag requested by the instructor: papers with more than 12 authors, column <code>authors_gt_12</code> in group18_data.csv. Use the IISc / TIFR / Both switch above; click a column to sort.</div>
         <div class="row">
           <input type="search" id="flSearch" placeholder="Search title, journal, faculty, field…" size="36">
-          <select id="flSize"><option value="">All sizes</option><option value="s">11–20 co-authors</option><option value="m">21–50 co-authors</option><option value="l">More than 50 co-authors</option></select>
+          <select id="flSize"><option value="">All sizes</option><option value="s">13–20 authors</option><option value="m">21–50 authors</option><option value="l">More than 50 authors</option></select>
           <select id="flYear"></select>
           <span class="pill" id="flCount"></span>
           <button class="iconbtn" id="flDownload">Download CSV</button>
@@ -272,7 +272,7 @@ function renderOverview() {
     ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
     ["Faculty with papers", fmt(k.faculty), ""],
     ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
-    ["Papers with > 10 co-authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers · <a href="#" id="toFlagged">see the list →</a>`],
+    ["Papers with > 12 authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers · <a href="#" id="toFlagged">see the list →</a>`],
   ]);
   document.getElementById("toFlagged").onclick = e => { e.preventDefault(); state.tab = "Flagged papers"; render(); window.scrollTo(0,0); };
   const yrs = DATA.inst.All.trend.years;
@@ -310,19 +310,19 @@ function renderPublications() {
     hovertemplate:`${i} %{x}: %{y:,} citations<extra></extra>`})), {barmode:"group"});
   const m = B().many_authors_by_year;
   plot("pubMany", [
-    {type:"bar", x:m.years, y:m.few, name:"≤ 10 co-authors", marker:{color:css("--s1")}, hovertemplate:"≤ 10 co-authors %{x}: %{y:,}<extra></extra>"},
-    {type:"bar", x:m.years, y:m.many, name:"> 10 co-authors (flagged)", marker:{color:css("--s2")}, hovertemplate:"> 10 co-authors %{x}: %{y:,}<extra></extra>"}],
+    {type:"bar", x:m.years, y:m.few, name:"≤ 12 authors", marker:{color:css("--s1")}, hovertemplate:"≤ 12 authors %{x}: %{y:,}<extra></extra>"},
+    {type:"bar", x:m.years, y:m.many, name:"> 12 authors (flagged)", marker:{color:css("--s2")}, hovertemplate:"> 12 authors %{x}: %{y:,}<extra></extra>"}],
     {barmode:"stack", hovermode:"x unified"});
   plot("pubManyCit", [
-    {x:m.years, y:m.citations_few, name:"≤ 10 co-authors", mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
-    {x:m.years, y:m.citations_many, name:"> 10 co-authors", mode:"lines+markers", line:{width:2,color:css("--s2")}, marker:{size:8,symbol:"diamond"}}],
+    {x:m.years, y:m.citations_few, name:"≤ 12 authors", mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
+    {x:m.years, y:m.citations_many, name:"> 12 authors", mode:"lines+markers", line:{width:2,color:css("--s2")}, marker:{size:8,symbol:"diamond"}}],
     {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
   const ranks = ["A*","A","B","C","Unranked"], c = B().core;
   plot("pubCore", [{type:"bar", x:ranks, y:ranks.map(r=>c[r]||0), marker:{color:ranks.map(r=>r==="Unranked"?css("--qna"):css("--s1"))},
     hovertemplate:"CORE %{x}: %{y:,} papers<extra></extra>"}], {});
   table("pubTop", B().most_cited, [{k:"title",t:"Title",f:(v)=>esc(short(v))},{k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},
     {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"homes",t:"Inst."},
-    {k:"n_coauthors",t:"Co-authors",n:1,f:(v,r)=>`${r.n_authors>=100?'99+':fmt(v)}${r.many_authors?' <span class="pill">flag &gt;10</span>':''}`},{k:"doi",t:"",f:doiLink}]);
+    {k:"n_authors",t:"Authors",n:1,f:(v,r)=>`${fmt(v)}${r.many_authors?' <span class="pill">flag &gt;12</span>':''}`},{k:"doi",t:"",f:doiLink}]);
 }
 
 function renderFaculty() {
@@ -338,7 +338,7 @@ function renderFaculty() {
     document.getElementById("facCount").textContent = `${rows.length} faculty`;
     table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department"},
       {k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"h_index",t:"h-index",n:1},
-      {k:"h_index_career",t:"Career h",n:1},{k:"papers_coauthors_gt_10",t:"Papers >10 co-authors",n:1,f:v=>fmt(v)},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
+      {k:"h_index_career",t:"Career h",n:1},{k:"papers_authors_gt_12",t:"Papers >12 authors",n:1,f:v=>fmt(v)},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
       {k:"faculty_source",t:"Source",f:v=>`<span class="pill">${esc(v)}</span>`}], {sort:"papers"});
   };
   document.getElementById("facSearch").oninput = draw; sel.onchange = draw; draw();
@@ -493,7 +493,7 @@ function renderMethod() {
    <li><b>Faculty:</b> official rosters (IISc Directory 2025-26: ${m.roster_size.IISc}; TIFR department pages: ${m.roster_size.TIFR}) matched to OpenAlex author IDs by name. Former faculty who left before the rosters were compiled are added by a heuristic (≥8 papers over ≥4 years, ≥30% as last or corresponding author). Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
    <li><b>TIFR scope:</b> TIFR Mumbai only. OpenAlex often tags authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) with the main TIFR ID; such authorships are recognised from their affiliation text and excluded (NCBS belongs to Group 23).</li>
    <li><b>Long author lists:</b> OpenAlex lists at most 100 authors per work, so on some mega-collaboration papers our authors are not visible; those papers are kept (the institution query matched them) with author "[not listed]".</li>
-   <li><b>Co-author flag (instructor's request):</b> <code>coauthors_gt_10</code> = TRUE when a paper has more than 10 co-authors, i.e. <code>n_coauthors = n_authors − 1 &gt; 10</code> (12 or more authors). It appears in group18_data.csv, authorship_network.csv and citation_paper_metrics.csv; flagged papers are still counted everywhere.</li>
+   <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors (13 or more; papers with 11–12 authors are common and not flagged). It appears in group18_data.csv, authorship_network.csv and citation_paper_metrics.csv; flagged papers are still counted everywhere.</li>
    <li><b>Departments:</b> roster department; for heuristic faculty, the most frequent department parsed from OpenAlex raw affiliation strings.</li>
    <li><b>Quartile:</b> SCImago SJR best quartile of the journal in the publication year (2026 papers use SJR 2025). Conference rank: CORE 2023 (matched by acronym or title).</li>
    <li><b>h-index:</b> per faculty from their 2016–2026 papers at the institution; "career h" = OpenAlex lifetime h-index.</li>
@@ -513,9 +513,9 @@ function renderFlagged() {
   const med = arr => { const s = arr.slice().sort((a,b)=>a-b); return s.length ? s[Math.floor(s.length/2)] : null; };
   tiles("flTiles", [
     ["Flagged papers", fmt(all.length), `${pct(k.many_author_share)} of all papers`],
-    ["11–50 co-authors", fmt(all.filter(r=>r.n_coauthors<=50).length), "large teams"],
-    ["More than 50 co-authors", fmt(all.filter(r=>r.n_coauthors>50).length), "mega-collaborations (CMS, ALICE, …)"],
-    ["Median co-authors", fmt(med(all.map(r=>r.n_coauthors))), "among flagged papers"],
+    ["13–50 authors", fmt(all.filter(r=>r.n_authors<=50).length), "large teams"],
+    ["More than 50 authors", fmt(all.filter(r=>r.n_authors>50).length), "mega-collaborations (CMS, ALICE, …)"],
+    ["Median authors", fmt(med(all.map(r=>r.n_authors))), "among flagged papers"],
     ["Citations of flagged papers", fmt(all.reduce((a,r)=>a+(r.citations||0),0)), `mean ${fmt(all.length ? all.reduce((a,r)=>a+(r.citations||0),0)/all.length : 0,1)} per paper`],
   ]);
   const ys = document.getElementById("flYear"), prevY = ys.value;
@@ -524,7 +524,7 @@ function renderFlagged() {
   const filt = () => {
     const q = document.getElementById("flSearch").value.toLowerCase(), sz = document.getElementById("flSize").value, y = ys.value;
     return all.filter(r => (!y || String(r.year)===y)
-      && (!sz || (sz==="s" && r.n_coauthors<=20) || (sz==="m" && r.n_coauthors>20 && r.n_coauthors<=50) || (sz==="l" && r.n_coauthors>50))
+      && (!sz || (sz==="s" && r.n_authors<=20) || (sz==="m" && r.n_authors>20 && r.n_authors<=50) || (sz==="l" && r.n_authors>50))
       && (!q || [r.title, r.venue, r.faculty_authors, r.field].join(" ").toLowerCase().includes(q)));
   };
   const draw = () => {
@@ -532,7 +532,7 @@ function renderFlagged() {
     document.getElementById("flCount").textContent = `${fmt(rows.length)} papers`;
     table("flTable", rows, [{k:"title",t:"Title",f:v=>esc(v)},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
       {k:"venue",t:"Journal / conference",f:v=>esc(short(v))},
-      {k:"n_coauthors",t:"Co-authors",n:1,f:(v,r)=>r.n_authors>=100?"99+":fmt(v)},
+      {k:"n_authors",t:"Authors",n:1,f:v=>fmt(v)},
       {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"faculty_authors",t:"Our faculty",f:v=>esc(v)},
       {k:"field",t:"Field",f:v=>esc(v)},{k:"doi",t:"",f:doiLink}], {sort:"citations"});
   };
@@ -540,12 +540,12 @@ function renderFlagged() {
   document.getElementById("flSize").onchange = draw;
   ys.onchange = draw;
   document.getElementById("flDownload").onclick = () => {
-    const cols = ["title","year","homes","venue","venue_type","n_authors","n_coauthors","citations","field","faculty_authors","doi"];
+    const cols = ["title","year","homes","venue","venue_type","n_authors","citations","field","faculty_authors","doi"];
     const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
     const csv = [cols.join(","), ...filt().map(r => cols.map(c => q(r[c])).join(","))].join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], {type:"text/csv"}));
-    a.download = `group18_flagged_coauthors_gt10_${state.inst}.csv`;
+    a.download = `group18_flagged_authors_gt12_${state.inst}.csv`;
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
   draw();

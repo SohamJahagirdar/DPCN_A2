@@ -305,8 +305,7 @@ def build_all():
             subfield=(pt.get("subfield") or {}).get("display_name"),
             subfield_id=short_id((pt.get("subfield") or {}).get("id")), topic=pt.get("display_name"),
             n_authors=n_auth, is_mega=n_auth > config.MEGA_AUTHOR_THRESHOLD,
-            n_coauthors=max(n_auth - 1, 0),
-            many_authors=(n_auth - 1) > config.COAUTHOR_FLAG_THRESHOLD,
+            many_authors=n_auth > config.AUTHOR_FLAG_THRESHOLD,   # instructor's flag: > 12 authors
             homes=";".join(sorted(homes[wid])), sjr_quartile=sj[0] if sj else None, sjr=sj[1] if sj else None,
             sjr_areas=sj[2] if sj else None, core_rank=crank, quartile=quart,
             n_refs=len(w.get("referenced_works") or []), is_retracted=w.get("is_retracted"),
@@ -490,7 +489,7 @@ def build_all():
             faculty_source=p["faculty_source"], is_honorary=p["is_honorary"],
             openalex_ids=";".join(p["author_ids"]), orcid=orcid,
             papers=len(wp), papers_nonmega=len(nonmega), citations=int(wp["citations"].sum()),
-            papers_coauthors_gt_10=int(wp["many_authors"].sum()),
+            papers_authors_gt_12=int(wp["many_authors"].sum()),
             citations_nonmega=int(nonmega["citations"].sum()),
             h_index=h_index(wp["citations"]), h_index_nonmega=h_index(nonmega["citations"]),
             h_index_career=max(prof_h) if prof_h else None,
@@ -565,10 +564,10 @@ def build_dataset_rows(t):
                     cites_indian_inst=None if ci is None else ci > 0,
                     cited_by_indian_inst=None if cb is None else cb > 0,
                     # ---- extra columns (beyond the required set)
-                    n_coauthors=p.n_coauthors, coauthors_gt_10=p.many_authors,   # instructor's flag
+                    n_authors=p.n_authors, authors_gt_12=p.many_authors,   # instructor's flag
                     is_faculty=is_fac, department=dept, author_openalex_id=aid, openalex_work_id=p.work_id,
                     sjr_quartile=p.sjr_quartile, core_rank=p.core_rank, field=p.field, subfield=p.subfield,
-                    domain=p.domain, n_authors=p.n_authors,
+                    domain=p.domain,
                     mega_collaboration=p.is_mega,
                     n_refs_to_indian_inst=ci, n_cites_from_indian_inst=cb, openalex_type=p.oa_type,
                 ))
