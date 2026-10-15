@@ -36,10 +36,6 @@ def inst_block(p, fac, inst):
     jr = p[p["venue_type"] == "journal"]
     jq = jr["sjr_quartile"]
     trend = p.groupby(["year", "venue_type"]).size().unstack(fill_value=0).reindex(years, fill_value=0)
-    qcounts = p["sjr_quartile"].where(p["venue_type"] == "journal").fillna("Unranked/NA")
-    qcounts = qcounts[p["venue_type"] == "journal"].value_counts()
-    qyear = (jr.assign(q=jq.fillna("NA")).groupby(["year", "q"]).size().unstack(fill_value=0)
-             .reindex(years, fill_value=0))
     conf = p[p["venue_type"] == "conference"]
     topj = (jr.groupby("venue").agg(papers=("work_id", "size"), citations=("citations", "sum"),
                                     quartile=("sjr_quartile", lambda s: s.mode().iat[0] if s.notna().any() else None))
@@ -67,8 +63,6 @@ def inst_block(p, fac, inst):
         trend=dict(years=years, **{k: trend[k].tolist() for k in trend.columns},
                    total=trend.sum(axis=1).tolist(),
                    citations=p.groupby("year")["citations"].sum().reindex(years, fill_value=0).tolist()),
-        quartile=qcounts.to_dict(),
-        quartile_by_year=dict(years=years, **{k: qyear[k].tolist() for k in qyear.columns}),
         core=conf["core_rank"].fillna("Unranked").value_counts().to_dict(),
         top_journals=records(topj),
         most_cited=records(most, ["title", "venue", "year", "citations", "doi", "homes", "n_authors", "many_authors"]),
@@ -80,11 +74,9 @@ def inst_block(p, fac, inst):
                                   citations_few=p[~p["many_authors"]].groupby("year")["citations"].mean()
                                   .reindex(years).tolist()),
         fields=p["field"].fillna("Unknown").value_counts().to_dict(),
-        domains=p["domain"].fillna("Unknown").value_counts().to_dict(),
         subfields=p["subfield"].fillna("Unknown").value_counts().head(20).to_dict(),
         departments=records(dept),
         h_values=f["h_index"].astype(int).tolist(),
-        h_values_career=f["h_index_career"].dropna().astype(int).tolist() if "h_index_career" in f else [],
     )
 
 
@@ -117,9 +109,8 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
                                  "is_mega", "citations", "field", "faculty_authors", "doi"])
 
     st["faculty"] = records(fac.sort_values("papers", ascending=False),
-                            ["name", "inst", "department", "designation", "papers", "citations", "h_index",
-                             "h_index_nonmega", "h_index_career", "papers_authors_gt_12", "q1_share", "top_journal", "first_year",
-                             "last_year", "faculty_source", "orcid"]
+                            ["name", "inst", "department", "rank", "papers", "citations", "h_index", "h_index_career",
+                             "q1_share", "high_impact_papers", "journals_used", "top3_journal_share", "top3_journals"]
                             if "h_index_nonmega" in fac else None)
 
     # --------------------------------------------------------------- citation network
@@ -130,8 +121,6 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
         top_pagerank=records(top10, ["title", "venue", "year", "homes", "citations", "in_degree", "pagerank", "doi"]),
         top_pagerank_nonmega=records(papers[~papers["is_mega"]].sort_values("pagerank", ascending=False).head(10),
                                      ["title", "venue", "year", "homes", "citations", "in_degree", "pagerank", "doi"]),
-        top_indegree=records(papers.sort_values("in_degree", ascending=False).head(10),
-                             ["title", "year", "homes", "in_degree", "citations", "doi"]),
         indegree_dist={int(k): int(v) for k, v in indeg.value_counts().sort_index().items()},
         vis=nets["citation_vis"],
     )
@@ -152,8 +141,6 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
         in_year = by_year.get("in", pd.Series(0, index=years)).tolist()
         top_in = (f[f.direction == "in"].groupby(["partner_name", "partner_cluster"]).size()
                   .sort_values(ascending=False).head(10).reset_index(name="citations"))
-        top_out = (f[f.direction == "out"].groupby(["partner_name", "partner_cluster"]).size()
-                   .sort_values(ascending=False).head(10).reset_index(name="citations"))
         clusters = f.groupby(["partner_cluster", "direction"]).size().unstack(fill_value=0)
         cl = {c: dict(inflow=int(r.get("in", 0)), outflow=int(r.get("out", 0))) for c, r in clusters.iterrows()}
         mode, unit = ("edges", "citation links")
@@ -175,8 +162,7 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
             inflow=n_in, outflow=n_out, impact_ratio=impact, inflow_mode=mode, inflow_unit=unit,
             outflow_available=out_full, outflow_batch_works=nets["outflow_batch_works"].get(inst),
             by_year=dict(years=years, inflow=in_year, outflow=by_year.get("out", pd.Series(0, index=years)).tolist()),
-            top_citing=records(top_in), top_cited=records(top_out), clusters=cl,
-            papers_cited_by_indian=int(f[f.direction == "in"]["our_paper"].nunique()) if in_full else None,
+            top_citing=records(top_in), clusters=cl,
         )
     # --------------------------------------------------------------- authorship network
     fm = nets["faculty_metrics"]
@@ -200,10 +186,9 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
                                                "citations_received_from_partner", "citations_given_to_partner",
                                                "cross_cluster", "topic_jaccard", "topic_weighted_jaccard"]),
             clusters=co.groupby("partner_cluster")["shared_papers"].sum().sort_values(ascending=False).to_dict(),
-            jaccard=records(c.dropna(subset=["topic_weighted_jaccard"]).sort_values("topic_weighted_jaccard",
-                                                                                   ascending=False).head(20),
-                            ["partner_inst", "partner_cluster", "shared_papers", "topic_jaccard", "topic_weighted_jaccard"]),
         )
+    from pipeline.journals import journal_stats
+    st["journals"] = journal_stats(t)
     st = _clean(st)
     json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
     write_stat_tables(st, out_dir)
@@ -227,3 +212,10 @@ def write_stat_tables(st, out_dir=None):
     pd.DataFrame(st["authorship"]["top_degree"]).to_csv(out / "authorship_top10_degree.csv", index=False)
     pd.DataFrame(st["authorship"]["top_betweenness"]).to_csv(out / "authorship_top10_betweenness.csv", index=False)
     pd.DataFrame(st["authorship"]["communities"]).to_csv(out / "authorship_communities.csv", index=False)
+    j = st["journals"]
+    pd.DataFrame(j["regression"]).to_csv(out / "journal_choice_regression.csv", index=False)
+    pd.DataFrame([dict(institution=i, factor=f, **r) for i in [*config.INSTITUTIONS, "All"]
+                  for f, rows in j[i]["drivers"].items() for r in rows]).to_csv(out / "journal_choice_drivers.csv", index=False)
+    pd.DataFrame([dict(institution=i, **r) for i in [*config.INSTITUTIONS, "All"] for r in j[i]["top_journals"]]
+                 ).to_csv(out / "journal_choice_top_journals.csv", index=False)
+    pd.DataFrame(j["network"]["communities"]).to_csv(out / "journal_ecosystems.csv", index=False)

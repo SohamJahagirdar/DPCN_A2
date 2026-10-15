@@ -25,6 +25,8 @@ def do_fetch(steps, max_calls):
             fetch.fetch_corpus(oa)
         if "fullauthors" in steps:
             fetch.fetch_full_authorships(oa)
+        if "sources" in steps:
+            fetch.fetch_sources(oa)
         if "authors" in steps:
             fetch.fetch_authors(oa)
         if "partners" in steps:
@@ -68,7 +70,7 @@ def do_build():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["fetch", "build", "all"])
-    ap.add_argument("--steps", default="corpus,fullauthors,authors,partners,outflow,inflow,profiles",
+    ap.add_argument("--steps", default="corpus,fullauthors,sources,authors,partners,outflow,inflow,profiles",
                     help="'inflow' = exact in-flow citation edges (~1,400 calls; fills cited_by_indian_inst); "
                          "'inflow_agg' = cheaper aggregate in-flow (~700 calls)")
     ap.add_argument("--max-calls", type=int, default=None)

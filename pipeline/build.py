@@ -268,6 +268,7 @@ def build_all():
     print(f"[build] {len(works)} unique works")
     sjr, core = SJR(), CORE()
     all_own = all_own_ids()
+    sources = {short_id(r["id"]): r for r in read_jsonl(config.RAW / "sources.jsonl.gz") or []}
     inst_meta = {r["id"]: (r["name"], r["type"], r["country"])   # institution id -> (name, type, country)
                  for r in read_jsonl(config.RAW / "institutions_extra.jsonl.gz") or []}
 
@@ -286,16 +287,23 @@ def build_all():
         if crank and vt == "other":
             vt = "conference"
         pt = w.get("primary_topic") or {}
-        indian = {}
+        indian, countries = {}, set()
         for a in auths:
             for i in a.get("institutions", []):
                 iid = short_id(i.get("id"))
                 if not iid:
                     continue
+                if i.get("country_code"):
+                    countries.add(i["country_code"])
                 inst_meta.setdefault(iid, (i.get("display_name"), i.get("type"), i.get("country_code")))
                 if i.get("country_code") == "IN":
                     indian[iid] = i.get("display_name")
         quart = sj[0] if sj and vt == "journal" else (crank if crank else (sj[0] if sj else None))
+        so = sources.get(short_id(src.get("id")), {})
+        # collaboration type; a truncated list was cut to its Indian authors, so extra authors = abroad
+        international = bool(countries - {"IN"}) or len(auths) < n_auth
+        collab = ("International" if international else
+                  "With other Indian institutes" if set(indian) - all_own else "Within IISc/TIFR only")
         prow.append(dict(
             work_id=wid, doi=w.get("doi"), title=w.get("title") or w.get("display_name"), year=year,
             oa_type=w.get("type"), venue=src.get("display_name"), source_id=short_id(src.get("id")),
@@ -310,6 +318,10 @@ def build_all():
             sjr_areas=sj[2] if sj else None, core_rank=crank, quartile=quart,
             n_refs=len(w.get("referenced_works") or []), is_retracted=w.get("is_retracted"),
             indian_inst_ids=";".join(sorted(indian)),
+            journal_impact=(so.get("summary_stats") or {}).get("2yr_mean_citedness"),   # impact-factor equivalent
+            publisher=so.get("host_organization_name"), journal_country=so.get("country_code"),
+            oa_journal=bool(so.get("is_oa") or so.get("is_in_doaj")), apc_usd=so.get("apc_usd"),
+            collaboration=collab,
         ))
         corr = {short_id(x) for x in (w.get("corresponding_author_ids") or [])}
         for a in auths:
@@ -485,6 +497,22 @@ def build_all():
     return tables
 
 
+def rank_group(designation, source=""):
+    """Career stage from the roster title (current, 2025-26)."""
+    d = (designation or "").lower()
+    if "honorary" in d or "emerit" in d:
+        return "Honorary / emeritus"
+    if "retired" in d or "former" in d or source == "heuristic":
+        return "Former faculty"
+    if "assistant" in d or d.startswith("reader"):
+        return "Assistant professor / Reader"
+    if "associate" in d:
+        return "Associate professor"
+    if "professor" in d:
+        return "Professor"
+    return "Rank not listed"
+
+
 def faculty_table(own_auth, persons, papers, profiles, roster):
     """Per-faculty metrics (papers, citations, h-indices, Q1 share, top journal) from the given papers."""
     fac_rows = []
@@ -499,6 +527,8 @@ def faculty_table(own_auth, persons, papers, profiles, roster):
         prof_h = [x for x in prof_h if x is not None]
         orcid = next((profiles.get(a, {}).get("orcid") for a in p["author_ids"] if profiles.get(a, {}).get("orcid")), None)
         jq = wp[wp["venue_type"] == "journal"]["sjr_quartile"]
+        jr = wp[(wp["venue_type"] == "journal") & wp["venue"].notna()]
+        jcounts = jr["venue"].value_counts()
         fac_rows.append(dict(
             person=key, inst=p["inst"], name=p["name"], department=p["department"], designation=p["designation"],
             faculty_source=p["faculty_source"], is_honorary=p["is_honorary"],
@@ -512,6 +542,14 @@ def faculty_table(own_auth, persons, papers, profiles, roster):
             top_journal=venue_counts.index[0] if len(venue_counts) else None,
             first_year=int(wp["year"].min()), last_year=int(wp["year"].max()),
             top_field=wp["field"].mode().iat[0] if wp["field"].notna().any() else None,
+            rank=rank_group(p["designation"], p["faculty_source"]),
+            journals_used=int(jr["venue"].nunique()),
+            top3_journal_share=float(jcounts.head(3).sum() / len(jr)) if len(jr) else None,
+            top3_journals="; ".join(f"{v} ({c})" for v, c in jcounts.head(3).items()),
+            high_impact_papers=int((jr["journal_impact"] >= config.HIGH_IMPACT_THRESHOLD).sum()),
+            high_impact_share=float((jr["journal_impact"] >= config.HIGH_IMPACT_THRESHOLD).mean()) if len(jr) else None,
+            median_journal_impact=float(jr["journal_impact"].median()) if jr["journal_impact"].notna().any() else None,
+            oa_journal_share=float(jr["oa_journal"].mean()) if len(jr) else None,
         ))
     faculty = pd.DataFrame(fac_rows)
     # roster faculty with no matched publications still belong in the faculty list

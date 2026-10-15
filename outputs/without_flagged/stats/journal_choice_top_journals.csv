@@ -1,0 +1,46 @@
+institution,venue,papers,impact,quartile,publisher,oa,country,faculty
+IISc,Physical review. B./Physical review. B,388,4.04111,Q1,American Physical Society,False,US,47
+IISc,Scientific Reports,294,5.252705,Q1,Nature Portfolio,True,GB,131
+IISc,Journal of Alloys and Compounds,161,6.375663,Q1,Elsevier BV,False,NL,50
+IISc,Physical review. D/Physical review. D.,159,5.756389,Q1,American Physical Society,False,US,25
+IISc,ACS Applied Materials & Interfaces,158,8.80698,Q1,American Chemical Society,False,US,65
+IISc,Monthly Notices of the Royal Astronomical Society,155,5.453902,Q1,Oxford University Press,True,GB,13
+IISc,Journal of High Energy Physics,151,5.409182,Q2,Springer Nature,True,IT,16
+IISc,The Journal of Physical Chemistry C,143,3.995516,Q1,American Chemical Society,False,US,55
+IISc,Alzheimer s & Dementia,136,2.237631,Q1,Wiley,False,US,5
+IISc,The Journal of Chemical Physics,134,4.455824,Q1,American Institute of Physics,False,US,25
+IISc,Journal of Applied Physics,131,3.223421,Q2,American Institute of Physics,False,US,56
+IISc,Physical Chemistry Chemical Physics,126,3.592804,Q1,Royal Society of Chemistry,False,GB,53
+IISc,Journal of the Indian Institute of Science,123,3.557895,Q2,Springer Nature,False,IN,64
+IISc,ACS Omega,121,4.955108,Q1,American Chemical Society,True,US,63
+IISc,RSC Advances,119,7.52913,Q1,Royal Society of Chemistry,True,GB,55
+TIFR,Physical review. B./Physical review. B,208,4.04111,Q1,American Physical Society,False,US,18
+TIFR,Monthly Notices of the Royal Astronomical Society,205,5.453902,Q1,Oxford University Press,True,GB,19
+TIFR,Physical review. D/Physical review. D.,202,5.756389,Q1,American Physical Society,False,US,29
+TIFR,Journal of High Energy Physics,188,5.409182,Q2,Springer Nature,True,IT,16
+TIFR,The Astrophysical Journal,178,5.646154,Q1,IOP Publishing,True,GB,12
+TIFR,Journal of Cosmology and Astroparticle Physics,58,8.162542,Q2,Institute of Physics,False,GB,12
+TIFR,Physical Review Letters,57,9.079932,Q1,American Physical Society,False,US,21
+TIFR,Journal of Physics Condensed Matter,50,2.383315,Q1,IOP Publishing,False,GB,10
+TIFR,Biophysical Journal,50,0.528825,Q1,Elsevier BV,False,US,6
+TIFR,Physical review. E,47,2.709524,Q2,American Physical Society,False,US,6
+TIFR,Physical Review C,46,3.203517,Q1,American Physical Society,False,US,5
+TIFR,Journal of Astrophysics and Astronomy,45,1.144279,Q3,Springer Nature,False,IN,11
+TIFR,Journal of Instrumentation,45,1.533514,Q1,Institute of Physics,False,GB,6
+TIFR,Journal of Magnetism and Magnetic Materials,44,2.89768,Q2,Elsevier BV,False,NL,7
+TIFR,Scientific Reports,40,5.252705,Q1,Nature Portfolio,True,GB,21
+All,Physical review. B./Physical review. B,587,4.04111,Q1,American Physical Society,False,US,65
+All,Monthly Notices of the Royal Astronomical Society,354,5.453902,Q1,Oxford University Press,True,GB,32
+All,Physical review. D/Physical review. D.,352,5.756389,Q1,American Physical Society,False,US,54
+All,Scientific Reports,333,5.252705,Q1,Nature Portfolio,True,GB,152
+All,Journal of High Energy Physics,330,5.409182,Q2,Springer Nature,True,IT,32
+All,The Astrophysical Journal,232,5.646154,Q1,IOP Publishing,True,GB,21
+All,Journal of Alloys and Compounds,174,6.375663,Q1,Elsevier BV,False,NL,57
+All,ACS Applied Materials & Interfaces,168,8.80698,Q1,American Chemical Society,False,US,71
+All,The Journal of Chemical Physics,154,4.455824,Q1,American Institute of Physics,False,US,36
+All,The Journal of Physical Chemistry C,153,3.995516,Q1,American Chemical Society,False,US,62
+All,Journal of Applied Physics,152,3.223421,Q2,American Institute of Physics,False,US,64
+All,Physical Chemistry Chemical Physics,148,3.592804,Q1,Royal Society of Chemistry,False,GB,60
+All,Physical review. E,147,2.709524,Q1,American Physical Society,False,US,34
+All,Physical Review Letters,145,9.079932,Q1,American Physical Society,False,US,68
+All,Biophysical Journal,143,0.528825,Q1,Elsevier BV,False,US,37

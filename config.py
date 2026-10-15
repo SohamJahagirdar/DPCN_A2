@@ -55,6 +55,13 @@ MEGA_AUTHOR_THRESHOLD = 50
 # i.e. 13 or more authors - papers with 11 or 12 authors are common and are not flagged.
 AUTHOR_FLAG_THRESHOLD = 12
 
+# Journal-choice analysis: "high-impact journal" = OpenAlex 2-year mean citedness >= this value. That metric is the
+# impact-factor equivalent (citations this year to the journal's items of the previous two years, per item);
+# the instructor asked about "IF > 10".
+HIGH_IMPACT_THRESHOLD = 10
+# Journals with at least this many of our papers are nodes in the journal co-usage network
+JOURNAL_NETWORK_MIN_PAPERS = 15
+
 # Faculty heuristic thresholds (used only when no official roster match exists)
 FACULTY_MIN_PAPERS = 8
 FACULTY_MIN_YEARS = 4

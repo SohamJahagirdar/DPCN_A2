@@ -53,8 +53,8 @@ main{padding:20px 24px 48px;max-width:1400px;margin:0 auto}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
 .card h3{margin:0 0 2px;font-size:14px;font-weight:600}
 .card .hint{color:var(--muted);font-size:12px;margin-bottom:8px}
-.c12{grid-column:span 12}.c8{grid-column:span 8}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
-@media (max-width:1000px){.c8,.c6,.c4{grid-column:span 12}.c3{grid-column:span 6}}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c5{grid-column:span 5}.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}
+@media (max-width:1000px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}.c3{grid-column:span 6}}
 @media (max-width:560px){main{padding:16px}header{padding:12px 16px 0}.c3{grid-column:span 12}}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
@@ -102,30 +102,64 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
   <section class="tab" data-tab="Overview">
     <div class="tiles" id="kpis"></div>
     <div class="grid" style="margin-top:16px">
-      <div class="card c8"><h3>Publications per year</h3><div class="hint">Unique papers by publication year; joint IISc–TIFR papers count for both institutions</div><div id="ovTrend" class="plot"></div></div>
-      <div class="card c4"><h3>Journal quartile share</h3><div class="hint">SCImago best quartile in publication year (journals only)</div><div id="ovQuart" class="plot"></div></div>
-      <div class="card c6"><h3>Research areas (top fields)</h3><div class="hint">OpenAlex primary-topic field</div><div id="ovFields" class="plot"></div></div>
-      <div class="card c6"><h3>Top Indian partner institutions</h3><div class="hint">Co-authored papers, 2016–2026</div><div id="ovPartners" class="plot"></div></div>
+      <div class="card c12"><h3>Publications per year</h3><div class="hint">Unique papers by publication year; joint IISc–TIFR papers count for both institutions; 2026 is a partial year</div><div id="ovTrend" class="plot"></div></div>
+      <div class="card c6"><h3>Research areas: fields</h3><div class="hint">Share of papers by OpenAlex primary-topic field</div><div id="ovFields" class="plot tall"></div></div>
+      <div class="card c6"><h3>Research areas: top 20 subfields</h3><div class="hint">Papers per subfield</div><div id="ovSub" class="plot tall"></div></div>
     </div>
   </section>
 
   <section class="tab" data-tab="Publications">
     <div class="grid">
-      <div class="card c12"><h3>Publication trend by venue type</h3><div class="hint">Papers per year, 2016–2026 (2026 is a partial year)</div><div id="pubTrend" class="plot"></div></div>
-      <div class="card c6"><h3>Quartile mix by year</h3><div class="hint">Journal papers per year by SJR quartile</div><div id="pubQYear" class="plot"></div></div>
-      <div class="card c6"><h3>Citations received, by publication year</h3><div class="hint">Total OpenAlex citations of papers published in each year (older papers have had longer to accrue citations)</div><div id="pubCites" class="plot"></div></div>
-      <div class="card c6"><h3>Papers with more than 12 authors (flagged)</h3><div class="hint">Instructor's flag: papers per year with &gt; 12 authors vs ≤ 12 authors. Dataset column <code>authors_gt_12</code>.</div><div id="pubMany" class="plot"></div></div>
-      <div class="card c6"><h3>Mean citations: &gt; 12 vs ≤ 12 authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
+      <div class="card c12"><h3>Publications by venue type</h3><div class="hint">Papers per year: journals, conferences, other (books, repositories)</div><div id="pubTrend" class="plot"></div></div>
+      <div class="card c6"><h3>Citations received, by publication year</h3><div class="hint">Older papers have had longer to collect citations</div><div id="pubCites" class="plot"></div></div>
       <div class="card c6"><h3>Conference rank (CORE 2023)</h3><div class="hint">Conference papers only</div><div id="pubCore" class="plot"></div></div>
-      <div class="card c6"><h3>Most-cited papers (top 10)</h3><div class="hint">Citation count at collection date</div><div id="pubTop" class="tablewrap"></div></div>
+      <div class="card c12"><h3>Most-cited papers (top 10)</h3><div class="hint">Citation count at collection date</div><div id="pubTop" class="tablewrap"></div></div>
     </div>
   </section>
 
-  <section class="tab" data-tab="Flagged papers">
+  <section class="tab" data-tab="Journal choice">
+    <div class="tiles" id="jcTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c8"><h3>Where we publish: top 15 journals</h3><div class="hint">Impact = OpenAlex 2-year mean citedness, the impact-factor equivalent. Faculty = how many of our faculty published there.</div><div id="jcTop" class="tablewrap"></div></div>
+      <div class="card c4"><h3>Journal quartile share</h3><div class="hint">SCImago best quartile in the publication year</div><div id="jcQuart" class="plot"></div></div>
+      <div class="card c6"><h3>Who publishes in high-impact journals</h3>
+        <div class="hint">Share of journal papers by group. <select id="jcFactor"></select> <select id="jcMetric"><option value="high_impact_share">in high-impact journals (impact ≥ 10)</option><option value="q1_share">in Q1 journals</option><option value="median_impact">median journal impact</option></select></div>
+        <div id="jcDrivers" class="plot tall"></div></div>
+      <div class="card c6"><h3>What matters when the other factors are held fixed</h3>
+        <div class="hint">Logistic regression on faculty–paper pairs (current faculty with a known rank; standard errors clustered by paper). Odds ratio &gt; 1 = more likely. Reference groups: Professor, 4–6 authors, within IISc/TIFR, largest field, IISc. <select id="jcOutcome"><option>High-impact journal</option><option>Q1 journal</option></select></div>
+        <div id="jcReg" class="tablewrap"></div></div>
+      <div class="card c12"><h3>Journal choice over time</h3><div class="hint">Share of journal papers in high-impact (impact ≥ 10) and in fully open-access journals</div><div id="jcYear" class="plot"></div></div>
+      <div class="card c6"><h3>Journal loyalty of faculty</h3><div class="hint">Share of each faculty member's journal papers that appear in their own top-3 journals (faculty with ≥ 5 papers)</div><div id="jcLoyal" class="plot"></div></div>
+      <div class="card c6"><h3>Publishers</h3><div class="hint">Share of journal papers by publisher (top 10)</div><div id="jcPub" class="plot"></div></div>
+      <div class="card c12"><h3>Journal ecosystems</h3>
+        <div class="hint">Journals with ≥ 15 of our papers (both institutes); two journals are linked when the same faculty publish in both (line width = shared faculty). Colour = Louvain community. Show links with ≥ <select id="jcMinW"><option>3</option><option>5</option><option selected>8</option><option>12</option></select> shared faculty.</div>
+        <div id="jcNet" class="net"></div><div class="legend" id="jcLegend"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Faculty">
+    <div class="grid">
+      <div class="card c12"><h3>Faculty performance and journal choices</h3>
+        <div class="hint">Click a column to sort. h-index = from the member's 2016–2026 papers here; career h = OpenAlex lifetime h-index. High-impact = papers in journals with impact ≥ 10. Top-3 share = share of their journal papers in their three most-used journals. Rank = 2025-26 title.</div>
+        <div class="row"><input type="search" id="facSearch" placeholder="Search name, department, journal…" size="34"><select id="facDept"></select><span class="pill" id="facCount"></span></div>
+        <div id="facTable" class="tablewrap"></div></div>
+      <div class="card c6"><h3>h-index distribution of faculty</h3><div class="hint">2016–2026 papers at the institution</div><div id="facHist" class="plot"></div></div>
+      <div class="card c6"><h3>Departments</h3><div class="hint">Faculty-papers: a joint paper counts once per faculty member</div><div id="deptTable" class="tablewrap" style="max-height:340px"></div></div>
+    </div>
+  </section>
+
+  <section class="tab" data-tab="Large-team papers">
     <div class="tiles" id="flTiles"></div>
     <div class="grid" style="margin-top:16px">
-      <div class="card c12"><h3>Papers with more than 12 authors</h3>
-        <div class="hint">Flag requested by the instructor: papers with more than 12 authors, column <code>authors_gt_12</code> in group18_data.csv. Use the IISc / TIFR / Both switch above; click a column to sort.</div>
+      <div class="card c12"><h3>Analysis with and without the flagged papers (&gt; 12 authors)</h3>
+        <div class="hint">Every statistic recomputed on all papers and on the papers with 12 or fewer authors. Change = without vs with. The switch <i>Flagged: included / excluded</i> at the top applies the same choice to every tab.</div>
+        <div id="cmpTable" class="tablewrap" style="max-height:none"></div></div>
+      <div class="card c6"><h3>Flagged papers per year</h3><div class="hint">Papers with &gt; 12 authors vs ≤ 12 authors</div><div id="pubMany" class="plot"></div></div>
+      <div class="card c6"><h3>Mean citations: &gt; 12 vs ≤ 12 authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
+      <div class="card c6"><h3>Publications per year with and without flagged papers</h3><div class="hint">Solid = all papers; dotted = without flagged papers</div><div id="cmpTrend" class="plot"></div></div>
+      <div class="card c6"><h3>Faculty h-index with and without flagged papers</h3><div class="hint">Share of faculty in each h-index band</div><div id="cmpH" class="plot"></div></div>
+      <div class="card c12"><h3>All flagged papers</h3>
+        <div class="hint">Column <code>authors_gt_12</code> in group18_data.csv.</div>
         <div class="row">
           <input type="search" id="flSearch" placeholder="Search title, journal, faculty, field…" size="36">
           <select id="flSize"><option value="">All sizes</option><option value="s">13–20 authors</option><option value="m">21–50 authors</option><option value="l">More than 50 authors</option></select>
@@ -134,34 +168,6 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
           <button class="iconbtn" id="flDownload">Download CSV</button>
         </div>
         <div id="flTable" class="tablewrap" style="max-height:640px"></div></div>
-    </div>
-  </section>
-
-  <section class="tab" data-tab="Faculty">
-    <div class="grid">
-      <div class="card c12"><h3>Faculty performance</h3>
-        <div class="hint">Click a column to sort. h-index = h-index of the faculty member's 2016–2026 papers at this institution; "career h" = OpenAlex lifetime h-index.</div>
-        <div class="row"><input type="search" id="facSearch" placeholder="Search name, department, journal…" size="34"><select id="facDept"></select><span class="pill" id="facCount"></span></div>
-        <div id="facTable" class="tablewrap"></div></div>
-      <div class="card c6"><h3>h-index distribution of faculty</h3><div class="hint">2016–2026 papers at the institution</div><div id="facHist" class="plot"></div></div>
-      <div class="card c6"><h3>Departments by publication output</h3><div class="hint">Sum of faculty paper counts (a joint paper counts once per faculty member)</div><div id="facDeptBar" class="plot tall"></div></div>
-      <div class="card c12"><h3>Department summary</h3><div id="deptTable" class="tablewrap"></div></div>
-    </div>
-  </section>
-
-  <section class="tab" data-tab="Journals">
-    <div class="grid">
-      <div class="card c6"><h3>Top 5 journals</h3><div class="hint">By paper count</div><div id="jTop5" class="tablewrap"></div></div>
-      <div class="card c6"><h3>Quartile distribution</h3><div class="hint">Journal papers by SJR quartile</div><div id="jQuart" class="plot"></div></div>
-      <div class="card c12"><h3>Top 15 journals</h3><div id="jTop15" class="plot tall"></div></div>
-    </div>
-  </section>
-
-  <section class="tab" data-tab="Research areas">
-    <div class="grid">
-      <div class="card c6"><h3>Publication share by field</h3><div id="raFields" class="plot tall"></div></div>
-      <div class="card c6"><h3>Top 20 subfields</h3><div id="raSub" class="plot tall"></div></div>
-      <div class="card c12"><h3>Domains</h3><div id="raDom" class="plot"></div></div>
     </div>
   </section>
 
@@ -199,18 +205,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
       <div class="card c6"><h3>Partner institutions by shared papers</h3><div id="icPartners" class="plot tall"></div></div>
       <div class="card c6"><h3>Shared papers by partner cluster</h3><div class="hint">Cross-cluster = any cluster other than IISc/TIFR/IISER</div><div id="icClusters" class="plot tall"></div></div>
       <div class="card c12"><h3>Connectivity map</h3><div class="hint">Topic similarity = Jaccard over OpenAlex subfields (binary: subfields ≥0.5% of output; weighted: share-vector overlap)</div><div id="icTable" class="tablewrap"></div></div>
-      <div class="card c6"><h3>Citation flow by partner cluster</h3><div id="icFlowCl" class="plot"></div></div>
-      <div class="card c6"><h3>Most topic-similar partners</h3><div id="icJac" class="tablewrap"></div></div>
-    </div>
-  </section>
-
-  <section class="tab" data-tab="With vs without flagged">
-    <div class="grid">
-      <div class="card c12"><h3>Analysis with and without flagged papers (&gt; 12 authors)</h3>
-        <div class="hint">Every statistic recomputed on all papers and on the papers with 12 or fewer authors. Change = without vs with. Use the IISc / TIFR / Both switch; the network rows always cover both institutes.</div>
-        <div id="cmpTable" class="tablewrap" style="max-height:none"></div></div>
-      <div class="card c6"><h3>Publications per year</h3><div class="hint">Solid = all papers; dotted = without flagged papers</div><div id="cmpTrend" class="plot"></div></div>
-      <div class="card c6"><h3>Faculty h-index: with vs without flagged papers</h3><div class="hint">Share of faculty in each h-index band (2016–2026 papers at the institute)</div><div id="cmpH" class="plot"></div></div>
+      <div class="card c12"><h3>Citation flow by partner cluster</h3><div id="icFlowCl" class="plot"></div></div>
     </div>
   </section>
 
@@ -225,7 +220,7 @@ const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","With vs without flagged","Publications","Flagged papers","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -278,65 +273,46 @@ const instList = () => state.inst==="All" ? INSTS : [state.inst];
 
 // ------------------------------------------------------------------ renderers
 function renderOverview() {
-  const k = B().kpis;
+  const k = B().kpis, ka = DATA_ALL.inst[state.inst].kpis;
   tiles("kpis", [
     ["Papers", fmt(k.papers), state.inst==="All" ? `${fmt(k.shared_with_other)} joint IISc–TIFR` : ""],
     ["Citations", fmt(k.citations), `mean ${fmt(k.mean_citations,1)} per paper`],
     ["Institutional h-index", fmt(k.h_index), "2016–2026 papers"],
     ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
     ["Faculty with papers", fmt(k.faculty), ""],
-    ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
-    ["Papers with > 12 authors", fmt(DATA_ALL.inst[state.inst].kpis.many_author_papers), `${pct(DATA_ALL.inst[state.inst].kpis.many_author_share)} of papers${state.flag==="out" ? " (excluded)" : ""} · <a href="#" id="toFlagged">see the list →</a>`],
+    ["With another Indian institute", pct(k.with_indian_coauthor), "share of papers"],
+    ["Papers with > 12 authors", fmt(ka.many_author_papers), `${pct(ka.many_author_share)} of papers${state.flag==="out" ? " (excluded)" : ""} · <a href="#" id="toLarge">details →</a>`],
   ]);
-  document.getElementById("toFlagged").onclick = e => { e.preventDefault(); state.tab = "Flagged papers"; render(); window.scrollTo(0,0); };
+  document.getElementById("toLarge").onclick = e => { e.preventDefault(); state.tab = "Large-team papers"; render(); window.scrollTo(0,0); };
   const yrs = DATA.inst.All.trend.years;
   plot("ovTrend", instList().map(i => ({x:yrs, y:DATA.inst[i].trend.total, name:i, type:"scatter", mode:"lines+markers",
     line:{width:2,color:instColor(i)}, marker:{size:8,color:instColor(i),line:{width:2,color:css("--surface")}},
     hovertemplate:`${i} %{x}: %{y:,} papers<extra></extra>`})), {hovermode:"x unified"});
-  quartDonut("ovQuart");
-  const f = Object.entries(B().fields).slice(0,10).reverse();
-  plot("ovFields", [{type:"bar", orientation:"h", x:f.map(d=>d[1]), y:f.map(d=>d[0]), marker:{color:css("--s1")},
+  const tot = Object.values(B().fields).reduce((a,b)=>a+b,0) || 1;
+  const f = Object.entries(B().fields).filter(d=>d[0]!=="Unknown").slice(0,12).reverse();
+  plot("ovFields", [{type:"bar", orientation:"h", x:f.map(d=>d[1]/tot), y:f.map(d=>d[0]), marker:{color:css("--s1")},
+    customdata:f.map(d=>d[1]), hovertemplate:"%{y}: %{x:.1%} (%{customdata:,} papers)<extra></extra>"}],
+    {margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:".0%", gridcolor:css("--grid")}});
+  const sf = Object.entries(B().subfields).filter(d=>d[0]!=="Unknown").reverse();
+  plot("ovSub", [{type:"bar", orientation:"h", x:sf.map(d=>d[1]), y:sf.map(d=>short(d[0])), marker:{color:css("--s1")},
     hovertemplate:"%{y}: %{x:,} papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
-  const parts = instList().flatMap(i => DATA.connectivity[i].top_partners.slice(0, state.inst==="All"?6:10).map(p=>({...p, inst:i})));
-  parts.sort((a,b)=>a.shared_papers-b.shared_papers);
-  plot("ovPartners", [{type:"bar", orientation:"h", x:parts.map(p=>p.shared_papers), y:parts.map(p=>(state.inst==="All"?p.inst+" · ":"")+short(p.partner_inst)),
-    marker:{color:parts.map(p=>instColor(p.inst))}, hovertemplate:"%{y}: %{x:,} shared papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
 }
 const short = s => (s||"").length>42 ? s.slice(0,40)+"…" : s;
 
-function quartDonut(id) {
-  const q = B().quartile, keys = ["Q1","Q2","Q3","Q4","Unranked/NA"];
-  const cols = [css("--q1"),css("--q2"),css("--q3"),css("--q4"),css("--qna")];
-  plot(id, [{type:"pie", hole:.55, sort:false, direction:"clockwise", labels:keys, values:keys.map(k=>q[k]||0),
-    marker:{colors:cols, line:{color:css("--surface"), width:2}}, textinfo:"label+percent", textposition:"outside",
-    hovertemplate:"%{label}: %{value:,} papers (%{percent})<extra></extra>"}], {showlegend:false, margin:{l:24,r:24,t:24,b:24}});
-}
 
 function renderPublications() {
   const t = B().trend, s = SER();
   const types = [["journal","Journal",s[0]],["conference","Conference",s[1]],["other","Other (books, repositories)",s[2]]];
   plot("pubTrend", types.filter(([k])=>t[k]).map(([k,n,c]) => ({type:"bar", x:t.years, y:t[k], name:n, marker:{color:c},
     hovertemplate:`${n} %{x}: %{y:,}<extra></extra>`})), {barmode:"stack", hovermode:"x unified"});
-  const qy = B().quartile_by_year, qk = [["Q1","--q1"],["Q2","--q2"],["Q3","--q3"],["Q4","--q4"],["NA","--qna"]];
-  plot("pubQYear", qk.filter(([k])=>qy[k]).map(([k,c]) => ({type:"bar", x:qy.years, y:qy[k], name:k==="NA"?"Unranked/NA":k,
-    marker:{color:css(c), line:{color:css("--surface"),width:1}}, hovertemplate:`${k} %{x}: %{y:,}<extra></extra>`})), {barmode:"stack", hovermode:"x unified"});
   plot("pubCites", instList().map(i => ({type:"bar", x:t.years, y:DATA.inst[i].trend.citations, name:i, marker:{color:instColor(i)},
     hovertemplate:`${i} %{x}: %{y:,} citations<extra></extra>`})), {barmode:"group"});
-  const m = B().many_authors_by_year;
-  plot("pubMany", [
-    {type:"bar", x:m.years, y:m.few, name:"≤ 12 authors", marker:{color:css("--s1")}, hovertemplate:"≤ 12 authors %{x}: %{y:,}<extra></extra>"},
-    {type:"bar", x:m.years, y:m.many, name:"> 12 authors (flagged)", marker:{color:css("--s2")}, hovertemplate:"> 12 authors %{x}: %{y:,}<extra></extra>"}],
-    {barmode:"stack", hovermode:"x unified"});
-  plot("pubManyCit", [
-    {x:m.years, y:m.citations_few, name:"≤ 12 authors", mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
-    {x:m.years, y:m.citations_many, name:"> 12 authors", mode:"lines+markers", line:{width:2,color:css("--s2")}, marker:{size:8,symbol:"diamond"}}],
-    {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
   const ranks = ["A*","A","B","C","Unranked"], c = B().core;
   plot("pubCore", [{type:"bar", x:ranks, y:ranks.map(r=>c[r]||0), marker:{color:ranks.map(r=>r==="Unranked"?css("--qna"):css("--s1"))},
     hovertemplate:"CORE %{x}: %{y:,} papers<extra></extra>"}], {});
   table("pubTop", B().most_cited, [{k:"title",t:"Title",f:(v)=>esc(short(v))},{k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},
     {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"homes",t:"Inst."},
-    {k:"n_authors",t:"Authors",n:1,f:(v,r)=>`${fmt(v)}${r.many_authors?' <span class="pill">flag &gt;12</span>':''}`},{k:"doi",t:"",f:doiLink}]);
+    {k:"n_authors",t:"Authors",n:1,f:(v,r)=>`${fmt(v)}${r.many_authors?' <span class="pill">&gt;12</span>':''}`},{k:"doi",t:"",f:doiLink}]);
 }
 
 function renderFaculty() {
@@ -348,48 +324,95 @@ function renderFaculty() {
   if (depts.includes(prev)) sel.value = prev;
   const draw = () => {
     const q = document.getElementById("facSearch").value.toLowerCase(), d = sel.value;
-    const rows = all.filter(f => (!d || f.department===d) && (!q || [f.name,f.department,f.top_journal].join(" ").toLowerCase().includes(q)));
+    const rows = all.filter(f => (!d || f.department===d) && (!q || [f.name,f.department,f.top3_journals].join(" ").toLowerCase().includes(q)));
     document.getElementById("facCount").textContent = `${rows.length} faculty`;
-    table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department"},
+    table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:v=>esc(short(v))},{k:"rank",t:"Rank",f:v=>esc(v)},
       {k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"h_index",t:"h-index",n:1},
-      {k:"h_index_career",t:"Career h",n:1},{k:"papers_authors_gt_12",t:"Papers >12 authors",n:1,f:v=>fmt(v)},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"top_journal",t:"Top journal",f:v=>esc(short(v))},
-      {k:"faculty_source",t:"Source",f:v=>`<span class="pill">${esc(v)}</span>`}], {sort:"papers"});
+      {k:"h_index_career",t:"Career h",n:1},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"high_impact_papers",t:"High-impact",n:1,f:v=>fmt(v)},
+      {k:"journals_used",t:"Journals",n:1,f:v=>fmt(v)},{k:"top3_journal_share",t:"Top-3 share",n:1,f:pct},
+      {k:"top3_journals",t:"Top journals",f:v=>esc(v && v.length>70 ? v.slice(0,68)+"…" : v)}], {sort:"papers"});
   };
   document.getElementById("facSearch").oninput = draw; sel.onchange = draw; draw();
   plot("facHist", instList().map(i => ({type:"histogram", x:DATA.inst[i].h_values, name:i, xbins:{size:2},
-    marker:{color:instColor(i), line:{color:css("--surface"),width:1}}, 
+    marker:{color:instColor(i), line:{color:css("--surface"),width:1}},
     hovertemplate:`${i}: h %{x} → %{y} faculty<extra></extra>`})), {barmode:"group", bargap:0.15, xaxis:{title:"h-index", gridcolor:css("--grid")}, yaxis:{title:"faculty", gridcolor:css("--grid"), automargin:true}});
-  const dep = B().departments.slice(0,20).reverse();
-  plot("facDeptBar", [{type:"bar", orientation:"h", x:dep.map(d=>d.papers), y:dep.map(d=>short(d.department)), marker:{color:css("--s1")},
-    customdata:dep.map(d=>d.faculty), hovertemplate:"%{y}: %{x:,} faculty-papers, %{customdata} faculty<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
-  table("deptTable", B().departments, [{k:"department",t:"Department"},{k:"faculty",t:"Faculty",n:1},{k:"papers",t:"Faculty-papers",n:1,f:v=>fmt(v)},
-    {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"median_h",t:"Median h",n:1,f:v=>fmt(v,1)},{k:"mean_q1_share",t:"Mean Q1 share",n:1,f:pct}], {sort:"papers"});
+  table("deptTable", B().departments, [{k:"department",t:"Department",f:v=>esc(short(v))},{k:"faculty",t:"Faculty",n:1},{k:"papers",t:"Faculty-papers",n:1,f:v=>fmt(v)},
+    {k:"median_h",t:"Median h",n:1,f:v=>fmt(v,1)},{k:"mean_q1_share",t:"Mean Q1 share",n:1,f:pct}], {sort:"papers"});
 }
 
+let jcNet = null;
 function renderJournals() {
-  const cols = [{k:"venue",t:"Journal"},{k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"quartile",t:"Quartile"}];
-  if (state.inst==="All") {
-    const rows = INSTS.flatMap(i => DATA.inst[i].top_journals.slice(0,5).map(j=>({...j, inst:i})));
-    table("jTop5", rows, [{k:"inst",t:"Inst."}, ...cols]);
-  } else table("jTop5", B().top_journals.slice(0,5), cols);
-  quartDonut("jQuart");
-  const j = B().top_journals.slice().reverse();
-  plot("jTop15", [{type:"bar", orientation:"h", x:j.map(d=>d.papers), y:j.map(d=>short(d.venue)),
-    marker:{color:j.map(d=>({Q1:css("--q1"),Q2:css("--q2"),Q3:css("--q3"),Q4:css("--q4")}[d.quartile]||css("--qna")))},
-    customdata:j.map(d=>d.quartile||"NA"), hovertemplate:"%{y}: %{x:,} papers (%{customdata})<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const J = DATA.journals, b = J[state.inst], k = b.kpis;
+  tiles("jcTiles", [
+    ["Journals used", fmt(k.journals_used), `${fmt(k.journal_papers)} journal papers`],
+    ["In high-impact journals", pct(k.high_impact_share), `${fmt(k.high_impact_papers)} papers with impact ≥ ${J.threshold}`],
+    ["In Q1 journals", pct(k.q1_share), "SCImago, publication year"],
+    ["In open-access journals", pct(k.oa_share), "fully open-access (DOAJ) journals"],
+    ["In Indian journals", pct(k.indian_journal_share), "journal country = India"],
+    ["Journal loyalty", pct(k.median_loyalty), "median share in a member's top-3 journals"],
+  ]);
+  table("jcTop", b.top_journals, [{k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"papers",t:"Papers",n:1,f:v=>fmt(v)},
+    {k:"impact",t:"Impact",n:1,f:v=>fmt(v,1)},{k:"quartile",t:"SJR"},{k:"publisher",t:"Publisher",f:v=>esc(short(v||""))},
+    {k:"oa",t:"Open access",f:v=>v?"yes":"no"},{k:"faculty",t:"Faculty",n:1}], {sort:"papers"});
+  const q = b.quartile, keys = ["Q1","Q2","Q3","Q4","Unranked/NA"], qc = [css("--q1"),css("--q2"),css("--q3"),css("--q4"),css("--qna")];
+  plot("jcQuart", [{type:"pie", hole:.55, sort:false, direction:"clockwise", labels:keys, values:keys.map(x=>q[x]||0),
+    marker:{colors:qc, line:{color:css("--surface"), width:2}}, textinfo:"label+percent", textposition:"outside",
+    hovertemplate:"%{label}: %{value:,} papers (%{percent})<extra></extra>"}], {showlegend:false, margin:{l:24,r:24,t:24,b:24}});
+  // who / why: rates by factor
+  const fs = document.getElementById("jcFactor"), factors = Object.keys(b.drivers), prevF = fs.value;
+  fs.innerHTML = factors.map(f=>`<option>${f}</option>`).join("");
+  fs.value = factors.includes(prevF) ? prevF : "Faculty rank";
+  const drawDrivers = () => {
+    const metric = document.getElementById("jcMetric").value, rows = b.drivers[fs.value].slice().reverse();
+    const isShare = metric !== "median_impact";
+    plot("jcDrivers", [{type:"bar", orientation:"h", x:rows.map(r=>r[metric]), y:rows.map(r=>short(r.group)), marker:{color:css("--s1")},
+      customdata:rows.map(r=>r.papers), hovertemplate:`%{y}: %{x${isShare?":.1%":":.1f"}} (%{customdata:,} papers)<extra></extra>`}],
+      {margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:isShare?".0%":"", gridcolor:css("--grid")}});
+  };
+  fs.onchange = drawDrivers; document.getElementById("jcMetric").onchange = drawDrivers; drawDrivers();
+  const drawReg = () => {
+    const o = document.getElementById("jcOutcome").value;
+    table("jcReg", J.regression.filter(r=>r.outcome===o), [{k:"factor",t:"Factor"},{k:"level",t:"Group",f:v=>esc(short(v))},
+      {k:"odds_ratio",t:"Odds ratio",n:1,f:v=>`<b>${fmt(v,2)}</b>`},
+      {k:"ci_low",t:"95% CI",n:1,f:(v,r)=>`${fmt(v,2)}–${fmt(r.ci_high,2)}`},
+      {k:"p",t:"p",n:1,f:v=>v<0.001?"&lt;0.001":v<0.05?fmt(v,3):`<span style="color:var(--muted)">${fmt(v,2)}</span>`}]);
+  };
+  document.getElementById("jcOutcome").onchange = drawReg; drawReg();
+  const by = b.by_year;
+  plot("jcYear", [
+    {x:by.years, y:by.high, name:`High-impact journals (≥ ${J.threshold})`, mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
+    {x:by.years, y:by.oa, name:"Open-access journals", mode:"lines+markers", line:{width:2,color:css("--s3")}, marker:{size:8,symbol:"diamond"}}],
+    {hovermode:"x unified", yaxis:{tickformat:".0%", gridcolor:css("--grid"), automargin:true, rangemode:"tozero"}});
+  plot("jcLoyal", [{type:"histogram", x:b.loyalty, xbins:{start:0,end:1.0001,size:0.1}, histnorm:"probability", marker:{color:css("--s1"), line:{color:css("--surface"),width:1}},
+    hovertemplate:"%{x} of papers in top-3 journals: %{y:.1%} of faculty<extra></extra>"}],
+    {xaxis:{tickformat:".0%", title:"share of papers in own top-3 journals", gridcolor:css("--grid")}, yaxis:{tickformat:".0%", title:"faculty", gridcolor:css("--grid"), automargin:true}});
+  const pb = b.publishers.slice().reverse();
+  plot("jcPub", [{type:"bar", orientation:"h", x:pb.map(p=>p.share), y:pb.map(p=>short(p.name)), marker:{color:css("--s1")},
+    customdata:pb.map(p=>p.papers), hovertemplate:"%{y}: %{x:.1%} (%{customdata:,} papers)<extra></extra>"}],
+    {margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:".0%", gridcolor:css("--grid")}});
+  // how: journal ecosystems
+  const N = J.network, ser = SER(), minW = +document.getElementById("jcMinW").value;
+  const cc = c => c>=0 && c<8 ? ser[c] : css("--other");
+  const edges = N.edges.filter(e=>e[2]>=minW), linked = new Set(edges.flatMap(e=>[e[0],e[1]]));
+  const maxP = Math.max(...N.nodes.map(n=>n.papers), 1);
+  const big = new Set(N.nodes.filter(n=>linked.has(n.id)).sort((a,b)=>b.papers-a.papers).slice(0,25).map(n=>n.id));
+  const nodes = N.nodes.filter(n=>linked.has(n.id)).map(n=>({id:n.id, value:Math.sqrt(n.papers/maxP),
+    label: big.has(n.id) ? short(n.id) : undefined, font:{color:css("--ink"), size:14, strokeWidth:3, strokeColor:css("--surface")},
+    color:{background:cc(n.comm), border:css("--surface")},
+    title:`${n.id}\n${n.papers} papers · impact ${n.impact==null?"–":n.impact.toFixed(1)} · ${n.quartile||"no quartile"}\n${n.faculty} faculty · ${n.field||""}`}));
+  if (jcNet) jcNet.destroy();
+  jcNet = new vis.Network(document.getElementById("jcNet"), {nodes, edges:edges.map(([a,c,w])=>({from:a,to:c,value:w,title:`${w} faculty publish in both`}))}, {
+    nodes:{shape:"dot", scaling:{min:8,max:40, label:{enabled:false}}, borderWidth:1.5},
+    edges:{color:{color:css("--muted"), opacity:.18}, scaling:{min:.4,max:4}, smooth:false},
+    physics:{solver:"forceAtlas2Based", stabilization:{iterations:400}, forceAtlas2Based:{gravitationalConstant:-110, springLength:120, centralGravity:0.06, avoidOverlap:0.4}},
+    interaction:{hover:true, tooltipDelay:80}});
+  jcNet.once("stabilizationIterationsDone", () => jcNet.setOptions({physics:false}));
+  document.getElementById("jcLegend").innerHTML = N.communities.filter(c=>c.size>=3).slice(0,8).map(c =>
+    `<span><i style="background:${cc(c.community)}"></i>${esc(c.field)}: ${esc(c.journals)} (${c.size} journals)</span>`).join("");
 }
+document.getElementById("jcMinW").onchange = renderJournals;
 
-function renderAreas() {
-  const f = Object.entries(B().fields).reverse();
-  plot("raFields", [{type:"bar", orientation:"h", x:f.map(d=>d[1]), y:f.map(d=>d[0]), marker:{color:css("--s1")},
-    hovertemplate:"%{y}: %{x:,}<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
-  const s = Object.entries(B().subfields).reverse();
-  plot("raSub", [{type:"bar", orientation:"h", x:s.map(d=>d[1]), y:s.map(d=>short(d[0])), marker:{color:css("--s1")},
-    hovertemplate:"%{y}: %{x:,}<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
-  const doms = Object.keys(DATA.inst.All.domains);
-  plot("raDom", instList().map(i => ({type:"bar", x:doms, y:doms.map(d=>DATA.inst[i].domains[d]||0), name:i, marker:{color:instColor(i)},
-    hovertemplate:`${i} %{x}: %{y:,}<extra></extra>`})), {barmode:"group"});
-}
+
 
 let citNet=null, auNet=null;
 function renderCitation() {
@@ -494,8 +517,6 @@ function renderConnectivity() {
   instList().forEach(i => { tr.push({type:"bar", x:clusters, y:clusters.map(c=>(DATA.flows[i].clusters[c]||{}).inflow||0), name:`${i} in`, marker:{color:instColor(i)}});
     tr.push({type:"bar", x:clusters, y:clusters.map(c=>(DATA.flows[i].clusters[c]||{}).outflow||0), name:`${i} out`, marker:{color:instColor(i), pattern:{shape:"/", fgcolor:css("--surface")}}}); });
   plot("icFlowCl", tr, {barmode:"group", margin:{l:48,r:16,t:8,b:90}});
-  const jac = instList().flatMap(i=>DATA.connectivity[i].jaccard.map(j=>({...j, inst:i}))).sort((a,b)=>b.topic_weighted_jaccard-a.topic_weighted_jaccard).slice(0,15);
-  table("icJac", jac, [{k:"inst",t:"Our inst."},{k:"partner_inst",t:"Partner"},{k:"partner_cluster",t:"Cluster"},{k:"topic_weighted_jaccard",t:"Weighted J.",n:1,f:v=>fmt(v,2)},{k:"topic_jaccard",t:"Jaccard",n:1,f:v=>fmt(v,2)}]);
 }
 
 function renderMethod() {
@@ -503,20 +524,17 @@ function renderMethod() {
   document.getElementById("method").innerHTML = `
   <h3>Data &amp; method</h3>
   <ul>
-   <li><b>Source:</b> OpenAlex (works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}; types article, review, letter, book chapter). Generated ${esc(m.generated)}. ${fmt(m.n_papers)} unique papers, ${fmt(m.n_rows)} dataset rows.</li>
-   <li><b>Faculty:</b> official rosters (IISc Directory 2025-26: ${m.roster_size.IISc}; TIFR department pages: ${m.roster_size.TIFR}) matched to OpenAlex author IDs by name. Former faculty who left before the rosters were compiled are added by a heuristic (≥8 papers over ≥4 years, ≥30% as last or corresponding author). Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
-   <li><b>TIFR scope:</b> TIFR Mumbai only. OpenAlex often tags authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) with the main TIFR ID; such authorships are recognised from their affiliation text and excluded (NCBS belongs to Group 23).</li>
-   <li><b>Long author lists:</b> OpenAlex lists at most 100 authors per work, so on some mega-collaboration papers our authors are not visible; those papers are kept (the institution query matched them) with author "[not listed]".</li>
-   <li><b>With and without flagged papers:</b> the switch at the top (<i>Flagged: included / excluded</i>) recomputes every tab without the papers that have more than 12 authors; the <i>With vs without flagged</i> tab compares the key metrics side by side.</li>
-   <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors (13 or more; papers with 11–12 authors are common and not flagged). It appears in group18_data.csv, authorship_network.csv and citation_paper_metrics.csv; flagged papers are still counted everywhere.</li>
-   <li><b>Departments:</b> roster department; for heuristic faculty, the most frequent department parsed from OpenAlex raw affiliation strings.</li>
-   <li><b>Quartile:</b> SCImago SJR best quartile of the journal in the publication year (2026 papers use SJR 2025). Conference rank: CORE 2023 (matched by acronym or title).</li>
-   <li><b>h-index:</b> per faculty from their 2016–2026 papers at the institution; "career h" = OpenAlex lifetime h-index.</li>
-   <li><b>Citation network:</b> nodes = papers in the IISc+TIFR corpus, edges = OpenAlex referenced_works within the corpus; PageRank α = 0.85. Cross-institute edges to/from other Indian institutions (works with ≥1 Indian affiliation that do not involve the same institution) are in citation_network.csv only.</li>
-   <li><b>Authorship network:</b> nodes = faculty, edges = co-authored papers; papers with &gt; ${m.mega_threshold} authors (CMS, ALICE, Belle, …) are excluded. Louvain communities (seed 42), degree and betweenness centrality via NetworkX.</li>
-   <li><b>Indian connectivity:</b> partner institutions = Indian (country code IN) institutions in the authorships; clusters follow the course PPT (IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University) plus other categories.</li>
-  </ul>
-  ${m.flows_available ? "" : "<p><b>Note:</b> citation flows with other Indian institutions have not been fetched yet (they need an OpenAlex API key). Flow numbers currently only cover IISc↔TIFR citations within the corpus.</p>"}`;
+   <li><b>Source:</b> OpenAlex works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}: journal articles, reviews, letters, book chapters and conference papers. Generated ${esc(m.generated)}. ${fmt(m.n_papers)} papers, ${fmt(m.n_rows)} dataset rows.</li>
+   <li><b>TIFR scope:</b> TIFR Mumbai only; authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) are recognised from their affiliation text and excluded.</li>
+   <li><b>Author lists:</b> where OpenAlex's list API cut a paper's authors at 100, the full list was fetched, so author counts are exact. Papers with no identifiable IISc/TIFR author are removed as OpenAlex mis-tags.</li>
+   <li><b>Faculty:</b> official rosters (IISc Directory 2025-26, IISc Centre for Society and Policy, IISc retired-faculty list; TIFR department pages) matched to OpenAlex authors by name and department; former faculty added by a publication rule (≥ 8 papers over ≥ 4 years, ≥ 30% as last or corresponding author). Rank = current (2025-26) title. Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
+   <li><b>Quality:</b> SCImago SJR best quartile of the journal in the publication year (2026 uses SJR 2025); CORE 2023 for conferences. Journal impact = OpenAlex 2-year mean citedness (the impact-factor equivalent); high-impact = impact ≥ 10. Impact is not field-normalised: physics and mathematics journals have lower values.</li>
+   <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors. The switch <i>Flagged: included / excluded</i> recomputes every tab without them.</li>
+   <li><b>Journal choice:</b> who = per-faculty journals used, top-3 share (loyalty), Q1 and high-impact share, by rank and department; why = shares by team size, collaboration, field and rank, plus a logistic regression holding the others fixed; how = journal co-usage network (journals linked by shared faculty; Louvain communities).</li>
+   <li><b>Citation network:</b> nodes = our papers, edges = OpenAlex references among them; PageRank α = 0.85. Citations to and from other Indian institutes are in citation_network.csv.</li>
+   <li><b>Co-authorship network:</b> nodes = faculty, edges = joint papers with ≤ ${m.mega_threshold} authors; Louvain communities (seed 42), degree and betweenness centrality (NetworkX).</li>
+   <li><b>Indian connectivity:</b> partner institutions = Indian institutions in the author lists; clusters follow the course PPT; topic similarity = Jaccard over OpenAlex subfields.</li>
+  </ul>`;
 }
 
 function flaggedRows() {
@@ -589,8 +607,22 @@ function renderCompare() {
     {barmode:"group", yaxis:{tickformat:".0%", gridcolor:css("--grid"), automargin:true}});
 }
 
-const RENDER = {"Overview":renderOverview,"With vs without flagged":renderCompare,"Publications":renderPublications,"Flagged papers":renderFlagged,"Faculty":renderFaculty,"Journals":renderJournals,
-  "Research areas":renderAreas,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
+function renderLarge() {
+  renderCompare();
+  renderFlagged();
+  const m = DATA_ALL.inst[state.inst].many_authors_by_year;
+  plot("pubMany", [
+    {type:"bar", x:m.years, y:m.few, name:"≤ 12 authors", marker:{color:css("--s1")}, hovertemplate:"≤ 12 authors %{x}: %{y:,}<extra></extra>"},
+    {type:"bar", x:m.years, y:m.many, name:"> 12 authors (flagged)", marker:{color:css("--s2")}, hovertemplate:"> 12 authors %{x}: %{y:,}<extra></extra>"}],
+    {barmode:"stack", hovermode:"x unified"});
+  plot("pubManyCit", [
+    {x:m.years, y:m.citations_few, name:"≤ 12 authors", mode:"lines+markers", line:{width:2,color:css("--s1")}, marker:{size:8}},
+    {x:m.years, y:m.citations_many, name:"> 12 authors", mode:"lines+markers", line:{width:2,color:css("--s2")}, marker:{size:8,symbol:"diamond"}}],
+    {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
+}
+
+const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Faculty":renderFaculty,
+  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}

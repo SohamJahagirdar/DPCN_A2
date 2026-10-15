@@ -331,6 +331,24 @@ def fetch_institution_meta(oa: OpenAlex):
     print(f"[institutions] metadata for {len(out)} extra institutions")
 
 
+# --------------------------------------------------------------------------- journals (sources)
+SOURCE_SELECT = ",".join(["id", "display_name", "type", "issn_l", "host_organization_name", "country_code",
+                          "is_oa", "is_in_doaj", "apc_usd", "summary_stats", "works_count"])
+
+
+def fetch_sources(oa: OpenAlex):
+    """Metadata of every journal/conference our papers appear in: publisher, country, open access, APC and
+    OpenAlex's 2-year mean citedness (the impact-factor equivalent)."""
+    works, _ = load_corpus()
+    ids = sorted({short_id(((w.get("primary_location") or {}).get("source") or {}).get("id")) for w in works.values()} - {None})
+    print(f"[sources] {len(ids)} journals/venues -> ~{len(ids) // 100 + 1} calls")
+    out = []
+    for batch in chunks(ids, 100):
+        out.extend(oa.paginate("/sources", "ids.openalex:" + "|".join(batch), SOURCE_SELECT))
+    n = write_jsonl(config.RAW / "sources.jsonl.gz", out)
+    print(f"[sources] saved {n}")
+
+
 # --------------------------------------------------------------------------- partner topics
 def fetch_partner_topics(oa: OpenAlex, partner_ids):
     """Subfield publication counts 2016-2026 for each partner institution (1 group_by call each)."""

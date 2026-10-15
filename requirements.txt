@@ -4,3 +4,4 @@ networkx>=3.2
 scipy>=1.10
 requests>=2.31
 pyreadr>=0.5
+statsmodels>=0.14

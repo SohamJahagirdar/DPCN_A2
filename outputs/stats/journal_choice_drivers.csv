@@ -1,0 +1,114 @@
+institution,factor,group,papers,q1_share,high_impact_share,median_impact
+IISc,Team size,1–3 authors,11618,0.618007,0.040454,3.425835
+IISc,Team size,4–6,9226,0.6615,0.060698,3.995516
+IISc,Team size,7–12,4168,0.731526,0.104127,4.586258
+IISc,Team size,13–50,858,0.848485,0.222611,5.252705
+IISc,Team size,more than 50,730,0.70274,0.049315,5.409182
+IISc,Collaboration,Within IISc/TIFR only,9709,0.66083,0.051293,3.648402
+IISc,Collaboration,With other Indian institutes,7655,0.562247,0.042456,3.516447
+IISc,Collaboration,International,9236,0.741988,0.09398,4.511034
+IISc,Field,Engineering,6797,0.672503,0.064734,4.172575
+IISc,Field,Materials Science,3990,0.686717,0.086216,4.15162
+IISc,Field,Physics and Astronomy,2923,0.691755,0.033527,5.099163
+IISc,Field,"Biochemistry, Genetics and Molecular Biology",2238,0.731903,0.069258,3.616145
+IISc,Field,Medicine,1824,0.663377,0.057566,3.427656
+IISc,Field,Environmental Science,1519,0.647136,0.082291,3.68
+IISc,Field,Chemistry,1487,0.613315,0.095494,3.934978
+IISc,Field,Computer Science,1402,0.589158,0.046362,3.096381
+IISc,Field,Earth and Planetary Sciences,856,0.678738,0.044393,3.112353
+IISc,Field,Mathematics,852,0.550469,0.005869,1.02428
+IISc,Faculty rank,Assistant professor / Reader,2699,0.765192,0.12909,4.455863
+IISc,Faculty rank,Associate professor,3858,0.756372,0.081459,4.131773
+IISc,Faculty rank,Professor,9501,0.724579,0.073407,4.077657
+IISc,Faculty rank,Former faculty,2605,0.642649,0.060408,3.684211
+IISc,Faculty rank,Honorary / emeritus,1330,0.754135,0.07218,4.04111
+IISc,Department,Materials Engineering,2107,0.739877,0.120654,5.309894
+IISc,Department,Physics,1449,0.792312,0.073776,4.061685
+IISc,Department,Materials Research Centre,1131,0.785197,0.118262,5.252705
+IISc,Department,Inorganic and Physical Chemistry,875,0.72747,0.12595,4.06422
+IISc,Department,Civil Engineering,834,0.675489,0.044879,3.56701
+IISc,Department,Electrical Communication Engineering,812,0.748545,0.058207,4.014558
+IISc,Department,Aerospace Engineering,805,0.621076,0.025785,3.541386
+IISc,Department,Centre for Nano Science and Engineering,792,0.722397,0.11041,4.04111
+IISc,Department,Mechanical Engineering,744,0.744707,0.054795,4.18232
+IISc,Department,Organic Chemistry,607,0.723027,0.120773,4.397982
+IISc,Department,Solid State and Structural Chemistry Unit,578,0.807752,0.141085,4.308411
+IISc,Department,Microbiology and Cell Biology,552,0.869219,0.118022,4.672
+IISc,Department,Molecular Biophysics Unit,546,0.809199,0.086882,3.710145
+IISc,Department,Biochemistry,524,0.70709,0.070896,3.798934
+IISc,Department,Mathematics,520,0.595903,0.003724,0.992366
+TIFR,Team size,1–3 authors,1978,0.597068,0.0182,2.594904
+TIFR,Team size,4–6,1449,0.68254,0.031056,4.04111
+TIFR,Team size,7–12,1007,0.744786,0.052632,4.04111
+TIFR,Team size,13–50,530,0.801887,0.05283,4.499615
+TIFR,Team size,more than 50,1344,0.78497,0.015625,5.409182
+TIFR,Collaboration,Within IISc/TIFR only,1173,0.600171,0.029838,3.004423
+TIFR,Collaboration,With other Indian institutes,1359,0.582046,0.029433,3.203517
+TIFR,Collaboration,International,3776,0.769333,0.028602,5.409182
+TIFR,Field,Physics and Astronomy,3987,0.732631,0.019814,5.409182
+TIFR,Field,Mathematics,657,0.578387,0.0,0.826748
+TIFR,Field,Materials Science,361,0.66482,0.036011,4.04111
+TIFR,Field,"Biochemistry, Genetics and Molecular Biology",293,0.778157,0.05802,3.540315
+TIFR,Field,Engineering,251,0.545817,0.051793,3.191031
+TIFR,Field,Computer Science,185,0.52973,0.054054,2.444144
+TIFR,Field,Medicine,159,0.679245,0.075472,3.358209
+TIFR,Field,Chemistry,129,0.790698,0.116279,3.984716
+TIFR,Field,Neuroscience,83,0.698795,0.060241,3.62297
+TIFR,Field,Energy,51,0.960784,0.215686,6.596563
+TIFR,Faculty rank,Assistant professor / Reader,108,0.574074,0.009259,4.870683
+TIFR,Faculty rank,Associate professor,281,0.650519,0.027682,4.499615
+TIFR,Faculty rank,Professor,587,0.707438,0.013223,3.203517
+TIFR,Faculty rank,Former faculty,987,0.794262,0.007377,5.409182
+TIFR,Faculty rank,Rank not listed,2850,0.763689,0.042363,5.409182
+TIFR,Department,High Energy Physics,960,0.691251,0.012292,5.409182
+TIFR,Department,Astronomy and Astrophysics,742,0.829146,0.023869,5.646154
+TIFR,Department,Condensed Matter Physics and Materials Science,613,0.720327,0.077763,4.04111
+TIFR,Department,Unknown,530,0.8722,0.0,5.409182
+TIFR,Department,Theoretical Physics,503,0.659963,0.009141,5.409182
+TIFR,Department,Chemical Sciences,350,0.875,0.109043,4.773101
+TIFR,Department,Nuclear and Atomic Physics,340,0.66838,0.012853,3.094937
+TIFR,Department,Biological Sciences,250,0.766284,0.076628,3.713028
+TIFR,Department,School of Mathematics,208,0.82243,0.0,1.02439
+TIFR,Department,School of Technology and Computer Science,143,0.641026,0.057692,1.931412
+TIFR,Department,Physics,67,0.895522,0.0,5.756389
+All,Team size,1–3 authors,13560,0.615118,0.037316,3.285714
+All,Team size,4–6,10624,0.663686,0.056852,3.995516
+All,Team size,7–12,5131,0.73358,0.093354,4.455863
+All,Team size,13–50,1373,0.833212,0.158776,5.22833
+All,Team size,more than 50,1428,0.795518,0.035714,5.409182
+All,Collaboration,Within IISc/TIFR only,10832,0.653804,0.048837,3.616145
+All,Collaboration,With other Indian institutes,8988,0.565532,0.04061,3.425835
+All,Collaboration,International,12296,0.753985,0.078399,4.694373
+All,Field,Engineering,7035,0.667662,0.063966,4.084586
+All,Field,Physics and Astronomy,6195,0.72042,0.027119,5.245486
+All,Field,Materials Science,4329,0.684916,0.082236,4.110634
+All,Field,"Biochemistry, Genetics and Molecular Biology",2526,0.737134,0.068092,3.616145
+All,Field,Medicine,1977,0.664138,0.058675,3.425835
+All,Field,Chemistry,1609,0.627098,0.096955,3.96615
+All,Field,Computer Science,1583,0.581807,0.047378,3.00958
+All,Field,Environmental Science,1533,0.645793,0.082844,3.686116
+All,Field,Mathematics,1494,0.56091,0.003347,0.900862
+All,Field,Earth and Planetary Sciences,870,0.67931,0.044828,3.112353
+All,Faculty rank,Assistant professor / Reader,2807,0.758048,0.124611,4.464381
+All,Faculty rank,Associate professor,4139,0.749243,0.077837,4.145455
+All,Faculty rank,Professor,10085,0.72363,0.070076,4.050584
+All,Faculty rank,Former faculty,3590,0.689264,0.044103,4.394598
+All,Faculty rank,Honorary / emeritus,1330,0.754135,0.07218,4.04111
+All,Faculty rank,Rank not listed,2850,0.763689,0.042363,5.409182
+All,Department,Materials Engineering,2107,0.739877,0.120654,5.309894
+All,Department,Physics,1516,0.796429,0.070833,4.183359
+All,Department,Materials Research Centre,1131,0.785197,0.118262,5.252705
+All,Department,High Energy Physics,960,0.691251,0.012292,5.409182
+All,Department,Inorganic and Physical Chemistry,875,0.72747,0.12595,4.06422
+All,Department,Civil Engineering,834,0.675489,0.044879,3.56701
+All,Department,Electrical Communication Engineering,812,0.748545,0.058207,4.014558
+All,Department,Aerospace Engineering,805,0.621076,0.025785,3.541386
+All,Department,Centre for Nano Science and Engineering,792,0.722397,0.11041,4.04111
+All,Department,Mechanical Engineering,744,0.744707,0.054795,4.18232
+All,Department,Astronomy and Astrophysics,742,0.829146,0.023869,5.646154
+All,Department,Condensed Matter Physics and Materials Science,613,0.720327,0.077763,4.04111
+All,Department,Organic Chemistry,607,0.723027,0.120773,4.397982
+All,Department,Solid State and Structural Chemistry Unit,578,0.807752,0.141085,4.308411
+All,Department,Microbiology and Cell Biology,552,0.869219,0.118022,4.672
+All,Institution,IISc,17851,0.727144,0.080474,4.061685
+All,Institution,TIFR,4183,0.754919,0.030394,5.245486
