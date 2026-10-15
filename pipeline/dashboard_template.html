@@ -137,6 +137,28 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="Reputable journals &amp; India">
+    <div class="tiles" id="rpTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>How "reputable" and "impact on India" are measured</h3><div id="rpMethod" class="note"></div></div>
+      <div class="card c12"><h3>Reputable papers compared with our other journal papers</h3>
+        <div class="hint">Journal papers only. Indian citations exclude citing papers that involve the paper's own institute.</div>
+        <div id="rpComp" class="tablewrap" style="max-height:none"></div></div>
+      <div class="card c6"><h3>Nature Index papers per year</h3><div class="hint">Hover for the share of all journal papers</div><div id="rpYear" class="plot"></div></div>
+      <div class="card c6"><h3>Our main Nature Index journals</h3><div id="rpJour" class="plot"></div></div>
+      <div class="card c6"><h3>Indian institutions citing our reputable papers</h3><div class="hint">Number of our Nature Index papers each institution cites</div><div id="rpCiters" class="plot tall"></div></div>
+      <div class="card c6"><h3>Which parts of Indian science cite them</h3><div class="hint">Share of Indian citing institutions by cluster (course PPT clusters): reputable vs other papers</div><div id="rpClusters" class="plot tall"></div></div>
+      <div class="card c6"><h3>Sustainable Development Goals</h3><div class="hint">Share of papers tagged with each goal (OpenAlex classifier, score ≥ 0.8)</div><div id="rpSdg" class="plot"></div></div>
+      <div class="card c6"><h3>Reputable papers most cited in India</h3><div id="rpTop" class="tablewrap" style="max-height:420px"></div></div>
+      <div class="card c12"><h3>All Nature Index papers and their Indian uptake</h3>
+        <div class="row"><input type="search" id="rpSearch" placeholder="Search title, journal, faculty, SDG…" size="34">
+          <label class="pill"><input type="checkbox" id="rpIndia"> India-focused only</label>
+          <label class="pill"><input type="checkbox" id="rpFlag"> Flagship only</label>
+          <span class="pill" id="rpCount"></span><button class="iconbtn" id="rpDownload">Download CSV</button></div>
+        <div id="rpTable" class="tablewrap" style="max-height:640px"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Faculty">
     <div class="grid">
       <div class="card c12"><h3>Faculty performance and journal choices</h3>
@@ -220,7 +242,7 @@ const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -297,7 +319,14 @@ function renderOverview() {
   plot("ovSub", [{type:"bar", orientation:"h", x:sf.map(d=>d[1]), y:sf.map(d=>short(d[0])), marker:{color:css("--s1")},
     hovertemplate:"%{y}: %{x:,} papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
 }
-const short = s => (s||"").length>42 ? s.slice(0,40)+"…" : s;
+const ABBR = [[/Indian Institute of Science Education and Research,?\s*/g,"IISER "],[/Indian Institute of Information Technology,?\s*/g,"IIIT "],
+  [/Indian Institute of Technology,?\s*/g,"IIT "],[/National Institute of Technology,?\s*/g,"NIT "],[/^Indian Institute of Science( Bangalore)?$/,"IISc"],
+  [/Tata Institute of Fundamental Research/g,"TIFR"],[/Homi Bhabha National Institute/g,"HBNI"],[/Academy of Scientific and Innovative Research/g,"AcSIR (CSIR)"],
+  [/National Institute of Science Education and Research/g,"NISER"],[/Indian Association for the Cultivation of Science/g,"IACS"],
+  [/Jawaharlal Nehru Centre for Advanced Scientific Research/g,"JNCASR"],[/Inter-University Centre for Astronomy and Astrophysics/g,"IUCAA"],
+  [/Bhabha Atomic Research Centre/g,"BARC"],[/Council of Scientific and Industrial Research/g,"CSIR"]];
+const abbr = s => ABBR.reduce((x,[re,r]) => x.replace(re,r), String(s||"")).trim();
+const short = s => { s = abbr(s); return s.length>42 ? s.slice(0,40)+"…" : s; };
 
 
 function renderPublications() {
@@ -328,7 +357,7 @@ function renderFaculty() {
     document.getElementById("facCount").textContent = `${rows.length} faculty`;
     table("facTable", rows, [{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:v=>esc(short(v))},{k:"rank",t:"Rank",f:v=>esc(v)},
       {k:"papers",t:"Papers",n:1,f:v=>fmt(v)},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"h_index",t:"h-index",n:1},
-      {k:"h_index_career",t:"Career h",n:1},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"high_impact_papers",t:"High-impact",n:1,f:v=>fmt(v)},
+      {k:"h_index_career",t:"Career h",n:1},{k:"q1_share",t:"Q1 share",n:1,f:pct},{k:"high_impact_papers",t:"High-impact",n:1,f:v=>fmt(v)},{k:"nature_index_papers",t:"Nature Index",n:1,f:v=>fmt(v)},
       {k:"journals_used",t:"Journals",n:1,f:v=>fmt(v)},{k:"top3_journal_share",t:"Top-3 share",n:1,f:pct},
       {k:"top3_journals",t:"Top journals",f:v=>esc(v && v.length>70 ? v.slice(0,68)+"…" : v)}], {sort:"papers"});
   };
@@ -531,6 +560,7 @@ function renderMethod() {
    <li><b>Quality:</b> SCImago SJR best quartile of the journal in the publication year (2026 uses SJR 2025); CORE 2023 for conferences. Journal impact = OpenAlex 2-year mean citedness (the impact-factor equivalent); high-impact = impact ≥ 10. Impact is not field-normalised: physics and mathematics journals have lower values.</li>
    <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors. The switch <i>Flagged: included / excluded</i> recomputes every tab without them.</li>
    <li><b>Journal choice:</b> who = per-faculty journals used, top-3 share (loyalty), Q1 and high-impact share, by rank and department; why = shares by team size, collaboration, field and rank, plus a logistic regression holding the others fixed; how = journal co-usage network (journals linked by shared faculty; Louvain communities).</li>
+   <li><b>Reputable journals &amp; impact on India:</b> Nature Index journals (with the index's article rules) and flagship journals; impact on India measured by Indian citations, their share, breadth, reach, speed and an Indian Citation Index, plus India-focused topics and SDG tags. Full definitions and sources are on that tab and in the README; per-paper values are in outputs/stats/india_impact_per_paper.csv.</li>
    <li><b>Citation network:</b> nodes = our papers, edges = OpenAlex references among them; PageRank α = 0.85. Citations to and from other Indian institutes are in citation_network.csv.</li>
    <li><b>Co-authorship network:</b> nodes = faculty, edges = joint papers with ≤ ${m.mega_threshold} authors; Louvain communities (seed 42), degree and betweenness centrality (NetworkX).</li>
    <li><b>Indian connectivity:</b> partner institutions = Indian institutions in the author lists; clusters follow the course PPT; topic similarity = Jaccard over OpenAlex subfields.</li>
@@ -621,7 +651,83 @@ function renderLarge() {
     {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
 }
 
-const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Faculty":renderFaculty,
+function renderReputable() {
+  const R = DATA.reputable, b = R[state.inst], k = b.kpis;
+  const ni = b.comparison[0];
+  tiles("rpTiles", [
+    ["Nature Index papers", fmt(k.ni_papers), `${pct(k.ni_share)} of journal papers · ${fmt(k.ni_journals)} journals`],
+    ["Flagship papers", fmt(k.flagship_papers), "Nature, Science, Cell, PNAS"],
+    ["Cited in India", pct(k.ni_cited_in_india), "of Nature Index papers"],
+    ["Indian citations per paper", fmt(ni.indian_citations_mean,1), `Indian Citation Index ${fmt(ni.ici_mean,2)}`],
+    ["Indian share of their citations", pct(ni.indian_share), `other papers: ${pct(b.comparison[b.comparison.length-1].indian_share)}`],
+    ["India-focused", pct(k.ni_india_focus), "of Nature Index papers"],
+  ]);
+  document.getElementById("rpMethod").innerHTML = `<ul>
+   <li><b>Reputable journals</b> = the <a href="https://www.nature.com/nature-index/faq" target="_blank" rel="noopener">Nature Index</a> list of 178 journals and proceedings, chosen by panels of active scientists independently of Springer Nature. Its article rules are applied: for Physical Review A/B/D only Letters, for MNRAS only its Letters, and A&amp;A not at all, since its Letters and the Editors' Suggestions cannot be identified in OpenAlex. <b>Flagship</b> = Nature, Science, Cell, PNAS.</li>
+   <li><b>Indian citations (uptake)</b> = papers citing ours that have at least one author at an Indian institution (OpenAlex institution <code>country_code</code> = IN), excluding papers that involve our own institute. Built from those papers' <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener">OpenAlex <code>referenced_works</code></a>.</li>
+   <li><b>Indian share</b> = Indian citations ÷ all citations (OpenAlex <code>cited_by_count</code>). <b>Breadth</b> = distinct Indian institutions citing. <b>Reaches wider</b> = cited by at least one state or private university or college (not IIT, NIT, IIIT, IISER, CSIR, DAE or central university).</li>
+   <li><b>Indian Citation Index</b> = a paper's Indian citations ÷ the average for our journal papers of the same field and year (1.0 = typical), built like OpenAlex's <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener"><code>fwci</code></a> (citations ÷ expected for the same type, year and subfield; 1.0 = world average). <b>Top 10%</b> = OpenAlex <code>citation_normalized_percentile</code>.</li>
+   <li><b>Speed</b> = years from publication to the first Indian citation. <b>Indian co-authors</b> = at least one co-author at another Indian institution.</li>
+   <li><b>India-focused</b> = the title or abstract names India, an Indian state or city, a region (Himalaya, Western Ghats, Ganga, …) or a national facility or mission (AstroSat, GMRT, Chandrayaan, …). Abstracts come from OpenAlex; ${pct(0.706)} of papers have one, so the rest are judged on the title only.</li>
+   <li><b>SDG</b> = UN Sustainable Development Goal tag from <a href="https://help.openalex.org/data/sdgs" target="_blank" rel="noopener">OpenAlex's SDG classifier</a>, counted only at score ≥ ${R.sdg_min_score} (tags at that level are correct about 7 times in 10). <a href="https://sdgs.un.org/goals" target="_blank" rel="noopener">UN goals</a>.</li>
+   <li><b>Not measured</b>: policy and patent citations, media coverage and technology transfer. Free, citable data for these is not available for Indian institutions. Indian citations count papers, not people or practice.</li></ul>`;
+  const metrics = [["papers","Papers","n"],["median_citations","Median citations","n1"],["mean_fwci","Mean FWCI (world = 1)","n2"],["top10_share","In global top 10% of their field","p"],
+    ["cited_in_india_share","Cited at least once in India","p"],["indian_citations_mean","Indian citations per paper","n1"],["indian_institutions_mean","Indian institutions citing, per paper","n1"],
+    ["ici_mean","Indian Citation Index (1 = typical)","n2"],["indian_share","Indian share of all citations","p"],["reaches_wider_share","Cited by a state/private university or college","p"],
+    ["median_lag","Years to first Indian citation (median)","n1"],["indian_coauthor_share","With an Indian co-author institution","p"],["india_focus_share","India-focused","p"],["sdg_share","Tagged with an SDG","p"]];
+  const groups = b.comparison.map(g=>g.group);
+  const rows = metrics.map(([key,label,f]) => Object.assign({metric:label}, ...b.comparison.map((g,i)=>({["g"+i]: g[key], ["f"+i]: f}))));
+  table("rpComp", rows, [{k:"metric",t:"Measure"}, ...groups.map((g,i)=>({k:"g"+i, t:esc(g), n:1,
+    f:(v,r)=>v==null?"–":r["f"+i]==="p"?pct(v):r["f"+i]==="n2"?fmt(v,2):r["f"+i]==="n1"?fmt(v,1):fmt(v)}))]);
+  const y = b.by_year;
+  plot("rpYear", [{type:"bar", x:y.years, y:y.papers, marker:{color:css("--s1")}, customdata:y.share,
+    hovertemplate:"%{x}: %{y:,} papers (%{customdata:.1%} of journal papers)<extra></extra>"}], {});
+  const tj = b.top_journals.slice().reverse();
+  plot("rpJour", [{type:"bar", orientation:"h", x:tj.map(j=>j.papers), y:tj.map(j=>short(j.venue)), marker:{color:css("--s1")},
+    hovertemplate:"%{y}: %{x:,} papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const tc = b.top_citers.slice().reverse();
+  plot("rpCiters", [{type:"bar", orientation:"h", x:tc.map(c=>c.papers), y:tc.map(c=>short(c.name)), marker:{color:css("--s1")},
+    customdata:tc.map(c=>c.cluster), hovertemplate:"%{y} (%{customdata}): cites %{x:,} of our papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const cl = Object.keys(b.clusters.ni).sort((a,c)=>b.clusters.ni[c]-b.clusters.ni[a]).slice(0,9).reverse();
+  plot("rpClusters", [
+    {type:"bar", orientation:"h", y:cl, x:cl.map(c=>b.clusters.ni[c]||0), name:"Nature Index papers", marker:{color:css("--s1")}, hovertemplate:"Nature Index · %{y}: %{x:.1%}<extra></extra>"},
+    {type:"bar", orientation:"h", y:cl, x:cl.map(c=>b.clusters.other[c]||0), name:"Other papers", marker:{color:css("--s3")}, hovertemplate:"Other · %{y}: %{x:.1%}<extra></extra>"}],
+    {barmode:"group", margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:".0%", gridcolor:css("--grid")}});
+  const sd = b.sdgs.slice().reverse();
+  plot("rpSdg", [
+    {type:"bar", orientation:"h", y:sd.map(d=>short(d.sdg)), x:sd.map(d=>d.ni_share), name:"Nature Index papers", marker:{color:css("--s1")}, hovertemplate:"%{y}: %{x:.1%}<extra></extra>"},
+    {type:"bar", orientation:"h", y:sd.map(d=>short(d.sdg)), x:sd.map(d=>d.other_share), name:"Other papers", marker:{color:css("--s3")}, hovertemplate:"%{y}: %{x:.1%}<extra></extra>"}],
+    {barmode:"group", margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:".0%", gridcolor:css("--grid")}});
+  table("rpTop", b.top_india, [{k:"title",t:"Title",f:(v,r)=>`${esc(short(v))}${r.india_focus?' <span class="pill">India-focused</span>':''}`},
+    {k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"indian_citations",t:"Indian citations",n:1,f:v=>fmt(v)},
+    {k:"indian_institutions",t:"Institutions",n:1,f:v=>fmt(v)},{k:"doi",t:"",f:doiLink}], {sort:"indian_citations"});
+  const all = R.papers.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
+  const filt = () => {
+    const q = document.getElementById("rpSearch").value.toLowerCase(), io = document.getElementById("rpIndia").checked, fo = document.getElementById("rpFlag").checked;
+    return all.filter(r => (!io || r.india_focus) && (!fo || r.flagship) && (!q || [r.title,r.venue,r.faculty,r.sdg,r.india_terms].join(" ").toLowerCase().includes(q)));
+  };
+  const draw = () => {
+    const rows = filt();
+    document.getElementById("rpCount").textContent = `${fmt(rows.length)} papers`;
+    table("rpTable", rows, [{k:"title",t:"Title",f:(v,r)=>`${esc(v)}${r.india_focus?' <span class="pill">India: '+esc(r.india_terms)+'</span>':''}`},
+      {k:"venue",t:"Journal",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},{k:"faculty",t:"Our faculty",f:v=>esc(v)},
+      {k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"fwci",t:"FWCI",n:1,f:v=>fmt(v,1)},
+      {k:"indian_citations",t:"Indian citations",n:1,f:v=>fmt(v)},{k:"indian_institutions",t:"Indian inst.",n:1,f:v=>fmt(v)},
+      {k:"sdg",t:"SDG",f:v=>esc(v)},{k:"doi",t:"",f:doiLink}], {sort:"citations"});
+  };
+  ["rpSearch","rpIndia","rpFlag"].forEach(id => document.getElementById(id)[id==="rpSearch"?"oninput":"onchange"] = draw);
+  document.getElementById("rpDownload").onclick = () => {
+    const cols = ["title","venue","year","homes","faculty","citations","fwci","indian_citations","indian_institutions","indian_clusters","reaches_wider","india_focus","india_terms","sdg","flagship","doi"];
+    const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+    const csv = [cols.join(","), ...filt().map(r => cols.map(c => q(r[c])).join(","))].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], {type:"text/csv"}));
+    a.download = `group18_nature_index_papers_${state.inst}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  draw();
+}
+
+const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Faculty":renderFaculty,
   "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {

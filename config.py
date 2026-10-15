@@ -62,6 +62,10 @@ HIGH_IMPACT_THRESHOLD = 10
 # Journals with at least this many of our papers are nodes in the journal co-usage network
 JOURNAL_NETWORK_MIN_PAPERS = 15
 
+# Impact on India: an OpenAlex SDG tag counts only at score >= 0.8 ("correct about 7 in 10" per
+# https://help.openalex.org/data/sdgs ; scores 0.5-0.8 are right only about half the time).
+SDG_MIN_SCORE = 0.8
+
 # Faculty heuristic thresholds (used only when no official roster match exists)
 FACULTY_MIN_PAPERS = 8
 FACULTY_MIN_YEARS = 4

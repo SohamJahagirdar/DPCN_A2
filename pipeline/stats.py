@@ -189,6 +189,8 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
         )
     from pipeline.journals import journal_stats
     st["journals"] = journal_stats(t)
+    from pipeline.reputable import reputable_stats
+    st["reputable"] = reputable_stats(t, out_dir)
     st = _clean(st)
     json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
     write_stat_tables(st, out_dir)

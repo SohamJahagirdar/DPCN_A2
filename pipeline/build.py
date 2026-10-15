@@ -263,12 +263,54 @@ def load_roster():
     return r[r["institution"].isin(list(config.INSTITUTIONS))].reset_index(drop=True)
 
 
+# ------------------------------------------------------------------ reputable journals (Nature Index)
+def _jnorm(x):
+    x = str(x or "").lower().replace("&", " and ")
+    x = re.sub(r"\bthe\b", " ", x)
+    x = re.sub(r"[^a-z0-9 ]", " ", x)
+    return " ".join(x.split())
+
+
+NI_ALIASES = {_jnorm("IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"):
+              _jnorm("RSJ International Conference on Intelligent Robots and Systems (IROS)")}
+FLAGSHIP = {_jnorm(x) for x in ["Nature", "Science", "Cell", "Proceedings of the National Academy of Sciences"]}
+APS_LETTER = re.compile(r"10\.1103/physrev[abd]\.\d+\.l\d+", re.I)
+
+
+def load_nature_index():
+    f = config.EXTERNAL / "nature_index_journals.csv"
+    if not f.exists():
+        return set()
+    names = {_jnorm(j) for j in pd.read_csv(f)["journal"]}
+    return names | {NI_ALIASES.get(n, n) for n in names}
+
+
+def nature_index_paper(venue, doi, ni):
+    """Is this paper counted by the Nature Index? Applies the index's article rules for five journals:
+    Physical Review A/B/D -> only Letters (Editors' Suggestions are not identifiable in OpenAlex);
+    Monthly Notices of the RAS -> only its Letters; Astronomy & Astrophysics -> only Letters (not
+    identifiable, so none counted)."""
+    parts = [_jnorm(v) for v in str(venue or "").split("/")]
+    if not any(p in ni for p in parts) and not any(p.startswith("monthly notices of royal astronomical society letters")
+                                                   for p in parts):
+        return False
+    if any(p in {"physical review a", "physical review b", "physical review d"} for p in parts):
+        return bool(doi and APS_LETTER.search(doi))
+    if any(p == "astronomy and astrophysics" for p in parts):
+        return False
+    if any(p == "monthly notices of royal astronomical society" for p in parts):
+        return False
+    return True
+
+
 def build_all():
     works, homes = load_corpus()
     print(f"[build] {len(works)} unique works")
     sjr, core = SJR(), CORE()
     all_own = all_own_ids()
     sources = {short_id(r["id"]): r for r in read_jsonl(config.RAW / "sources.jsonl.gz") or []}
+    relevance = {r["id"]: r for r in read_jsonl(config.RAW / "relevance.jsonl.gz") or []}
+    ni = load_nature_index()
     inst_meta = {r["id"]: (r["name"], r["type"], r["country"])   # institution id -> (name, type, country)
                  for r in read_jsonl(config.RAW / "institutions_extra.jsonl.gz") or []}
 
@@ -322,6 +364,9 @@ def build_all():
             publisher=so.get("host_organization_name"), journal_country=so.get("country_code"),
             oa_journal=bool(so.get("is_oa") or so.get("is_in_doaj")), apc_usd=so.get("apc_usd"),
             collaboration=collab,
+            nature_index=vt == "journal" and nature_index_paper(src.get("display_name"), w.get("doi"), ni),
+            flagship=vt == "journal" and any(_jnorm(x) in FLAGSHIP for x in str(src.get("display_name") or "").split("/")),
+            **_relevance(relevance.get(wid)),
         ))
         corr = {short_id(x) for x in (w.get("corresponding_author_ids") or [])}
         for a in auths:
@@ -513,6 +558,16 @@ def rank_group(designation, source=""):
     return "Rank not listed"
 
 
+def _relevance(r):
+    """National-relevance fields from OpenAlex (see fetch_relevance)."""
+    if not r:
+        return dict(sdgs=None, top_sdg=None, india_terms=None, india_focus=None, top10_pct=None, top1_pct=None)
+    sdgs = [g for g in r["sdgs"] if (g.get("score") or 0) >= config.SDG_MIN_SCORE]
+    best = max(sdgs, key=lambda g: g["score"])["name"] if sdgs else None
+    return dict(sdgs="; ".join(g["name"] for g in sdgs), top_sdg=best, india_terms="; ".join(r["india_terms"]),
+                india_focus=bool(r["india_terms"]), top10_pct=r["top10"], top1_pct=r["top1"])
+
+
 def faculty_table(own_auth, persons, papers, profiles, roster):
     """Per-faculty metrics (papers, citations, h-indices, Q1 share, top journal) from the given papers."""
     fac_rows = []
@@ -550,6 +605,7 @@ def faculty_table(own_auth, persons, papers, profiles, roster):
             high_impact_share=float((jr["journal_impact"] >= config.HIGH_IMPACT_THRESHOLD).mean()) if len(jr) else None,
             median_journal_impact=float(jr["journal_impact"].median()) if jr["journal_impact"].notna().any() else None,
             oa_journal_share=float(jr["oa_journal"].mean()) if len(jr) else None,
+            nature_index_papers=int(wp["nature_index"].sum()),
         ))
     faculty = pd.DataFrame(fac_rows)
     # roster faculty with no matched publications still belong in the faculty list

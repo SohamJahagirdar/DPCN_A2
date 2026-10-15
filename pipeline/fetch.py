@@ -271,6 +271,51 @@ def fetch_flows(oa: OpenAlex, which=("outflow", "inflow")):
             print(f"[inflow] {inst}: {len(seen)} Indian citing works")
 
 
+def fetch_flows_new_papers(oa: OpenAlex):
+    """Flows for papers that joined an institute's set after the flow fetch (e.g. through full author lists):
+    queried in their own batches and merged into the existing out/inflow files."""
+    works, homes = load_corpus()
+    corpus_ids = set(works)
+    for inst in config.INSTITUTIONS:
+        have_out = {r["id"]: r for r in read_jsonl(config.RAW / f"outflow_{inst}.jsonl.gz") or []}
+        have_in = {r["id"]: r for r in read_jsonl(config.RAW / f"inflow_{inst}.jsonl.gz") or []}
+        covered = config.RAW / f"flows_covered_{inst}.txt"
+        done = set(covered.read_text().split()) if covered.exists() else set()
+        old = _homes_without_full_lists()
+        new = sorted(w for w, h in homes.items() if inst in h and inst not in old.get(w, set()) and w not in done)
+        if not new:
+            continue
+        own_neg = ",".join(f"authorships.institutions.id:!{i}" for i in config.INSTITUTIONS[inst]["openalex_ids"])
+        print(f"[flows-new] {inst}: {len(new)} papers")
+        for batch in chunks([w for w in new if works[w].get("referenced_works")], 100):
+            for w in oa.paginate("/works", f"cited_by:{'|'.join(batch)},authorships.countries:IN,{own_neg}",
+                                 "id,doi,publication_year,authorships"):
+                have_out.setdefault(short_id(w["id"]), compact_external(w))
+        for batch in chunks([w for w in new if works[w].get("cited_by_count", 0) > 0], 100):
+            for w in oa.paginate("/works", f"cites:{'|'.join(batch)},authorships.countries:IN,{own_neg}",
+                                 "id,doi,publication_year,authorships,referenced_works"):
+                rec = compact_external(w, corpus_ids)
+                prev = have_in.get(rec["id"])
+                if prev:
+                    rec["cites"] = sorted(set(prev["cites"]) | set(rec["cites"]))
+                have_in[rec["id"]] = rec
+        write_jsonl(config.RAW / f"outflow_{inst}.jsonl.gz", have_out.values())
+        write_jsonl(config.RAW / f"inflow_{inst}.jsonl.gz", have_in.values())
+        covered.write_text(" ".join(sorted(done | set(new))))
+        print(f"[flows-new] {inst}: now {len(have_out)} out-flow and {len(have_in)} in-flow works")
+
+
+def _homes_without_full_lists():
+    """Institution sets as they were before full author lists were applied (when the flows were fetched)."""
+    global load_full_authorships
+    orig = load_full_authorships
+    load_full_authorships = lambda: {}
+    try:
+        return load_corpus()[1]
+    finally:
+        load_full_authorships = orig
+
+
 def flow_batches(homes, works, inst, kind):
     """Deterministic 100-paper batches (shared by fetch and build so per-batch counts line up).
     Conference papers (added later) go after the journal papers so earlier cached batches stay valid."""
@@ -347,6 +392,45 @@ def fetch_sources(oa: OpenAlex):
         out.extend(oa.paginate("/sources", "ids.openalex:" + "|".join(batch), SOURCE_SELECT))
     n = write_jsonl(config.RAW / "sources.jsonl.gz", out)
     print(f"[sources] saved {n}")
+
+
+# --------------------------------------------------------------------------- national relevance
+# Words/places marking a study set in or about India (searched in title + abstract). "Indian Institute of ..."
+# style affiliation phrases are removed first so author addresses do not count.
+INDIA_TERMS = re.compile(
+    r"\b(india|indian|bharat|andhra pradesh|arunachal|assam|bihar|chhattisgarh|goa|gujarat|haryana|himachal|"
+    r"jharkhand|karnataka|kerala|madhya pradesh|maharashtra|manipur|meghalaya|mizoram|nagaland|odisha|orissa|"
+    r"punjab|rajasthan|sikkim|tamil nadu|telangana|tripura|uttar pradesh|uttarakhand|west bengal|jammu|kashmir|"
+    r"ladakh|delhi|puducherry|andaman|lakshadweep|bengaluru|bangalore|mumbai|chennai|kolkata|hyderabad|pune|"
+    r"ahmedabad|varanasi|himalaya|himalayan|western ghats|eastern ghats|deccan|ganga|ganges|brahmaputra|"
+    r"indo-gangetic|sundarbans|thar desert|isro|chandrayaan|mangalyaan|aditya-l1|astrosat|gmrt|indigen)\b", re.I)
+_AFFIL = re.compile(r"indian (institute|council|statistical|association|academy|national|space research)\w*", re.I)
+
+
+def _abstract(inv):
+    if not inv:
+        return ""
+    pos = [(i, w) for w, idx in inv.items() for i in idx]
+    return " ".join(w for _, w in sorted(pos))
+
+
+def fetch_relevance(oa: OpenAlex):
+    """Per paper: OpenAlex SDG tags, top-1%/10% citation flags, and India-related terms in title/abstract."""
+    works, _ = load_corpus()
+    out = []
+    for batch in chunks(sorted(works), 100):
+        for w in oa.paginate("/works", "ids.openalex:" + "|".join(batch),
+                             "id,title,sustainable_development_goals,abstract_inverted_index,citation_normalized_percentile"):
+            abstract = _abstract(w.get("abstract_inverted_index"))
+            text = _AFFIL.sub(" ", f"{w.get('title') or ''} {abstract}")
+            terms = sorted({m.group(1).lower() for m in INDIA_TERMS.finditer(text)})
+            cnp = w.get("citation_normalized_percentile") or {}
+            out.append(dict(id=short_id(w["id"]), has_abstract=bool(abstract), india_terms=terms,
+                            sdgs=[dict(id=short_id(g["id"]), name=g.get("display_name"), score=g.get("score"))
+                                  for g in w.get("sustainable_development_goals") or []],
+                            top1=bool(cnp.get("is_in_top_1_percent")), top10=bool(cnp.get("is_in_top_10_percent"))))
+    n = write_jsonl(config.RAW / "relevance.jsonl.gz", out)
+    print(f"[relevance] {n} papers: SDG tags, top-percentile flags and India terms")
 
 
 # --------------------------------------------------------------------------- partner topics

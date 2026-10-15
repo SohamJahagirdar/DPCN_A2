@@ -24,9 +24,9 @@ TIFR,Quality,Most-cited paper,Observation of Gravitational Waves from a Binary B
 TIFR,Faculty,Faculty with papers,159,157,-0.012578616352201259
 TIFR,Faculty,Median faculty h-index,8,6,-0.25
 TIFR,Collaboration,Papers with another Indian institute,0.563209,0.45266,-0.19628415028879148
-TIFR,Indian citation flow,Citations from other Indian institutes,12408,8281,-0.3326079948420374
-TIFR,Indian citation flow,Citations to other Indian institutes,15564,12251,-0.21286301721922385
-TIFR,Indian citation flow,In / out ratio,0.797224,0.675945,-0.15212662940403202
+TIFR,Indian citation flow,Citations from other Indian institutes,17348,8287,-0.5223080470371224
+TIFR,Indian citation flow,Citations to other Indian institutes,15652,12251,-0.21728852542806032
+TIFR,Indian citation flow,In / out ratio,1.108357,0.676435,-0.38969573882783254
 TIFR,Indian connectivity,Partner institutions,445,387,-0.1303370786516854
 TIFR,Indian connectivity,Top partner,Indian Institute of Technology Madras,Indian Institute of Technology Bombay,
 All,Output,Papers,42725,39606,-0.07300175541252195
