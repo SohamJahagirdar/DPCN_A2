@@ -62,6 +62,8 @@ FACULTY_MIN_SENIOR_SHARE = 0.30
 
 # Number of top partner institutions for which topic profiles are fetched (Jaccard)
 N_PARTNERS_FOR_TOPICS = 40
+# ...and every partner sharing at least this many papers with IISc or TIFR
+MIN_SHARED_FOR_TOPICS = 10
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -80,13 +82,19 @@ for _p in (RAW, CACHE, EXTERNAL, PROCESSED, OUTPUTS, DASHBOARD, REPORT):
     _p.mkdir(parents=True, exist_ok=True)
 
 
-def openalex_api_key():
-    """API key from env var OPENALEX_API_KEY or the (git-ignored) file openalex_key.txt."""
-    key = os.environ.get("OPENALEX_API_KEY", "").strip()
+def openalex_api_keys():
+    """API keys from env var OPENALEX_API_KEY (comma-separated) or the git-ignored file openalex_key.txt
+    (one key per line). Several keys = team members' free keys; the client moves to the next key when
+    one runs out of daily budget."""
+    env = os.environ.get("OPENALEX_API_KEY", "")
     keyfile = ROOT / "openalex_key.txt"
-    if not key and keyfile.exists():
-        key = keyfile.read_text(encoding="utf-8").strip()
-    return key or None
+    raw = env.replace(",", "\n") if env.strip() else (keyfile.read_text(encoding="utf-8") if keyfile.exists() else "")
+    return [k.strip() for k in raw.splitlines() if k.strip() and not k.strip().startswith("#")]
+
+
+def openalex_api_key():
+    keys = openalex_api_keys()
+    return keys[0] if keys else None
 
 
 MAILTO = os.environ.get("OPENALEX_MAILTO", "")

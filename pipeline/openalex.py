@@ -21,7 +21,9 @@ class BudgetExhausted(RuntimeError):
 
 class OpenAlex:
     def __init__(self, max_calls=None, verbose=True):
-        self.key = config.openalex_api_key()
+        self.keys = config.openalex_api_keys()
+        self.key_index = 0
+        self.key = self.keys[0] if self.keys else None
         self.session = requests.Session()
         self.session.headers["User-Agent"] = f"DPCN-group{config.GROUP}-research-mapping"
         if self.key:
@@ -78,6 +80,12 @@ class OpenAlex:
             if r.status_code == 429:
                 body = r.text
                 if "budget" in body.lower():
+                    if self.key_index + 1 < len(self.keys):      # switch to the next team member's key
+                        self.key_index += 1
+                        self.key = self.keys[self.key_index]
+                        self.session.headers["Authorization"] = f"Bearer {self.key}"
+                        print(f"  [openalex] key {self.key_index} exhausted -> switching to key {self.key_index + 1}")
+                        continue
                     raise BudgetExhausted(
                         "OpenAlex daily budget exhausted. Re-run after midnight UTC (05:30 IST); "
                         "cached pages will be reused. " + body[:300])

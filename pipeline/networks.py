@@ -1,5 +1,6 @@
 """Step 3 - citation network, authorship network and Indian-connectivity tables (Task 4 + Section 7)."""
 import itertools
+import time
 from collections import Counter, defaultdict
 
 import networkx as nx
@@ -25,7 +26,17 @@ def _jaccard(p, q, min_share=0.005):
     return binary, weighted
 
 
+_T0 = [0.0]
+
+
+def _tick(stage):
+    now = time.time()
+    print(f"[networks] {stage}: {now - _T0[0]:.0f}s", flush=True)
+    _T0[0] = now
+
+
 def build_networks(t):
+    _T0[0] = time.time()
     papers, works, homes, flows, inst_meta = t["papers"], t["works"], t["homes"], t["flows"], t["inst_meta"]
     own_auth, persons = t["own_auth"], t["persons"]
     corpus = set(works)
@@ -92,6 +103,7 @@ def build_networks(t):
     cit = pd.DataFrame(crows, columns=["source_doi", "target_doi", "source_inst", "target_inst", "year",
                                        "source_id", "target_id", "edge_type", "cross_institution"])
     cit.to_csv(config.OUTPUTS / "citation_network.csv", index=False, encoding="utf-8")
+    _tick("citation_network.csv")
     print(f"[networks] citation_network.csv: {len(cit)} edges "
           f"({(cit.edge_type == 'internal').sum()} internal)")
 
@@ -149,8 +161,12 @@ def build_networks(t):
                     flow_rows.append(dict(inst=a, direction="out", partner=pid_b, year=node_year(s), our_paper=s, other=tg))
                     flow_rows.append(dict(inst=b, direction="in", partner=pid_a, year=node_year(s), our_paper=tg, other=s))
     flow = pd.DataFrame(flow_rows, columns=["inst", "direction", "partner", "year", "our_paper", "other"])
-    flow["partner_name"] = flow["partner"].map(lambda i: inst_meta.get(i, (i,))[0])
-    flow["partner_cluster"] = flow["partner"].map(lambda i: classify_inst(*inst_meta.get(i, (i, None))[:2]))
+    partners = flow["partner"].unique()   # classify each institution once, not once per citation
+    names = {i: inst_meta.get(i, (i,))[0] for i in partners}
+    clusters = {i: classify_inst(*inst_meta.get(i, (i, None))[:2]) for i in partners}
+    flow["partner_name"] = flow["partner"].map(names)
+    flow["partner_cluster"] = flow["partner"].map(clusters)
+    _tick("citation flows")
     nets["flow"] = flow
 
     # Out-flow in the same unit as aggregated in-flow: distinct Indian works per 100-paper batch.
@@ -182,6 +198,7 @@ def build_networks(t):
                 partners=pd.DataFrame(rows, columns=["partner", "partner_name", "partner_cluster", "citing_works"]),
                 by_year={int(k): v for k, v in agg["by_year"].items()}, total=sum(agg["per_batch"]))
 
+    _tick("outflow batches + aggregate")
     # =================================================================== authorship network
     pap_mega = papers["is_mega"]
     auth = t["auth"]
@@ -223,6 +240,7 @@ def build_networks(t):
                                       "author_a_id", "author_b_id", "cross_institution", "work_id",
                                       "paper_n_authors", "paper_coauthors_gt_10"])
     am.to_csv(config.OUTPUTS / "authorship_network.csv", index=False, encoding="utf-8")
+    _tick("authorship_network.csv")
     print(f"[networks] authorship_network.csv: {len(am)} co-authorship edges "
           f"({am['cross_institution'].sum()} cross-institution); mega-collaboration papers "
           f"(>{config.MEGA_AUTHOR_THRESHOLD} authors) excluded")
@@ -285,6 +303,7 @@ def build_networks(t):
                if F.degree(n) > 0],
         edges=[[a, b, d["weight"]] for a, b, d in F.edges(data=True)])
 
+    _tick("faculty network metrics")
     # =================================================================== Indian connections
     own_subfields = {inst: Counter(papers.loc[papers["homes"].str.contains(inst), "subfield_id"].dropna())
                      for inst in config.INSTITUTIONS}
@@ -313,6 +332,7 @@ def build_networks(t):
             cl = classify_inst(name, otype)
             jb, jw = _jaccard(own_subfields[inst], ptopics[pid]) if pid in ptopics else (np.nan, np.nan)
             conn.append(dict(your_inst=inst, partner_inst=name, shared_papers=len(wl),
+                             shared_papers_excl_mega=int((~papers.loc[wl, "is_mega"]).sum()) if wl else 0,
                              total_citations=int(papers.loc[wl, "citations"].sum()) if wl else 0,
                              partner_openalex_id=pid, partner_cluster=cl,
                              cross_cluster=cl != config.OWN_CLUSTER,

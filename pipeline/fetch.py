@@ -8,6 +8,7 @@
 
 All calls are cached (see openalex.py), so every step can be re-run / resumed.
 """
+import os
 import re
 from collections import Counter
 
@@ -92,26 +93,79 @@ def authorship_insts(a):
     return out
 
 
+FULL_AUTH_PATH = config.RAW / "full_authorships.jsonl.gz"
+
+
+def load_full_authorships():
+    """Full author lists (from single-work lookups) for works whose list-API author list was truncated."""
+    return {r["id"]: r for r in read_jsonl(FULL_AUTH_PATH) or []}
+
+
 def load_corpus():
     """dict work_id -> work, plus dict work_id -> set(assigned institutions).
 
     A work belongs to an institution if at least one authorship counts for it (see authorship_insts).
-    OpenAlex truncates long author lists (100 authors), so for a work returned by the institution's query
-    in which no visible authorship carries the institution ID, the query result is trusted."""
+    The list API truncates author lists at 100, so a work with no visible authorship of the institution is
+    trusted only until its full author list has been fetched (`fullauthors` step); if the full list still
+    shows no author of ours, the work is dropped (mis-tagged by OpenAlex)."""
     works, homes = {}, {}
+    full = load_full_authorships()
     for inst in config.INSTITUTIONS:
         ids = set(config.INSTITUTIONS[inst]["openalex_ids"])
         for w in read_jsonl(corpus_path(inst)) or []:
             wid = short_id(w["id"])
+            if wid in full:   # replace the truncated author list (Indian authorships + true author count)
+                w["authorships"] = full[wid]["authorships"]
+                w["authors_count"] = full[wid]["n_authors"]
             auths = w.get("authorships", [])
             h = {i for a in auths for i in authorship_insts(a)}
             visible = any(ids & {short_id(i.get("id")) for i in a.get("institutions", []) if i.get("id")} for a in auths)
-            if not visible:
+            if not visible and wid not in full:
                 h.add(inst)
             if h:
                 works[wid] = w
                 homes.setdefault(wid, set()).update(h)
     return works, homes
+
+
+def fetch_full_authorships(oa: OpenAlex, workers=8):
+    """The list API returns at most 100 authors per work. For works with a capped list, or where none of the
+    visible authors carries our institution ID, fetch the full record with a single-work lookup (free under
+    OpenAlex pricing). Only Indian authorships are kept, plus the true author count."""
+    from concurrent.futures import ThreadPoolExecutor
+    own = all_own_ids()
+    targets = set()
+    for inst in config.INSTITUTIONS:
+        for w in read_jsonl(corpus_path(inst)) or []:
+            auths = w.get("authorships", [])
+            visible = any(own & {short_id(i.get("id")) for i in a.get("institutions", []) if i.get("id")} for a in auths)
+            if len(auths) >= 100 or not visible:
+                targets.add(short_id(w["id"]))
+    done = load_full_authorships()
+    todo = sorted(targets - set(done))
+    print(f"[full-authors] {len(targets)} works need full author lists; {len(todo)} still to fetch")
+
+    def one(wid):
+        try:
+            w = oa.get(f"/works/{wid}", {"select": "id,authorships"}, use_cache=False)
+        except Exception as e:   # keep going; a later run retries
+            print(f"   {wid}: {e!r}"[:200])
+            return None
+        auths = w.get("authorships", [])
+        keep = [a for a in slim_work({"authorships": auths})["authorships"]
+                if any(i.get("country_code") == "IN" for i in a.get("institutions", []))]
+        return {"id": wid, "n_authors": len(auths), "authorships": keep}
+
+    out = list(done.values())
+    with ThreadPoolExecutor(workers) as ex:
+        for k, rec in enumerate(ex.map(one, todo)):
+            if rec:
+                out.append(rec)
+            if k % 500 == 499:
+                write_jsonl(FULL_AUTH_PATH, out)
+                print(f"   {k + 1}/{len(todo)} fetched")
+    write_jsonl(FULL_AUTH_PATH, out)
+    print(f"[full-authors] saved {len(out)} full author lists")
 
 
 # --------------------------------------------------------------------------- authors
@@ -137,6 +191,29 @@ def fetch_authors(oa: OpenAlex, min_papers=3):
     print(f"[authors] saved {n}")
 
 
+def fetch_missing_profiles(oa: OpenAlex):
+    """Author profiles for matched faculty IDs that have none yet (free single lookups). Uses the
+    faculty list of the last build, so run it after `python run.py build`."""
+    import pandas as pd
+    fl = config.OUTPUTS / "faculty_list.csv"
+    if not fl.exists():
+        print("[profiles] no faculty_list.csv yet - run a build first")
+        return
+    fac = pd.read_csv(fl, dtype=str)
+    path = config.RAW / "authors.jsonl.gz"
+    have = {short_id(a["id"]): a for a in read_jsonl(path) or []}
+    want = {i for ids in fac["openalex_ids"].dropna() for i in ids.split(";") if i.startswith("A")}
+    todo = sorted(want - set(have))
+    print(f"[profiles] {len(todo)} faculty author IDs without a profile")
+    for aid in todo:
+        try:
+            have[aid] = oa.get(f"/authors/{aid}", {"select": AUTHOR_SELECT})
+        except Exception as e:
+            print(f"   {aid}: {e!r}"[:200])
+    write_jsonl(path, have.values())
+    print(f"[profiles] {len(have)} author profiles saved")
+
+
 # --------------------------------------------------------------------------- Indian flows
 def compact_external(w, corpus_ids=None):
     insts = {}
@@ -155,7 +232,10 @@ def compact_external(w, corpus_ids=None):
 def fetch_flows(oa: OpenAlex, which=("outflow", "inflow")):
     works, homes = load_corpus()
     corpus_ids = set(works)
-    for inst in config.INSTITUTIONS:
+    # DPCN_REVERSE=1: walk institutions and batches backwards, so a second process with another
+    # team member's key can work from the other end; each skips what the other already cached.
+    reverse = os.environ.get("DPCN_REVERSE") == "1"
+    for inst in (list(config.INSTITUTIONS)[::-1] if reverse else config.INSTITUTIONS):
         own_neg = ",".join(f"authorships.institutions.id:!{i}" for i in config.INSTITUTIONS[inst]["openalex_ids"])
         if "outflow" in which:
             # Indian works (not involving this institution) referenced by our papers.
@@ -174,6 +254,8 @@ def fetch_flows(oa: OpenAlex, which=("outflow", "inflow")):
             # Indian works (not involving this institution) citing our papers.
             seen = {}
             batches = flow_batches(homes, works, inst, "inflow")
+            if reverse:
+                batches = batches[::-1]
             print(f"[inflow] {inst}: {len(batches)} batches of cited papers")
             for k, batch in enumerate(batches):
                 flt = f"cites:{'|'.join(batch)},authorships.countries:IN,{own_neg}"

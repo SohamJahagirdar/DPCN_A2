@@ -1,11 +1,11 @@
 """DPCN Research Mapping - Group 18 (IISc + TIFR) pipeline runner.
 
 Usage
-  python run.py fetch [--steps corpus,authors,partners,inflow_agg,outflow[,inflow]] [--max-calls N]
+  python run.py fetch [--steps corpus,authors,partners,outflow,inflow] [--max-calls N]
   python run.py build            # dataset + networks + stats + dashboard from fetched data
   python run.py all              # fetch then build
 
-OpenAlex API key: set env var OPENALEX_API_KEY or put the key in openalex_key.txt.
+OpenAlex API key(s): env var OPENALEX_API_KEY (comma-separated) or openalex_key.txt (one key per line).
 """
 import argparse
 import time
@@ -23,11 +23,15 @@ def do_fetch(steps, max_calls):
     try:
         if "corpus" in steps:
             fetch.fetch_corpus(oa)
+        if "fullauthors" in steps:
+            fetch.fetch_full_authorships(oa)
         if "authors" in steps:
             fetch.fetch_authors(oa)
         if "partners" in steps:
             from pipeline.build import top_partner_ids
-            fetch.fetch_partner_topics(oa, top_partner_ids(config.N_PARTNERS_FOR_TOPICS))
+            fetch.fetch_partner_topics(oa, top_partner_ids(config.N_PARTNERS_FOR_TOPICS, config.MIN_SHARED_FOR_TOPICS))
+        if "profiles" in steps:
+            fetch.fetch_missing_profiles(oa)
         if "inflow_agg" in steps:
             fetch.fetch_inflow_aggregate(oa)
             fetch.fetch_institution_meta(oa)
@@ -46,8 +50,11 @@ def do_build():
     from pipeline import build, dashboard, networks, stats
     t = time.time()
     tables = build.build_all()
+    print(f"  dataset built: {time.time() - t:.0f}s", flush=True)
     nets = networks.build_networks(tables)
+    print(f"  networks built: {time.time() - t:.0f}s", flush=True)
     st = stats.compute_stats(tables, nets)
+    print(f"  statistics: {time.time() - t:.0f}s", flush=True)
     dashboard.write_dashboard(st)
     print(f"build done in {time.time() - t:.0f}s -> {config.OUTPUTS} and {config.DASHBOARD_FILE}")
 
@@ -55,8 +62,9 @@ def do_build():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["fetch", "build", "all"])
-    ap.add_argument("--steps", default="corpus,authors,partners,inflow_agg,outflow",
-                    help="add 'inflow' for full in-flow citation edges (~23k calls; needed for cited_by_indian_inst)")
+    ap.add_argument("--steps", default="corpus,fullauthors,authors,partners,outflow,inflow,profiles",
+                    help="'inflow' = exact in-flow citation edges (~1,400 calls; fills cited_by_indian_inst); "
+                         "'inflow_agg' = cheaper aggregate in-flow (~700 calls)")
     ap.add_argument("--max-calls", type=int, default=None)
     a = ap.parse_args()
     if a.cmd in ("fetch", "all"):

@@ -31,7 +31,7 @@ The analysis stays within our two institutions; links to other Indian institutes
 | Authorship network edges | `outputs/authorship_network.csv` | ✅ |
 | Aggregated Indian connections | `outputs/indian_connections.csv` | ✅ |
 | Interactive dashboard (incl. both network visualisations) | **Live: https://sohamjahagirdar.github.io/DPCN_A2/** · or open `dashboard/index.html` offline | ✅ |
-| Statistics report (≤10 slides / ≤5 pages) | to be built from the dashboard | ⏸ Week 3 |
+| Statistics report (≤10 slides) | 10-slide deck, shared separately as PPTX/PDF | ✅ |
 
 Supporting outputs:
 - `outputs/faculty_list.csv`: per-faculty department, papers, citations, h-indices, Q1 share and top journal.
@@ -54,7 +54,7 @@ Supporting outputs:
 | Source | Used for |
 |---|---|
 | **OpenAlex** API | papers, authors and affiliations (including raw affiliation text), references, citations, research topics, author profiles |
-| **Official faculty rosters**: IISc Directory & Planner 2025-26 (524 people incl. honorary); TIFR Mumbai department pages (125 people) | who counts as faculty, and their departments |
+| **Official faculty rosters**: IISc Directory & Planner 2025-26 (524 incl. honorary), IISc Centre for Society and Policy page (+2), IISc retired-faculty list (18 retired in 2016; the page is not updated after 2016); TIFR Mumbai department pages (125) | who counts as faculty, and their departments |
 | **SCImago SJR 1999–2025** (via the `sjrdata` mirror) | journal quartile in the year of publication |
 | **CORE 2023** conference ranking | A* / A / B / C rank of conference papers |
 
@@ -69,10 +69,10 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
    - Former faculty who left or retired before the 2025-26 rosters are added by a rule: at least 8 papers at the institute over at least 4 different years, with at least 30% of them as last or corresponding author.
 4. **Departments:** taken from the roster. For former faculty, the most frequent department in their affiliation text is used.
 5. **Quality metrics:** SJR best quartile for journals and CORE rank for conferences. For each faculty member we compute h-index on their 2016–2026 papers at the institute, h-index without mega-collaboration papers, and OpenAlex's career h-index.
-6. **Citation network** (`pipeline/networks.py`): a directed graph of our 42,622 papers, with edges taken from OpenAlex reference lists. We compute in-degree and PageRank (α = 0.85).
+6. **Citation network** (`pipeline/networks.py`): a directed graph of our 42,725 papers, with edges taken from OpenAlex reference lists. We compute in-degree and PageRank (α = 0.85).
 7. **Citation flow with other Indian institutes:**
    - *Out-flow:* papers by other Indian institutes that our papers cite. Collected as exact edges; this fills `cites_indian_inst`.
-   - *In-flow:* papers by other Indian institutes that cite ours. Collected in aggregate form (counts per citing institute and per year).
+   - *In-flow:* papers by other Indian institutes that cite ours. Collected as exact edges; this fills `cited_by_indian_inst`.
    - Works that include our own institute are excluded from both, which removes self-citation.
 8. **Authorship network:**
    - Raw file: every co-author pair on a paper with at most 50 authors, where at least one author is from our institutes and the other is from our institutes or any Indian institute.
@@ -80,45 +80,49 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
 9. **Indian connectivity map:**
    - Partner institutes are ranked by shared papers.
    - Each is assigned a cluster following the course PPT: IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University, plus Other DAE, Govt R&D, Medical, Industry and other universities. Partners outside our own cluster are flagged as cross-cluster.
-   - Topic similarity is Jaccard on OpenAlex subfield profiles. We report two versions: binary (presence of a subfield) and weighted by share of output.
+   - Topic similarity is Jaccard on OpenAlex subfield profiles, computed for every partner with at least 10 shared papers. We report two versions: binary (presence of a subfield) and weighted by share of output.
+   - Shared papers are given both with and without mega-collaborations (`shared_papers`, `shared_papers_excl_mega`).
 10. **Co-author flag:** papers with more than 10 co-authors are flagged (`coauthors_gt_10`), as requested by the instructor. The dashboard's **Flagged papers** tab lists all of them (searchable, filterable, with a CSV download).
 11. **Statistics and dashboard** (`pipeline/stats.py`, `pipeline/dashboard.py`): all metrics go into one self-contained HTML file. The data and the chart libraries (Plotly, vis-network) are embedded, so the file works fully offline and can be sent as a single attachment. It has 9 tabs, an IISc / TIFR / Both switch, and light and dark mode.
 
 ### 3.3 Headline numbers
-*(Data collected from OpenAlex on 13 Oct 2026.)*
+*(Data collected from OpenAlex, 13–15 Oct 2026.)*
 
 | | IISc | TIFR Mumbai | Both |
 |---|---|---|---|
-| Papers 2016–2026 | 35,819 | 7,648 | 42,622 (825 joint) |
+| Papers 2016–2026 | 35,818 | 7,752 | 42,725 (845 joint) |
 | of which conference papers | 7,173 | 1,034 | 8,187 |
-| Citations received | 610,269 | 158,344 | 737,911 |
-| Institutional h-index (2016–2026 papers) | 217 | 145 | 237 |
-| Q1 share of journal papers (SJR) | 69.0% | 71.2% | 69.5% |
-| Faculty with papers (roster-matched + former) | 692 | 146 | 838 |
-| Papers with more than 10 co-authors (flag `coauthors_gt_10`) | 1,935 (5.4%) | 2,122 (27.7%) | 3,363 (7.9%) |
-| Mega-collaboration papers (> 50 authors) | 763 | 1,335 | 1,423 |
-| Papers with a co-author from another Indian institute | 40.3% | 44.2% | 40.9% |
-| Indian citing works (in-flow, per-batch distinct) | 104,016 | 17,051 | — |
-| Citation impact ratio (in / out, same unit) | 0.94 | 1.19 | — |
+| Citations received | 610,269 | 223,983 | 803,550 |
+| Institutional h-index (2016–2026 papers) | 217 | 162 | 247 |
+| Q1 share of journal papers (SJR) | 69.0% | 71.7% | 69.6% |
+| Faculty with papers | 720 | 159 | 879 |
+| Papers with more than 10 co-authors (flag `coauthors_gt_10`) | 1,935 (5.4%) | 2,226 (28.7%) | 3,467 (8.1%) |
+| Mega-collaboration papers (> 50 authors) | 763 | 1,439 | 1,527 |
+| Papers with a co-author from another Indian institute | 42.0% | 56.3% | 43.1% |
+| Citations from other Indian institutes (in-flow links) | 106,000 | 12,408 | — |
+| Citations to other Indian institutes (out-flow links) | 112,657 | 15,564 | — |
+| Citation impact ratio (in / out) | 0.94 | 0.80 | — |
+| Papers cited by another Indian institute (`cited_by_indian_inst`) | 49.7% | 43.0% | — |
 
-**Faculty matching.** 624 of the 649 rostered faculty (96%) are matched to their OpenAlex author IDs. Another 216 former faculty are identified by the publication rule in §3.2.
+**Faculty.** 649 of the 669 roster entries are matched to OpenAlex authors. Of those, 635 are current faculty and 14 are 2016 retirees from IISc's official retired list. Another 230 former faculty are identified by the publication rule in §3.2. The 19 unmatched entries are mostly recent hires with no papers at the institute yet.
 
 **Citation network.**
-- 42,622 papers and 73,319 citations between our own papers; the largest weakly connected component holds 46% of papers.
-- Separately, 127,095 citation edges point to papers by other Indian institutes.
+- 42,725 papers and 75,581 citations between our own papers; the largest weakly connected component holds 47% of papers.
+- Separately, 245,426 citation edges link to papers of other Indian institutes.
 - Excluding mega-collaborations, the highest-PageRank papers are early IISc materials, biology and communications papers.
 
 **Co-authorship network.**
-- 838 faculty with 1,622 faculty–faculty links.
-- 39 Louvain communities (modularity 0.74), closely aligned with departments.
-- The raw edge file has 194,190 co-author pairs, of which 76,857 cross institutions.
+- 879 faculty with 1,814 faculty–faculty links.
+- 37 Louvain communities (modularity 0.74), closely aligned with departments.
+- The raw edge file has 220,769 co-author pairs, of which 87,884 cross institutions.
 
 **Indian connectivity.**
-- IISc co-authors with 1,371 Indian institutes and TIFR with 442.
-- IISc's top partners are IIT Madras, TIFR, JNCASR, IIT Kharagpur and IIT Bombay.
-- The institutes citing IISc most are IIT Madras, IIT Bombay, IIT Kharagpur and AcSIR (CSIR).
-- The institutes citing TIFR most are HBNI, IIT Bombay, IISc and NISER.
-- By subfield profile, IISc is most similar to the IITs (weighted Jaccard ≈ 0.6).
+- IISc co-authors with 1,372 Indian institutes and TIFR with 445.
+- Counting only papers with 50 or fewer authors, IISc's top partners are IIT Madras, TIFR, JNCASR, IIT Kharagpur and IIT Bombay. TIFR's are HBNI, IIT Bombay, BARC, IISc and IUCAA.
+- With mega-collaborations included, the CMS-type physics partners rise to the top (Panjab University, University of Delhi, SINP). `indian_connections.csv` has both counts.
+- The institutes citing IISc most are IIT Bombay, IIT Kharagpur, AcSIR (CSIR) and IIT Madras. The institutes citing TIFR most are HBNI, IISc, IUCAA and IIT Bombay.
+- Topic similarity (weighted Jaccard over subfields) covers the 433 partners with 10 or more shared papers, 94% of all shared papers. IISc is closest to the IITs (IIT Bombay 0.68, IIT Kanpur 0.67). TIFR is closest to NISER (0.55) and SINP (0.49).
+
 
 ---
 
@@ -126,7 +130,8 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
 
 ```bash
 python -m pip install -r requirements.txt
-# put your free OpenAlex API key in openalex_key.txt (https://openalex.org/settings/api)
+# put your free OpenAlex API key in openalex_key.txt (https://openalex.org/settings/api);
+# several team members' keys can go on separate lines - the client moves to the next when one runs out
 python run.py fetch      # cached + resumable; a free key allows ~10,000 calls/day
 python run.py build      # dataset, networks, stats, dashboard (~3 min)
 ```
@@ -137,10 +142,9 @@ Settings such as institution IDs, years, publication types, the mega-collaborati
 ## 5. Known limitations
 
 - **OpenAlex coverage:** affiliations and references are not complete. Some papers have no venue (about 0.4%), and roughly 4% of journal papers have no SJR quartile.
-- **Long author lists:** OpenAlex shows at most 100 authors per paper. On some mega-collaboration papers (CMS, ALICE, Belle, …) our authors are not visible. Those papers are kept, with author shown as "[not listed]".
+- **Long author lists:** the OpenAlex list API shows at most 100 authors per paper. For the 1,435 affected papers the full author list was fetched with single-work lookups, so author counts and our authors are complete. Papers where even the full list shows no identifiable IISc/TIFR author are removed as OpenAlex mis-tags (1 paper).
 - **Faculty lists are current (2025-26):** former faculty come from the publication rule above, which can include a few long-term postdocs or research scientists. They are marked `faculty_source = heuristic`.
-- **In-flow is aggregate:** the per-paper column `cited_by_indian_inst` stays empty until full in-flow edges are fetched (about 23,000 API calls).
-- **Name matching:** a few roster faculty with very few papers at the institute (mostly new hires) are not matched; they are listed as "roster (no OpenAlex match)".
+- **Name matching:** 19 roster entries (mostly new hires with no papers at the institute yet) are not matched; they are listed as "roster (no OpenAlex match)". Authors without an OpenAlex author ID are matched by name. 13 such faculty have no OpenAlex profile, so their lifetime h-index is blank.
 
 ---
 
@@ -159,7 +163,7 @@ These are the definitions we chose where the instruction note leaves room for in
 | h-index | Shown in three versions: 2016–2026 papers at the institute, the same without mega-collaborations, and OpenAlex lifetime h-index. | The template does not specify which one. |
 | Quartile | SCImago best quartile of the journal in the publication year; 2026 papers use SJR 2025. For conference papers, the CORE 2023 rank. | Matches the Q1–Q4 / A*–C scheme in the template. |
 | `cites_indian_inst` / `cited_by_indian_inst` | TRUE if the paper cites, or is cited by, a paper with an author at another Indian institution. Works that include the row's own institution are not counted (removes self-citation). | Captures cross-institute links only. |
-| In-flow | Collected in aggregate (citing papers per institute and per year). The per-paper `cited_by_indian_inst` needs about 23k extra API calls and is optional (`--steps inflow`). | OpenAlex's per-call pricing. |
+| In-flow | Collected as exact citation edges (`--steps inflow`, about 1,400 API calls), so `cited_by_indian_inst` is filled per paper. A cheaper aggregate mode (`inflow_agg`) is also available. | Exact per-paper flags, as the template requires. |
 | `total_citations` (indian_connections) | Total citations of the papers co-authored with the partner. Citations to and from the partner are separate columns. | The template does not define it. |
 | Partner clusters | PPT clusters (IIT, NIT, IIIT, IISc/TIFR/IISER, Premier Science, CSIR, DAE, Central University), plus Other DAE, Govt R&D/Autonomous, Medical, Industry and other universities. Anything outside IISc/TIFR/IISER counts as cross-cluster. | Follows the course's grouping. |
 
@@ -167,9 +171,7 @@ These are the definitions we chose where the instruction note leaves room for in
 
 ## 7. Next steps
 1. Confirm the design decisions above with the instructor and adjust them if needed.
-2. Optionally fetch the exact per-paper in-flow (`python run.py fetch --steps inflow`).
-3. Write the statistics report (≤10 slides) from the dashboard panels.
-4. Final checklist and submission.
+2. Final checklist and submission.
 
 ## Project structure
 ```

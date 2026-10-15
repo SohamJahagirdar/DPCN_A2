@@ -1,6 +1,7 @@
 """Step 2 - turn raw OpenAlex records into analysis tables and the groupN_data.csv deliverable."""
 import re
 import unicodedata
+from functools import lru_cache
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -38,8 +39,11 @@ def strip_accents(s):
     return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
 
 
+_DASHES = dict.fromkeys(map(ord, "\u2010\u2011\u2012\u2013\u2014\u2212"), "-")
+
+
 def name_tokens(name):
-    s = strip_accents(name or "").lower()
+    s = strip_accents(name or "").translate(_DASHES).lower()
     s = re.sub(r"\b(prof|dr|mr|mrs|ms)\.?\s", " ", s)
     s = re.sub(r"[^a-z\s\-\.]", " ", s).replace(".", " ").replace("-", " ")
     return [t for t in s.split() if t]
@@ -53,7 +57,7 @@ def name_match_strength(roster_toks, cand_toks):
     by a roster token starting with that letter. Handles "Rao M V Srisha" / "M. V. Srisha Rao" / "Srisha Rao".
     """
     pool = list(roster_toks)
-    full = 0
+    full = extra_full = extra_init = 0
     for t in sorted(cand_toks, key=len, reverse=True):   # full tokens first
         if len(t) > 1:
             if t in pool:
@@ -69,12 +73,15 @@ def name_match_strength(roster_toks, cand_toks):
             if ini:
                 pool.remove(ini[0])
                 continue
-            return None
+            extra_full += 1          # e.g. "Ullas Kolthur Seetharam" vs roster "Ullas Kolthur"
         else:
             m = sorted((p for p in pool if p[0] == t), key=len)   # prefer consuming a roster initial
             if not m:
-                return None
+                extra_init += 1      # e.g. "Trishen S. Gunaratnam" vs roster "Trishen Gunaratnam"
+                continue
             pool.remove(m[0])
+    if extra_full > 1 or ((extra_full or extra_init) and full < 2):
+        return None
     return full, not pool
 
 
@@ -98,6 +105,7 @@ DEPT_ALIASES = {  # abbreviations seen in raw affiliation strings -> roster word
 }
 
 
+@lru_cache(maxsize=None)
 def dept_tokens(s):
     s = strip_accents(str(s or "")).lower().replace("&", " and ")
     for k, v in DEPT_ALIASES.items():
@@ -108,6 +116,10 @@ def dept_tokens(s):
     return toks - DEPT_STOP
 
 
+GENERIC_DEPT_WORDS = {"engineering", "science", "technology", "research", "material", "system", "studie"}
+
+
+@lru_cache(maxsize=None)
 def dept_similar(a, b):
     ta, tb = dept_tokens(a), dept_tokens(b)
     if not ta or not tb:
@@ -116,7 +128,8 @@ def dept_similar(a, b):
     jac = inter / len(ta | tb)
     small = min(len(ta), len(tb))
     if small == 1:
-        return jac >= 0.5                      # "Physics" ~ "Theoretical Physics"
+        tok = next(iter(ta if len(ta) == 1 else tb))
+        return jac >= 0.5 or (inter == 1 and len(tok) >= 8 and tok not in GENERIC_DEPT_WORDS)
     if inter == small and small >= 3:
         return True                            # "Condensed Matter Physics" ~ "... and Materials Science"
     return jac >= 0.75                         # keeps EE != ECE, Materials Eng != Materials Research
@@ -262,7 +275,7 @@ def build_all():
     prow, arow = [], []
     for wid, w in works.items():
         auths = w.get("authorships", [])
-        n_auth = len(auths)
+        n_auth = w.get("authors_count") or len(auths)   # true count when the list was truncated
         pl = w.get("primary_location") or {}
         src = pl.get("source") or {}
         issns = [i for i in ([src.get("issn_l")] + (src.get("issn") or [])) if i]
@@ -303,6 +316,9 @@ def build_all():
         for a in auths:
             au = a.get("author") or {}
             aid = short_id(au.get("id"))
+            if not aid:   # OpenAlex has not assigned an author ID: key it by the normalised name
+                nm_toks = name_tokens(au.get("display_name") or a.get("raw_author_name"))
+                aid = "N:" + "-".join(nm_toks) if nm_toks else None
             if not aid:
                 continue
             iids = [short_id(i.get("id")) for i in a.get("institutions", []) if i.get("id")]
@@ -318,6 +334,19 @@ def build_all():
             ))
     papers = pd.DataFrame(prow).set_index("work_id", drop=False)
     auth = pd.DataFrame(arow)
+    # A name-based ID ("N:...", authorship without an OpenAlex author ID) is folded into the real author ID
+    # when exactly one real ID with the same name exists at the same institution.
+    auth["name_key"] = auth["author_name"].map(lambda n: "-".join(sorted(name_tokens(n))))
+    real = auth[~auth["author_id"].str.startswith("N:") & (auth["own_insts"] != "")]
+    real_ids = real.groupby(["own_insts", "name_key"])["author_id"].agg(lambda s: set(s))
+    def _fold(r):
+        if not r.author_id.startswith("N:"):
+            return r.author_id
+        ids = real_ids.get((r.own_insts, r.name_key))
+        return next(iter(ids)) if ids and len(ids) == 1 else r.author_id
+    pseudo = auth["author_id"].str.startswith("N:")
+    auth.loc[pseudo, "author_id"] = auth[pseudo].apply(_fold, axis=1)
+    auth = auth.drop(columns="name_key")
     print(f"[build] {len(papers)} papers, {len(auth)} authorships; quartile coverage "
           f"{papers['quartile'].notna().mean():.1%}")
 
@@ -328,6 +357,23 @@ def build_all():
     own_auth["citations"] = own_auth["work_id"].map(papers["citations"])
     own_auth["senior"] = (own_auth["position"].eq("last") | own_auth["is_corresponding"] | own_auth["n_authors"].eq(1))
     own_auth["is_mega"] = own_auth["n_authors"] > config.MEGA_AUTHOR_THRESHOLD
+
+    # Keep a paper for an institution only if at least one of its authors there can be identified
+    # (even the full author list shows none -> OpenAlex mis-tag, e.g. a nameless or unreadable author).
+    have = set(zip(own_auth["work_id"], own_auth["inst"]))
+    dropped = []
+    for wid in list(homes):
+        keep = {i for i in homes[wid] if (wid, i) in have}
+        if not keep:
+            dropped.append(wid)
+            del homes[wid], works[wid]
+        else:
+            homes[wid] = keep
+    papers = papers.drop(index=dropped)
+    papers["homes"] = papers["work_id"].map(lambda w: ";".join(sorted(homes[w])))
+    auth = auth[~auth["work_id"].isin(dropped)]
+    own_auth = own_auth[own_auth["work_id"].isin(papers.index)]
+    print(f"[build] dropped {len(dropped)} papers with no identifiable IISc/TIFR author; {len(papers)} remain")
 
     profiles = {short_id(a["id"]): a for a in read_jsonl(config.RAW / "authors.jsonl.gz") or []}
 
@@ -347,11 +393,12 @@ def build_all():
         # also use alternative names from author profiles
         alt = {aid: [name_tokens(x) for x in (profiles.get(aid, {}).get("display_name_alternatives") or [])][:10]
                for aid, _, _ in cand_toks}
-        for ridx, r in rs.iterrows():
+        name_ids = Counter(tuple(sorted(ct)) for _, ct, _ in cand_toks)
+        for ridx, r in rs.sort_values("is_honorary", kind="stable").iterrows():
             rt = name_tokens(r["name"])
             rdepts = [d.strip() for d in r["department"].split(";") if d.strip()]
             key = f"R:{inst}:{ridx}"
-            by_dept, no_dept = [], []
+            by_dept, no_dept, unique_name = [], [], []
             for aid, ct, n in cand_toks:
                 scores = [s for s in [name_match_strength(rt, ct)] + [name_match_strength(rt, x) for x in alt[aid]] if s]
                 if not scores:
@@ -369,14 +416,20 @@ def build_all():
                 elif other < 0.5 and strong:
                     # no department info, or only labs/groups we can't map -> fall back to the name
                     no_dept.append((aid, 0, n))
+                elif strong and complete and name_ids[tuple(sorted(ct))] == 1 and sorted(ct) == sorted(rt):
+                    # exactly the roster name and nobody else at the institute has it: same person,
+                    # papers just carry another department (earlier post, joint appointment)
+                    unique_name.append((aid, 0, n))
                 # else: affiliations clearly in a different department -> a different person
             # Department-consistent IDs win; otherwise (no department info at all) take only the
             # most prolific name match, so common names ("Praveen Kumar") don't absorb strangers.
-            matched = by_dept or sorted(no_dept, key=lambda x: -x[2])[:1]
+            matched = by_dept or sorted(no_dept, key=lambda x: -x[2])[:1] or unique_name
+            # an OpenAlex ID belongs to one roster person only (regular faculty are matched first)
+            matched = [m for m in matched if (inst, m[0]) not in person_of]
             if not matched:
                 continue
             persons[key] = dict(person=key, inst=inst, name=r["name"], department=r["primary_department"],
-                                designation=r["designation"], faculty_source="roster",
+                                designation=r["designation"], faculty_source="retired list" if r["designation"].startswith("Retired") else "roster",
                                 is_honorary=bool(r["is_honorary"]),
                                 author_ids=[m[0] for m in matched])
             for aid, _, _ in matched:
@@ -522,15 +575,19 @@ def build_dataset_rows(t):
     return pd.DataFrame(rows)
 
 
-def top_partner_ids(n):
-    """Most frequent Indian co-author institutions (excluding our own) - for topic-profile fetching."""
-    works, _ = load_corpus()
+def top_partner_ids(n, min_shared=None):
+    """Indian co-author institutions (excluding our own) for topic-profile fetching: the n most frequent,
+    plus every institution sharing at least `min_shared` papers with one of our institutes."""
+    works, homes = load_corpus()
     own = all_own_ids()
     cnt = Counter()
-    for w in works.values():
+    per_inst = Counter()
+    for wid, w in works.items():
         ids = {short_id(i["id"]) for a in w.get("authorships", []) for i in a.get("institutions", [])
                if i.get("country_code") == "IN" and i.get("id")}
         cnt.update(ids - own)
+        for inst in homes[wid]:
+            per_inst.update((inst, i) for i in ids - OWN_IDS[inst])
     flows = load_flows()
     cit = Counter()
     for (kind, _), recs in flows.items():
@@ -539,4 +596,6 @@ def top_partner_ids(n):
                 cit.update({i["id"] for i in r["insts"]} - own)
     ids = [i for i, _ in cnt.most_common(n)]
     ids += [i for i, _ in cit.most_common(n // 2) if i not in ids]
+    if min_shared:
+        ids += sorted({i for (_, i), c in per_inst.items() if c >= min_shared} - set(ids))
     return ids
