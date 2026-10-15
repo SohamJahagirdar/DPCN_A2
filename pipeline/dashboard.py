@@ -29,9 +29,17 @@ def _inline_scripts(html):
     return re.sub(r'<script src="(https://[^"]+)"></script>', repl, html)
 
 
-def write_dashboard(st):
-    data = json.dumps(st, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = TEMPLATE.read_text(encoding="utf-8").replace("/*__DATA__*/null", data)
+def _js(obj):
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
+def write_dashboard(st, st_without_flagged=None, comparison=None):
+    if st_without_flagged:   # the full flagged-paper list is shown from the main data only
+        st_without_flagged = dict(st_without_flagged, flagged=[])
+    html = (TEMPLATE.read_text(encoding="utf-8")
+            .replace("/*__DATA__*/null", _js(st))
+            .replace("/*__DATA_NF__*/null", _js(st_without_flagged))
+            .replace("/*__COMPARE__*/null", _js(comparison)))
     try:
         html = _inline_scripts(html)
     except requests.RequestException as e:   # offline: keep CDN links (page then needs internet)

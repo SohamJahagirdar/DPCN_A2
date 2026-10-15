@@ -35,7 +35,8 @@ def _tick(stage):
     _T0[0] = now
 
 
-def build_networks(t):
+def build_networks(t, out_dir=None):
+    out_dir = out_dir or config.OUTPUTS
     _T0[0] = time.time()
     papers, works, homes, flows, inst_meta = t["papers"], t["works"], t["homes"], t["flows"], t["inst_meta"]
     own_auth, persons = t["own_auth"], t["persons"]
@@ -102,7 +103,7 @@ def build_networks(t):
                           cross_institution=(etype != "internal") or (si != ti)))
     cit = pd.DataFrame(crows, columns=["source_doi", "target_doi", "source_inst", "target_inst", "year",
                                        "source_id", "target_id", "edge_type", "cross_institution"])
-    cit.to_csv(config.OUTPUTS / "citation_network.csv", index=False, encoding="utf-8")
+    cit.to_csv(out_dir / "citation_network.csv", index=False, encoding="utf-8")
     _tick("citation_network.csv")
     print(f"[networks] citation_network.csv: {len(cit)} edges "
           f"({(cit.edge_type == 'internal').sum()} internal)")
@@ -117,7 +118,7 @@ def build_networks(t):
     papers["pagerank"] = pd.Series(pr)
     papers[["work_id", "doi", "title", "year", "homes", "venue", "citations", "n_authors",
             "many_authors", "in_degree", "out_degree", "pagerank"]].rename(columns={"many_authors": "authors_gt_12"}) \
-        .sort_values("pagerank", ascending=False).to_csv(config.OUTPUTS / "citation_paper_metrics.csv",
+        .sort_values("pagerank", ascending=False).to_csv(out_dir / "citation_paper_metrics.csv",
                                                          index=False, encoding="utf-8")
     wcc = sorted((len(c) for c in nx.weakly_connected_components(G)), reverse=True) if len(G) else [0]
     nets["citation_summary"] = dict(
@@ -239,7 +240,7 @@ def build_networks(t):
     am = pd.DataFrame(arows, columns=["author_a", "author_b", "paper_doi", "inst_a", "inst_b", "year",
                                       "author_a_id", "author_b_id", "cross_institution", "work_id",
                                       "paper_n_authors", "paper_authors_gt_12"])
-    am.to_csv(config.OUTPUTS / "authorship_network.csv", index=False, encoding="utf-8")
+    am.to_csv(out_dir / "authorship_network.csv", index=False, encoding="utf-8")
     _tick("authorship_network.csv")
     print(f"[networks] authorship_network.csv: {len(am)} co-authorship edges "
           f"({am['cross_institution'].sum()} cross-institution); mega-collaboration papers "
@@ -278,7 +279,7 @@ def build_networks(t):
                        for n, d in F.nodes(data=True)])
     if len(fm):
         fm = fm.sort_values("degree_centrality", ascending=False)
-    fm.to_csv(config.OUTPUTS / "faculty_network_metrics.csv", index=False, encoding="utf-8")
+    fm.to_csv(out_dir / "faculty_network_metrics.csv", index=False, encoding="utf-8")
     comm_rows = []
     for cid, g in fm[fm["community"] >= 0].groupby("community"):
         comm_rows.append(dict(community=int(cid), size=len(g), insts=", ".join(f"{k} {v}" for k, v in g["inst"].value_counts().items()),
@@ -340,7 +341,7 @@ def build_networks(t):
                              citations_given_to_partner=int(cout.get(pid, 0)),
                              topic_jaccard=jb, topic_weighted_jaccard=jw))
     ic = pd.DataFrame(conn).sort_values(["your_inst", "shared_papers"], ascending=[True, False])
-    ic.to_csv(config.OUTPUTS / "indian_connections.csv", index=False, encoding="utf-8")
+    ic.to_csv(out_dir / "indian_connections.csv", index=False, encoding="utf-8")
     print(f"[networks] indian_connections.csv: {len(ic)} institution pairs")
     nets["connections"] = ic
     return nets

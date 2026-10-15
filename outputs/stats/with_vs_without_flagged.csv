@@ -1,0 +1,48 @@
+institution,group,metric,with_flagged,without_flagged,change
+IISc,Output,Papers,35818,34120,-0.047406332011837624
+IISc,Output,Citations,610269,517557,-0.15191989106443224
+IISc,Output,Mean citations per paper,17.038053,15.168728,-0.10971470742578401
+IISc,Output,Institutional h-index,217,195,-0.10138248847926268
+IISc,Quality,Q1 share of journal papers,0.690437,0.68392,-0.009438949534859799
+IISc,Quality,Top journal,Journal of High Energy Physics,Physical review. B./Physical review. B,
+IISc,Quality,Most-cited paper,Guidelines for the use and interpretation of assays for monitoring autophagy (3rd edition),Guided wave based structural health monitoring: A review,
+IISc,Faculty,Faculty with papers,720,720,0.0
+IISc,Faculty,Median faculty h-index,9,9,0.0
+IISc,Collaboration,Papers with another Indian institute,0.41951,0.404279,-0.03630664346499486
+IISc,Indian citation flow,Citations from other Indian institutes,106000,97387,-0.08125471698113207
+IISc,Indian citation flow,Citations to other Indian institutes,112657,105765,-0.06117684653417009
+IISc,Indian citation flow,In / out ratio,0.940909,0.920787,-0.021385702549343213
+IISc,Indian connectivity,Partner institutions,1372,1276,-0.06997084548104957
+IISc,Indian connectivity,Top partner,Indian Institute of Technology Madras,Indian Institute of Technology Madras,
+TIFR,Output,Papers,7752,5640,-0.2724458204334365
+TIFR,Output,Citations,223983,63769,-0.7152953572369332
+TIFR,Output,Mean citations per paper,28.893576,11.30656,-0.6086825666715674
+TIFR,Output,Institutional h-index,162,91,-0.4382716049382716
+TIFR,Quality,Q1 share of journal papers,0.716729,0.682562,-0.047670737475391606
+TIFR,Quality,Top journal,Journal of High Energy Physics,Physical review. B./Physical review. B,
+TIFR,Quality,Most-cited paper,Observation of Gravitational Waves from a Binary Black Hole Merger,Probing magnetism in 2D van der Waals crystalline insulators via electron tunneling,
+TIFR,Faculty,Faculty with papers,159,157,-0.012578616352201259
+TIFR,Faculty,Median faculty h-index,8,6,-0.25
+TIFR,Collaboration,Papers with another Indian institute,0.563209,0.45266,-0.19628415028879148
+TIFR,Indian citation flow,Citations from other Indian institutes,12408,8281,-0.3326079948420374
+TIFR,Indian citation flow,Citations to other Indian institutes,15564,12251,-0.21286301721922385
+TIFR,Indian citation flow,In / out ratio,0.797224,0.675945,-0.15212662940403202
+TIFR,Indian connectivity,Partner institutions,445,387,-0.1303370786516854
+TIFR,Indian connectivity,Top partner,Indian Institute of Technology Madras,Indian Institute of Technology Bombay,
+All,Output,Papers,42725,39606,-0.07300175541252195
+All,Output,Citations,803550,579322,-0.27904673013502584
+All,Output,Mean citations per paper,18.80749,14.627127,-0.22227118025850345
+All,Output,Institutional h-index,247,203,-0.17813765182186234
+All,Quality,Q1 share of journal papers,0.695906,0.683386,-0.01799093555738846
+All,Quality,Top journal,Journal of High Energy Physics,Physical review. B./Physical review. B,
+All,Quality,Most-cited paper,Observation of Gravitational Waves from a Binary Black Hole Merger,Guided wave based structural health monitoring: A review,
+All,Faculty,Faculty with papers,879,877,-0.0022753128555176336
+All,Faculty,Median faculty h-index,8,8,0.0
+All,Collaboration,Papers with another Indian institute,0.431059,0.405671,-0.058896809949450124
+All,Citation network,Citations among our papers,75581,59975,-0.20648046466704595
+All,Citation network,Share in largest component,0.464576,0.426299,-0.08239125568260092
+All,Citation network,Top paper by PageRank,Event generator tunes obtained from underlying event and multiparton scattering measurements,High frequency millimetre wave absorbers derived from polymeric nanocomposites,
+All,Co-authorship network,Faculty–faculty links,1814,1642,-0.09481808158765159
+All,Co-authorship network,Louvain communities,37,37,0.0
+All,Co-authorship network,Modularity,0.740836,0.741313,0.000643867198678182
+All,Co-authorship network,Isolated faculty,171,181,0.05847953216374269

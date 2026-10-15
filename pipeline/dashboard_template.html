@@ -90,6 +90,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
     <div class="controls">
       <div class="seg" id="instSeg"></div>
+      <div class="seg" id="flagSeg" title="Papers with more than 12 authors (instructor's flag)"></div>
       <button class="iconbtn" id="themeBtn" title="Toggle light/dark">◐</button>
     </div>
   </div>
@@ -203,16 +204,29 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="With vs without flagged">
+    <div class="grid">
+      <div class="card c12"><h3>Analysis with and without flagged papers (&gt; 12 authors)</h3>
+        <div class="hint">Every statistic recomputed on all papers and on the papers with 12 or fewer authors. Change = without vs with. Use the IISc / TIFR / Both switch; the network rows always cover both institutes.</div>
+        <div id="cmpTable" class="tablewrap" style="max-height:none"></div></div>
+      <div class="card c6"><h3>Publications per year</h3><div class="hint">Solid = all papers; dotted = without flagged papers</div><div id="cmpTrend" class="plot"></div></div>
+      <div class="card c6"><h3>Faculty h-index: with vs without flagged papers</h3><div class="hint">Share of faculty in each h-index band (2016–2026 papers at the institute)</div><div id="cmpH" class="plot"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Method">
     <div class="card"><div id="method" class="note"></div></div>
   </section>
 </main>
 
 <script>
-const DATA = /*__DATA__*/null;
+const DATA_ALL = /*__DATA__*/null;
+const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers (> 12 authors)
+const COMPARE = /*__COMPARE__*/null;
+let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Flagged papers","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
-let state = {inst: "All", tab: "Overview"};
+const TABS = ["Overview","With vs without flagged","Publications","Flagged papers","Faculty","Journals","Research areas","Citation network","Co-authorship network","Indian connectivity","Method"];
+let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
 new URLSearchParams(location.hash.slice(1)).forEach((v,k) => {
@@ -272,7 +286,7 @@ function renderOverview() {
     ["Q1 share (journals)", pct(k.q1_share_journals), `quartile known for ${pct(k.quartile_coverage)}`],
     ["Faculty with papers", fmt(k.faculty), ""],
     ["With Indian co-author institution", pct(k.with_indian_coauthor), "other than own institution"],
-    ["Papers with > 12 authors", fmt(k.many_author_papers), `${pct(k.many_author_share)} of papers · <a href="#" id="toFlagged">see the list →</a>`],
+    ["Papers with > 12 authors", fmt(DATA_ALL.inst[state.inst].kpis.many_author_papers), `${pct(DATA_ALL.inst[state.inst].kpis.many_author_share)} of papers${state.flag==="out" ? " (excluded)" : ""} · <a href="#" id="toFlagged">see the list →</a>`],
   ]);
   document.getElementById("toFlagged").onclick = e => { e.preventDefault(); state.tab = "Flagged papers"; render(); window.scrollTo(0,0); };
   const yrs = DATA.inst.All.trend.years;
@@ -493,6 +507,7 @@ function renderMethod() {
    <li><b>Faculty:</b> official rosters (IISc Directory 2025-26: ${m.roster_size.IISc}; TIFR department pages: ${m.roster_size.TIFR}) matched to OpenAlex author IDs by name. Former faculty who left before the rosters were compiled are added by a heuristic (≥8 papers over ≥4 years, ≥30% as last or corresponding author). Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
    <li><b>TIFR scope:</b> TIFR Mumbai only. OpenAlex often tags authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) with the main TIFR ID; such authorships are recognised from their affiliation text and excluded (NCBS belongs to Group 23).</li>
    <li><b>Long author lists:</b> OpenAlex lists at most 100 authors per work, so on some mega-collaboration papers our authors are not visible; those papers are kept (the institution query matched them) with author "[not listed]".</li>
+   <li><b>With and without flagged papers:</b> the switch at the top (<i>Flagged: included / excluded</i>) recomputes every tab without the papers that have more than 12 authors; the <i>With vs without flagged</i> tab compares the key metrics side by side.</li>
    <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors (13 or more; papers with 11–12 authors are common and not flagged). It appears in group18_data.csv, authorship_network.csv and citation_paper_metrics.csv; flagged papers are still counted everywhere.</li>
    <li><b>Departments:</b> roster department; for heuristic faculty, the most frequent department parsed from OpenAlex raw affiliation strings.</li>
    <li><b>Quartile:</b> SCImago SJR best quartile of the journal in the publication year (2026 papers use SJR 2025). Conference rank: CORE 2023 (matched by acronym or title).</li>
@@ -505,11 +520,11 @@ function renderMethod() {
 }
 
 function flaggedRows() {
-  return DATA.flagged.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
+  return DATA_ALL.flagged.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
 }
 function renderFlagged() {
   const all = flaggedRows();
-  const k = B().kpis;
+  const k = DATA_ALL.inst[state.inst].kpis;
   const med = arr => { const s = arr.slice().sort((a,b)=>a-b); return s.length ? s[Math.floor(s.length/2)] : null; };
   tiles("flTiles", [
     ["Flagged papers", fmt(all.length), `${pct(k.many_author_share)} of all papers`],
@@ -551,11 +566,39 @@ function renderFlagged() {
   draw();
 }
 
-const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Flagged papers":renderFlagged,"Faculty":renderFaculty,"Journals":renderJournals,
+function renderCompare() {
+  if (!COMPARE) { document.getElementById("cmpTable").innerHTML = '<div class="note" style="padding:12px">Not available.</div>'; return; }
+  const insts = state.inst==="All" ? ["All"] : [state.inst, "All"];
+  const rows = COMPARE.filter(r => r.institution===state.inst || (r.institution==="All" && /network/i.test(r.group) && state.inst!=="All") || (state.inst==="All" && r.institution==="All"));
+  const f = (v, r) => v==null ? "–" : r.fmt==="pct" ? pct(v) : r.fmt==="1dp" ? fmt(v,1) : r.fmt==="2dp" ? fmt(v,2) : r.fmt==="text" ? esc(short(String(v))) : fmt(v);
+  table("cmpTable", rows, [{k:"group",t:"Topic"},{k:"metric",t:"Metric"},
+    {k:"with_flagged",t:"With flagged",n:1,f:f},{k:"without_flagged",t:"Without flagged",n:1,f:f},
+    {k:"change",t:"Change",n:1,f:(v,r)=>v==null ? (r.fmt==="text" ? (r.with_flagged===r.without_flagged ? "same" : "differs") : "–") : `${v>0?"+":""}${(100*v).toFixed(1)}%`}]);
+  const yrs = DATA_ALL.inst.All.trend.years, tr = [];
+  instList().forEach(i => {
+    tr.push({x:yrs, y:DATA_ALL.inst[i].trend.total, name:`${i} all`, mode:"lines+markers", line:{width:2,color:instColor(i)}, marker:{size:8}});
+    tr.push({x:yrs, y:DATA_NF.inst[i].trend.total, name:`${i} without flagged`, mode:"lines+markers", line:{width:2,color:instColor(i),dash:"dot"}, marker:{size:8,symbol:"diamond"}});
+  });
+  plot("cmpTrend", tr, {hovermode:"x unified"});
+  const bands = [[0,4],[5,9],[10,14],[15,19],[20,29],[30,999]], lab = ["0–4","5–9","10–14","15–19","20–29","30+"];
+  const share = hs => bands.map(([a,b]) => hs.length ? hs.filter(h=>h>=a&&h<=b).length/hs.length : 0);
+  const i0 = state.inst;
+  plot("cmpH", [
+    {type:"bar", x:lab, y:share(DATA_ALL.inst[i0].h_values), name:"all papers", marker:{color:css("--s1")}, hovertemplate:"all papers, h %{x}: %{y:.1%}<extra></extra>"},
+    {type:"bar", x:lab, y:share(DATA_NF.inst[i0].h_values), name:"without flagged", marker:{color:css("--s3")}, hovertemplate:"without flagged, h %{x}: %{y:.1%}<extra></extra>"}],
+    {barmode:"group", yaxis:{tickformat:".0%", gridcolor:css("--grid"), automargin:true}});
+}
+
+const RENDER = {"Overview":renderOverview,"With vs without flagged":renderCompare,"Publications":renderPublications,"Flagged papers":renderFlagged,"Faculty":renderFaculty,"Journals":renderJournals,
   "Research areas":renderAreas,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}
+  DATA = (state.flag==="out" && DATA_NF) ? DATA_NF : DATA_ALL;
+  document.querySelectorAll("#flagSeg button").forEach(b=>b.classList.toggle("on", b.dataset.f===state.flag));
+  const nFlag = DATA_ALL.inst.All.kpis.many_author_papers;
+  document.getElementById("banner").innerHTML = (state.flag==="out" && DATA_NF)
+    ? `<div class="banner"><b>Flagged papers excluded:</b> every tab now shows the analysis without the ${fmt(nFlag)} papers that have more than 12 authors. Switch back with <i>Flagged: included</i> at the top.</div>` : "";
   document.querySelectorAll("#instSeg button").forEach(b=>b.classList.toggle("on", b.dataset.i===state.inst));
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.t===state.tab));
   document.querySelectorAll(".tab").forEach(s=>s.classList.toggle("on", s.dataset.tab===state.tab));
@@ -563,6 +606,8 @@ function render() {
 }
 document.getElementById("instSeg").innerHTML = ["All",...INSTS].map(i=>`<button data-i="${i}">${i==="All"?"Both":i}</button>`).join("");
 document.getElementById("instSeg").onclick = e => { if (e.target.dataset.i) { state.inst = e.target.dataset.i; render(); } };
+document.getElementById("flagSeg").innerHTML = DATA_NF ? `<button data-f="in">Flagged: included</button><button data-f="out">excluded</button>` : "";
+document.getElementById("flagSeg").onclick = e => { if (e.target.dataset.f) { state.flag = e.target.dataset.f; render(); } };
 document.getElementById("nav").innerHTML = TABS.map(t=>`<button data-t="${t}">${t}</button>`).join("");
 document.getElementById("nav").onclick = e => { if (e.target.dataset.t) { state.tab = e.target.dataset.t; render(); } };
 document.getElementById("themeBtn").onclick = () => {
@@ -570,7 +615,6 @@ document.getElementById("themeBtn").onclick = () => {
   document.documentElement.dataset.theme = cur==="dark" ? "light" : "dark"; render();
 };
 document.getElementById("subtitle").textContent = `DPCN Research Mapping Project · Group ${DATA.meta.group} · data generated ${DATA.meta.generated}`;
-if (DATA.meta.sample) document.getElementById("banner").innerHTML = `<div class="banner"><b>Test sample:</b> this dashboard was built from a small sample, not the full dataset.</div>`;
 if (!TABS.includes(state.tab)) state.tab = "Overview";
 render();
 </script>

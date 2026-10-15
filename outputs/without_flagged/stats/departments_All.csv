@@ -1,0 +1,83 @@
+department,faculty,papers,citations,median_h,mean_q1_share
+Materials Engineering,36,2696,63827,14.0,0.716761
+Electrical Communication Engineering,34,1986,18943,11.5,0.69162
+Physics,46,1747,28723,10.0,0.771511
+Aerospace Engineering,40,1514,16729,6.0,0.68648
+Centre for Nano Science and Engineering,29,1482,18740,9.0,0.717872
+Electrical Engineering,31,1410,16192,8.0,0.681105
+Materials Research Centre,14,1293,35215,20.5,0.741603
+Civil Engineering,27,1170,18516,10.0,0.734925
+Mechanical Engineering,25,954,14563,10.0,0.740919
+Inorganic and Physical Chemistry,26,950,25469,9.0,0.712085
+Electronic Systems Engineering,15,936,8873,10.0,0.732187
+Computational and Data Sciences,22,914,19574,7.0,0.709926
+Computer Science and Automation,33,863,10448,8.0,0.443811
+Condensed Matter Physics and Materials Science,17,836,10834,13.0,0.763656
+Mathematics,36,663,3300,5.0,0.563775
+Solid State and Structural Chemistry Unit,19,650,13834,11.0,0.763275
+Organic Chemistry,12,634,13530,11.5,0.612751
+Instrumentation and Applied Physics,21,625,8312,8.0,0.686208
+Theoretical Physics,27,587,11299,8.0,0.611631
+Microbiology and Cell Biology,20,580,12899,10.5,0.878725
+Molecular Biophysics Unit,21,560,8387,9.0,0.794666
+Biochemistry,18,526,10464,10.5,0.774469
+Astronomy and Astrophysics,17,523,8574,8.0,0.740538
+Chemical Engineering,15,517,11621,9.0,0.822333
+Centre for Ecological Sciences,17,502,7436,10.0,0.626929
+Design and Manufacturing,10,469,3108,7.5,0.493925
+Centre for High Energy Physics,19,466,10490,7.0,0.650944
+Interdisciplinary Centre for Energy Research,8,424,7461,17.5,0.874299
+Developmental Biology and Genetics,13,418,7242,10.0,0.680458
+Centre for Atmospheric and Oceanic Sciences,13,377,6697,10.0,0.810528
+Chemical Sciences,13,374,7489,9.0,0.845949
+School of Technology and Computer Science,19,370,2255,5.0,0.626756
+Centre for Sustainable Technologies,9,348,4081,9.0,0.4921
+Bioengineering,7,279,6868,6.0,0.79628
+Nuclear and Atomic Physics,10,277,1482,6.5,0.590902
+Biological Sciences,14,257,4071,7.5,0.769405
+School of Mathematics,24,253,1167,2.5,0.846021
+Centre for Neuroscience,11,224,3256,7.0,0.756551
+Robert Bosch Centre for Cyber Physical Systems,8,223,2223,7.5,0.925871
+Centre for Earth Sciences,7,219,3071,9.0,0.829567
+Management Studies,8,195,1826,6.5,0.29772
+Interdisciplinary Centre for Water Research,4,193,2819,13.5,0.803931
+High Energy Physics,8,170,1050,4.0,0.619128
+MRC,1,87,2089,28.0,0.638554
+"Centre for Infrastructure, Sustainable Transportation and Urban Planning",3,83,1342,9.0,0.715191
+NMR Research Centre,3,74,1232,9.0,0.749573
+Unknown,7,45,1173,1.0,0.5
+Divecha Centre for Climate Change,2,37,1225,11.0,0.647826
+Indo-French Cell for Water Science (IFCWS),2,32,836,11.0,0.766304
+Indo-French Cell for Water Sciences,2,31,1701,14.0,1.0
+Centre for Cryogenic Technology,2,28,92,4.0,0.316667
+Comput. Sci. and Autom,1,21,292,8.0,0.0
+Consciousness Studies Program,1,20,489,7.0,0.4
+Laboratory of Biogeochem-mystery,1,19,290,9.0,0.769231
+Facility for Research in Technical Acoustics,1,16,92,6.0,0.333333
+Faraday Materials Laboratory,1,16,370,10.0,0.461538
+Supercomputer Education and Research Centre,1,15,238,6.0,0.0
+Centre for Infectious Disease Research,1,15,371,9.0,0.866667
+Centre for BioSystems Science and Engineering,1,14,228,8.0,0.846154
+Advance Nanoelectronic Device and Circuit Research Laboratory,1,13,117,7.0,0.875
+Laboratory for Biomaterials,1,13,631,10.0,0.583333
+DST-Centre for Policy Research,1,12,297,8.0,0.545455
+AU MRI Research Center,1,12,297,8.0,0.583333
+Centre for Product Design and Manufacturing,1,12,73,6.0,0.0
+Centre for Biosystems Science and Engineering,1,12,376,9.0,0.454545
+Center for Sustainable Technologies (CST),1,12,72,5.0,0.0
+Interdisciplinary Centre for Energy Research (ICER),1,12,259,9.0,1.0
+Low Temperature Facility,1,11,44,3.0,0.166667
+Biology,1,10,202,8.0,0.0
+Center for High Energy Physics,1,10,384,7.0,0.857143
+Shock Induced Materials Chemistry Laboratory,1,10,37,3.0,0.25
+School of Geography,1,10,529,8.0,0.777778
+School of Natural Sciences and Engineering,1,9,47,4.0,0.0
+Centre for Infrastructure,1,8,304,6.0,0.714286
+Nano-Optics and Mesoscopic Optics Laboratory,1,8,24,3.0,0.8
+Joint Astronomy Program,1,8,77,4.0,0.8
+Talent Development Centre,1,8,78,6.0,0.285714
+Centre for Nano Science and Engineering (CeNSE),1,8,222,5.0,0.285714
+Indo-French Cell for Water Science,1,7,219,7.0,0.833333
+DESE,1,5,11,2.0,0.0
+"Molecular Reproduction, Development and Genetics",1,3,34,3.0,0.666667
+Centre for Society and Policy,2,2,4,1.0,0.0

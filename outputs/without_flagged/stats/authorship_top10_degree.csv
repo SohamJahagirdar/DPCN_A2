@@ -1,0 +1,11 @@
+person,name,inst,department,papers,n_faculty_coauthors,joint_papers,degree_centrality,betweenness,community,n_partner_institutions
+R:IISc:141,Ambarish Ghosh,IISc,Centre for Nano Science and Engineering,180,38,114,0.043379,0.047499,2,28
+R:IISc:188,Manish Jain,IISc,Physics,77,33,76,0.037671,0.024713,2,15
+R:IISc:330,Srinivasan Raghavan,IISc,Materials Research Centre,129,30,177,0.034247,0.014449,5,14
+R:IISc:84,Chattopadhyay K,IISc,Materials Engineering,167,30,183,0.034247,0.034764,3,34
+R:IISc:75,Chakravortty Dipshikha,IISc,Microbiology and Cell Biology,116,28,94,0.031963,0.074821,1,30
+R:IISc:348,Praveen C Ramamurthy,IISc,Materials Engineering,361,26,142,0.02968,0.026342,3,89
+R:IISc:366,Ravishankar N,IISc,Materials Research Centre,123,25,109,0.028539,0.010154,17,17
+R:IISc:50,Navakanta Bhat,IISc,Centre for Nano Science and Engineering,163,25,84,0.028539,0.017942,5,32
+R:IISc:478,Satyam Suwas,IISc,Materials Engineering,331,24,153,0.027397,0.022896,3,60
+R:IISc:241,Prabal Kumar Maiti,IISc,Physics,149,24,66,0.027397,0.029554,2,33

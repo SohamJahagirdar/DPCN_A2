@@ -88,7 +88,9 @@ def inst_block(p, fac, inst):
     )
 
 
-def compute_stats(t, nets):
+def compute_stats(t, nets, out_dir=None, json_path=None):
+    out_dir = out_dir or config.OUTPUTS
+    json_path = json_path or (config.PROCESSED / "stats.json")
     papers, fac = t["papers"], t["faculty"]
     st = dict(meta=dict(group=config.GROUP, institutions={k: v["name"] for k, v in config.INSTITUTIONS.items()},
                         years=[config.YEAR_FROM, config.YEAR_TO], sample=config.SAMPLE,
@@ -203,14 +205,14 @@ def compute_stats(t, nets):
                             ["partner_inst", "partner_cluster", "shared_papers", "topic_jaccard", "topic_weighted_jaccard"]),
         )
     st = _clean(st)
-    (config.PROCESSED / "stats.json").write_text(json.dumps(st, indent=1), encoding="utf-8")
-    write_stat_tables(st)
+    json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
+    write_stat_tables(st, out_dir)
     return st
 
 
-def write_stat_tables(st):
+def write_stat_tables(st, out_dir=None):
     """Flat CSVs of the headline statistics (handy for the report)."""
-    out = config.OUTPUTS / "stats"
+    out = (out_dir or config.OUTPUTS) / "stats"
     out.mkdir(exist_ok=True)
     rows = []
     for inst, b in st["inst"].items():

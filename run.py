@@ -47,7 +47,7 @@ def do_fetch(steps, max_calls):
 
 
 def do_build():
-    from pipeline import build, dashboard, networks, stats
+    from pipeline import build, dashboard, networks, stats, variants
     t = time.time()
     tables = build.build_all()
     print(f"  dataset built: {time.time() - t:.0f}s", flush=True)
@@ -55,7 +55,13 @@ def do_build():
     print(f"  networks built: {time.time() - t:.0f}s", flush=True)
     st = stats.compute_stats(tables, nets)
     print(f"  statistics: {time.time() - t:.0f}s", flush=True)
-    dashboard.write_dashboard(st)
+    # the same analysis without the flagged (> 12 authors) papers, as the instructor asked
+    v = variants.without_flagged(tables)
+    nets_v = networks.build_networks(v, variants.OUT)
+    st_v = stats.compute_stats(v, nets_v, variants.OUT, config.PROCESSED / "stats_without_flagged.json")
+    comparison = variants.compare(st, st_v)
+    print(f"  without-flagged variant: {time.time() - t:.0f}s", flush=True)
+    dashboard.write_dashboard(st, st_v, comparison)
     print(f"build done in {time.time() - t:.0f}s -> {config.OUTPUTS} and {config.DASHBOARD_FILE}")
 
 

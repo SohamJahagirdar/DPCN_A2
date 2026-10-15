@@ -1,0 +1,4 @@
+institution,papers,citations,mean_citations,h_index,journal_papers,conference_papers,q1_share_journals,q1_share_all,quartile_coverage,faculty,mega_papers,many_author_papers,many_author_share,with_indian_coauthor,median_fwci,shared_with_other
+IISc,34120,517557,15.168728,195,25012,7125,0.68392,0.478664,0.954742,720,0,0,0.0,0.404279,0.67725,154
+TIFR,5640,63769,11.30656,91,4434,883,0.682562,0.51773,0.964817,157,0,0,0.0,0.45266,0.4795,154
+All,39606,579322,14.627127,203,29315,7989,0.683386,0.483664,0.9562,877,0,0,0.0,0.405671,0.65045,154

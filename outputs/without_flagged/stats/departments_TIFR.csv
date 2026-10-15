@@ -1,0 +1,14 @@
+department,faculty,papers,citations,median_h,mean_q1_share
+Condensed Matter Physics and Materials Science,17,836,10834,13.0,0.763656
+Theoretical Physics,27,587,11299,8.0,0.611631
+Astronomy and Astrophysics,17,523,8574,8.0,0.740538
+Chemical Sciences,13,374,7489,9.0,0.845949
+School of Technology and Computer Science,19,370,2255,5.0,0.626756
+Nuclear and Atomic Physics,10,277,1482,6.5,0.590902
+Biological Sciences,14,257,4071,7.5,0.769405
+School of Mathematics,24,253,1167,2.5,0.846021
+High Energy Physics,8,170,1050,4.0,0.619128
+Unknown,5,28,695,1.0,0.5
+Low Temperature Facility,1,11,44,3.0,0.166667
+Nano-Optics and Mesoscopic Optics Laboratory,1,8,24,3.0,0.8
+Physics,1,4,0,0.0,

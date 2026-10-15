@@ -471,7 +471,22 @@ def build_all():
         if not p["department"]:
             p["department"] = dept_mode.get(k) or "Unknown"
 
-    # ------------------------------------------------------------------ per-faculty metrics
+    faculty = faculty_table(own_auth, persons, papers, profiles, roster)
+
+    tables = dict(papers=papers, auth=auth, own_auth=own_auth, faculty=faculty, persons=persons,
+                  inst_meta=inst_meta, flows=load_flows(), works=works, homes=homes, roster=roster,
+                  profiles=profiles)
+    tables["dataset"] = build_dataset_rows(tables)
+    out = config.OUTPUTS / f"group{config.GROUP}_data.csv"
+    tables["dataset"].to_csv(out, index=False, encoding="utf-8")
+    faculty.to_csv(config.OUTPUTS / "faculty_list.csv", index=False, encoding="utf-8")
+    papers.to_pickle(config.PROCESSED / "papers.pkl")
+    print(f"[build] wrote {out.name}: {len(tables['dataset'])} rows")
+    return tables
+
+
+def faculty_table(own_auth, persons, papers, profiles, roster):
+    """Per-faculty metrics (papers, citations, h-indices, Q1 share, top journal) from the given papers."""
     fac_rows = []
     fa = own_auth.dropna(subset=["person"]).drop_duplicates(["person", "work_id"])
     pap = papers.set_index("work_id")
@@ -509,15 +524,7 @@ def build_all():
             designation=unmatched["designation"], faculty_source="roster (no OpenAlex match)",
             is_honorary=unmatched["is_honorary"], papers=0, citations=0, h_index=0))], ignore_index=True)
 
-    tables = dict(papers=papers, auth=auth, own_auth=own_auth, faculty=faculty, persons=persons,
-                  inst_meta=inst_meta, flows=load_flows(), works=works, homes=homes, roster=roster)
-    tables["dataset"] = build_dataset_rows(tables)
-    out = config.OUTPUTS / f"group{config.GROUP}_data.csv"
-    tables["dataset"].to_csv(out, index=False, encoding="utf-8")
-    faculty.to_csv(config.OUTPUTS / "faculty_list.csv", index=False, encoding="utf-8")
-    papers.to_pickle(config.PROCESSED / "papers.pkl")
-    print(f"[build] wrote {out.name}: {len(tables['dataset'])} rows")
-    return tables
+    return faculty
 
 
 def build_dataset_rows(t):

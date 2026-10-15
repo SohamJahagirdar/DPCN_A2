@@ -1,0 +1,11 @@
+person,name,inst,department,papers,n_faculty_coauthors,joint_papers,degree_centrality,betweenness,community,n_partner_institutions
+R:IISc:75,Chakravortty Dipshikha,IISc,Microbiology and Cell Biology,116,28,94,0.031963,0.074821,1,30
+R:IISc:502,Raghavan Varadarajan,IISc,Molecular Biophysics Unit,67,8,15,0.009132,0.05959,1,28
+H:IISc:A5029412526,M. S. A. Alam Khan,IISc,Centre for High Energy Physics,8,2,4,0.002283,0.055447,7,5
+R:IISc:7,Ananthanarayan B,IISc,Centre for High Energy Physics,50,4,8,0.004566,0.053902,7,7
+R:IISc:141,Ambarish Ghosh,IISc,Centre for Nano Science and Engineering,180,38,114,0.043379,0.047499,2,28
+R:IISc:233,Ranjan Laha,IISc,Centre for High Energy Physics,18,5,8,0.005708,0.037147,7,5
+R:IISc:152,Jagadeesh Gopalan,IISc,Aerospace Engineering,125,20,80,0.022831,0.037085,11,19
+R:IISc:45,Amrutur Bharadwaj,IISc,Robert Bosch Centre for Cyber Physical Systems,42,15,30,0.017123,0.035675,0,11
+R:IISc:84,Chattopadhyay K,IISc,Materials Engineering,167,30,183,0.034247,0.034764,3,34
+R:TIFR:627,Basudeb Dasgupta,TIFR,Theoretical Physics,35,6,17,0.006849,0.03319,7,5
