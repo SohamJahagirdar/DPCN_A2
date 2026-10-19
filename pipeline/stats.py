@@ -166,6 +166,7 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
         )
     # --------------------------------------------------------------- authorship network
     fm = nets["faculty_metrics"]
+    st["resilience"] = nets["resilience"]
     st["authorship"] = dict(
         summary=nets["authorship_summary"],
         top_degree=records(fm.sort_values("degree_centrality", ascending=False).head(10)) if len(fm) else [],

@@ -77,6 +77,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .pill{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:11px;color:var(--ink-2)}
 .tab{display:none}.tab.on{display:block}
+.tab [hidden]{display:none!important}
 .note{color:var(--ink-2);font-size:13px}
 .note li{margin:4px 0}
 </style>
@@ -221,6 +222,24 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="Network Resilience">
+    <div id="rsScope" class="banner"></div>
+    <div class="tiles" id="rsTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c6"><h3>Who holds the network together?</h3><div class="hint">Top 15 matching researchers by fraction of previously connected surviving pairs disconnected. Click a bar to inspect a removal.</div><div id="rsImpact" class="plot tall"></div></div>
+      <div class="card c6"><h3>Many collaborators, or a critical bridge?</h3><div class="hint">Each point is a researcher. Degree counts collaborators; vertical position measures actual connectivity loss. Click a point to inspect.</div><div id="rsScatter" class="plot tall"></div></div>
+      <div class="card c12"><h3>Researcher-removal experiments</h3>
+        <div class="row"><input type="search" id="rsSearch" placeholder="Search name, ID, department…" size="32" aria-label="Search resilience researchers"><select id="rsRole" aria-label="Filter structural role"></select><span class="pill" id="rsCount"></span><button class="iconbtn" id="rsDownload">Download matching rows</button></div>
+        <div id="rsTable" class="tablewrap"></div></div>
+      <div class="card c12"><h3>Inspect one independent removal</h3>
+        <div class="row"><select id="rsPerson" aria-label="Select researcher removal"></select><label><input type="checkbox" id="rsGhost"> Show removed researcher and original links</label></div>
+        <div id="rsDetail" class="note"></div></div>
+      <div class="card c5"><h3>Fragments of their original component</h3><div class="hint">Computed on the full graph after removal; up to 12 largest fragments shown.</div><div id="rsFragments" class="plot"></div></div>
+      <div class="card c7"><h3>Focused collaboration view</h3><div id="rsNetHint" class="hint"></div><div id="rsNet" class="net" style="height:400px"></div></div>
+      <div class="card c12"><h3>What the experiment establishes</h3><div id="rsMethod" class="note"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Indian connectivity">
     <div class="tiles" id="icTiles"></div>
     <div class="grid" style="margin-top:16px">
@@ -242,7 +261,7 @@ const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Network Resilience","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -727,8 +746,109 @@ function renderReputable() {
   draw();
 }
 
+let rsNet = null;
+function renderResilience() {
+  const R = (state.flag==="out" && !DATA_NF) ? null : DATA.resilience;
+  if (rsNet) { rsNet.destroy(); rsNet = null; }
+  const section = document.querySelector('[data-tab="Network Resilience"]');
+  const scope = document.getElementById("rsScope");
+  // Older generated payloads must never leave stale results from another variant.
+  section.querySelectorAll(".grid, .tiles").forEach(el => el.hidden = !R);
+  if (!R) { scope.textContent = "Resilience data is unavailable for this paper variant. An integrator must rebuild with the historical raw snapshot."; return; }
+  scope.textContent = `Analysis scope: combined IISc–TIFR faculty graph, ${state.flag==="out"?"papers with at most 12 authors":"all eligible papers (co-authorship excludes papers with more than 50 authors)"}. Institution selector: researcher-row filter only; network metrics and removal effects remain combined-graph measurements.`;
+  const b = R.baseline, s = R.summary;
+  tiles("rsTiles", [["Faculty / links", `${fmt(b.nodes)} / ${fmt(b.edges)}`, "combined graph"],
+    ["Connected components", fmt(b.components), `largest: ${fmt(b.largest_component)} (${pct(b.largest_component_share)})`],
+    ["Connected-pair fraction", pct(b.connected_pair_fraction), "all unordered researcher pairs"],
+    ["Removal causes fragmentation", fmt(s.articulation_researchers), `${fmt(s.critical_bridges)} critical bridges (≥1% pair loss)`],
+    ["Redundant connectors", fmt(s.redundant_connectors), "degree ≥2, zero lost surviving pairs"],
+    ["Largest single-removal loss", pct(s.max_lost_pair_fraction), `${fmt(s.max_lost_pairs)} pairs at most; maxima may concern different people`]]);
+  const scoped = R.researchers.filter(r=>state.inst==="All" || r.inst===state.inst);
+  const roleSel = document.getElementById("rsRole"), oldRole = roleSel.value;
+  const roles = [...new Set(scoped.flatMap(r=>r.roles.split("; ")))].sort();
+  roleSel.innerHTML = '<option value="">All roles (can overlap)</option>'+roles.map(r=>`<option>${esc(r)}</option>`).join("");
+  roleSel.value = roles.includes(oldRole) ? oldRole : "";
+  const byId = new Map(R.researchers.map(r=>[r.person,r]));
+  const personSel = document.getElementById("rsPerson");
+  const focus = id => { personSel.value = id; drawSelected(); };
+  const drawSelected = () => {
+    if (rsNet) { rsNet.destroy(); rsNet = null; }
+    const r = byId.get(personSel.value);
+    if (!r) {
+      document.getElementById("rsDetail").textContent = "No researchers match these filters.";
+      document.getElementById("rsNet").textContent = "";
+      document.getElementById("rsNetHint").textContent = "";
+      plot("rsFragments", [], {}); return;
+    }
+    document.getElementById("rsNet").textContent = "";
+    document.getElementById("rsDetail").innerHTML = `<p><b>${esc(r.name)}</b> (${esc(r.person)}), ${esc(r.inst)} · ${esc(r.department)}. ${esc(r.roles)}.</p><p>Full graph: ${fmt(b.nodes)} → ${fmt(r.nodes_after)} nodes; ${fmt(b.edges)} → ${fmt(r.edges_after)} links; ${fmt(b.components)} → ${fmt(r.components_after)} components. Largest component: ${fmt(b.largest_component)} → ${fmt(r.largest_component_after)} (${pct(r.largest_component_share_after)} of remaining nodes).</p><p>Among ${fmt(r.connected_pairs_before_remaining)} pairs connected before removal, excluding this researcher, <b>${fmt(r.lost_connected_pairs)} (${pct(r.lost_pair_fraction)}) lose connectivity</b>. Surviving-pair fraction: ${pct(r.survivor_connected_pair_fraction_before)} → ${pct(r.connected_pair_fraction_after)}. Raw fraction change vs original graph: ${(100*r.connected_pair_fraction_change).toFixed(3)} percentage points; this raw change also reflects the changed denominator.</p>`;
+    const adj = new Map(R.researchers.map(x=>[x.person, []]));
+    R.edges.forEach(([a,c])=>{ adj.get(a).push(c); adj.get(c).push(a); });
+    const original = new Set([r.person]), queue = [r.person];
+    for (let i=0;i<queue.length;i++) for(const v of adj.get(queue[i])) if(!original.has(v)){ original.add(v); queue.push(v); }
+    const unseen = new Set([...original].filter(v=>v!==r.person)), parts = [];
+    while(unseen.size) {
+      const first = [...unseen].sort()[0], part = [], todo = [first]; unseen.delete(first);
+      for(let i=0;i<todo.length;i++){ const v=todo[i]; part.push(v); for(const w of adj.get(v)) if(unseen.delete(w)) todo.push(w); }
+      parts.push(part.sort());
+    }
+    parts.sort((a,c)=>c.length-a.length || a[0].localeCompare(c[0]));
+    const component = new Map(parts.flatMap((part,i)=>part.map(v=>[v,i])));
+    plot("rsFragments", [{type:"bar", x:parts.slice(0,12).map((_,i)=>`Fragment ${i+1}`), y:parts.slice(0,12).map(p=>p.length), marker:{color:css("--s1")}, hovertemplate:"%{x}: %{y} researchers<extra></extra>"}], {yaxis:{title:"researchers",gridcolor:css("--grid")}});
+    // Sample across fragments, prioritizing original neighbors. Full metrics never
+    // depend on this bounded display or on the institution-row filter.
+    const samples = parts.map(part=>part.slice().sort((a,c)=>Number(adj.get(c).includes(r.person))-Number(adj.get(a).includes(r.person)) || a.localeCompare(c)));
+    const shown = [];
+    for(let j=0;shown.length<60 && samples.some(p=>j<p.length);j++) for(const part of samples) if(j<part.length && shown.length<60) shown.push(part[j]);
+    const ghost = document.getElementById("rsGhost").checked, keep = new Set(shown);
+    if(ghost) keep.add(r.person);
+    const colors = SER();
+    const nodes = [...keep].map(id=>{ const x=byId.get(id); return {id, label:id===r.person?`Removed: ${x.name}`:short(x.name), shape:"dot", size:id===r.person?18:10,
+      color:{background:id===r.person?css("--s2"):colors[component.get(id)%colors.length],border:css("--surface")},
+      font:{color:css("--ink-2"),size:11}, title:`${x.name}\n${x.inst} · ${x.department}\n${id===r.person?"Removed (original links shown)":`Remaining fragment ${component.get(id)+1}`}`}; });
+    const edges = R.edges.filter(([a,c])=>keep.has(a)&&keep.has(c)).map(([a,c,w])=>({from:a,to:c,value:w,dashes:a===r.person||c===r.person,color:{color:a===r.person||c===r.person?css("--s2"):css("--muted")}}));
+    document.getElementById("rsNetHint").textContent = `${shown.length} of ${original.size-1} surviving researchers in the original component shown, sampled across ${parts.length} fragments. Colours indicate full-component fragments (repeat after eight). Dashed original links, if enabled, are illustrative only. Institution filtering does not hide this researcher's external collaborators.`;
+    if(nodes.length) {
+      rsNet = new vis.Network(document.getElementById("rsNet"), {nodes,edges}, {layout:{randomSeed:42},nodes:{borderWidth:1},edges:{smooth:false,scaling:{min:.5,max:3}},physics:{stabilization:{iterations:150}},interaction:{hover:true}});
+      rsNet.once("stabilizationIterationsDone",()=>{ if(rsNet) rsNet.setOptions({physics:false}); });
+    }
+  };
+  const filtered = () => {
+    const q=document.getElementById("rsSearch").value.toLowerCase(), role=roleSel.value;
+    return scoped.filter(r=>(!role||r.roles.split("; ").includes(role)) && (!q||[r.person,r.name,r.department,r.inst].join(" ").toLowerCase().includes(q)));
+  };
+  const draw = () => {
+    const rows=filtered(), oldPerson=personSel.value;
+    document.getElementById("rsCount").textContent=`${rows.length} researchers; effects in combined graph`;
+    personSel.innerHTML=rows.map(r=>`<option value="${esc(r.person)}">${esc(r.name)} (${esc(r.inst)}) — ${fmt(r.lost_connected_pairs)} lost pairs</option>`).join("");
+    personSel.value=rows.some(r=>r.person===oldPerson)?oldPerson:(rows[0]?.person||"");
+    const top=rows.slice(0,15).reverse();
+    plot("rsImpact", [{type:"bar",orientation:"h",x:top.map(r=>r.lost_pair_fraction),y:top.map(r=>`${r.name} [${r.person}]`),customdata:top.map(r=>r.person),marker:{color:css("--s1")},hovertemplate:"%{y}<br>%{x:.2%} of connected surviving pairs lost<extra></extra>"}], {margin:{l:8,r:16,t:8,b:40},xaxis:{title:"fraction of previously connected surviving pairs lost",tickformat:".1%",gridcolor:css("--grid")}});
+    plot("rsScatter", [{type:"scatter",mode:"markers",x:rows.map(r=>r.degree),y:rows.map(r=>r.lost_pair_fraction),customdata:rows.map(r=>r.person),text:rows.map(r=>r.name),marker:{size:8,color:rows.map(r=>r.is_critical_bridge?css("--s2"):css("--s1")),opacity:.7},hovertemplate:"%{text}<br>%{x} collaborators · %{y:.2%} pair loss<extra></extra>"}], {xaxis:{title:"degree (collaborators)",gridcolor:css("--grid")},yaxis:{title:"connected surviving pairs lost",tickformat:".1%",gridcolor:css("--grid")}});
+    ["rsImpact","rsScatter"].forEach(id=>{ const el=document.getElementById(id); if(el.removeAllListeners) el.removeAllListeners("plotly_click"); if(el.on) el.on("plotly_click",e=>focus(e.points[0].customdata)); });
+    table("rsTable",rows,[{k:"person",t:"Researcher ID"},{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:esc},
+      {k:"degree",t:"Degree",n:1},{k:"betweenness",t:"Betweenness",n:1,f:v=>fmt(v,4)},{k:"community",t:"Community",n:1},
+      {k:"neighbor_communities",t:"Collaborator communities",n:1},{k:"cross_community_fraction",t:"Cross-community links",n:1,f:pct},
+      {k:"cross_institution_edges",t:"Cross-institution links",n:1},{k:"lost_connected_pairs",t:"Lost pairs",n:1,f:v=>fmt(v)},
+      {k:"lost_pair_fraction",t:"Connected pairs lost",n:1,f:pct},{k:"components_after",t:"Components after",n:1},
+      {k:"largest_component_after",t:"Largest after",n:1},{k:"roles",t:"Interpretation",f:esc}],{sort:"lost_pair_fraction"});
+    drawSelected();
+  };
+  personSel.onchange=drawSelected; document.getElementById("rsGhost").onchange=drawSelected;
+  document.getElementById("rsSearch").oninput=draw; roleSel.onchange=draw;
+  document.getElementById("rsDownload").onclick=()=>{
+    const rows=filtered(), cols=rows.length?Object.keys(rows[0]).filter(k=>k!=="fragment_sizes"): ["person","name","lost_connected_pairs","lost_pair_fraction"];
+    const quote=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+    const text=[cols.join(","),...rows.map(r=>cols.map(c=>quote(r[c])).join(","))].join("\r\n");
+    const a=document.createElement("a"),url=URL.createObjectURL(new Blob(["\ufeff"+text],{type:"text/csv"}));
+    a.href=url;a.download=`group18_resilience_${state.flag}_${state.inst}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  document.getElementById("rsMethod").innerHTML=`<p>Every researcher is removed independently from the same original undirected faculty graph, together with their incident links. Paths ignore weights; joint-paper counts are retained for the drawing. Isolates remain in the baseline. Community labels and betweenness are reused from the baseline of this paper variant.</p><p>Connected pairs = Σ s(s−1)/2 over component sizes s. Divide by n(n−1)/2 for the connected-pair fraction. Before comparing a removal, subtract pairs involving that person. Lost pairs = connected surviving pairs before − connected pairs after. Structural score = lost pairs / previously connected surviving pairs; zero when none exist. This avoids confusing removal of a person with fragmentation between other people.</p><p>Critical bridge: ≥${pct(R.rules.critical_loss_fraction)} loss and at least one lost pair. Local bridge: smaller positive loss. Hub: degree ≥${R.rules.hub_min_degree} (90th percentile of positive degrees, minimum 3); low fragmentation means below the critical threshold. Cross-community connector: neighbors in ≥2 known baseline communities and at least one cross-community link. Redundant connector: degree ≥2 and zero lost pairs. Roles overlap. Cross-community share uses only links with known communities at both ends; unavailable values stay blank.</p><p>This is a static hypothetical connectivity experiment, not evidence of actual staff departure, causation, institutional dependence, researcher quality, or societal value. Co-authorship is incomplete; other paths outside these institutions are unobserved. Removing a node leaves surviving co-author links intact. Baseline communities stay fixed during removals. Variant populations can differ, so compare both counts and normalized losses. Baseline tiles always describe the combined graph.</p>`;
+  draw();
+}
+
 const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Faculty":renderFaculty,
-  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
+  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Network Resilience":renderResilience,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}
