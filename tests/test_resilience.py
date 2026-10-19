@@ -3,12 +3,14 @@ import copy
 import csv
 import itertools
 import json
+import math
 from pathlib import Path
 import random
 import tempfile
 import unittest
 
 from pipeline.resilience import analyze_resilience, classify_roles, write_resilience_csv
+from pipeline.rankings import ranked_top
 
 
 def analyze(ids, pairs, metrics=None):
@@ -43,7 +45,7 @@ class ResilienceTests(unittest.TestCase):
         self.assertEqual(r["1"]["lost_connected_pairs"], 0)
         self.assertEqual(r["1"]["components_after"], 1)
         self.assertTrue(r["0"]["is_hub"])
-        self.assertTrue(r["0"]["is_critical_bridge"])
+        self.assertTrue(r["0"]["is_high_impact_articulation"])
 
     def test_complete_graph_hub_is_redundant(self):
         result = analyze(range(6), itertools.combinations(range(6), 2))
@@ -53,7 +55,7 @@ class ResilienceTests(unittest.TestCase):
             self.assertEqual(r["largest_component_share_after"], 1)
             self.assertIn("Hub, low fragmentation", r["roles"])
             self.assertIn("Redundant connector", r["roles"])
-            self.assertFalse(r["is_critical_bridge"])
+            self.assertFalse(r["is_high_impact_articulation"])
 
     def test_two_cliques_with_bridge_researcher(self):
         pairs = list(itertools.combinations(range(3), 2)) + list(itertools.combinations(range(4, 7), 2))
@@ -63,7 +65,7 @@ class ResilienceTests(unittest.TestCase):
         self.assertEqual(result["3"]["lost_connected_pairs"], 9)
         self.assertAlmostEqual(result["3"]["lost_pair_fraction"], 9/15)
         self.assertEqual(result["3"]["fragment_sizes"], [3, 3])
-        self.assertTrue(result["3"]["is_critical_bridge"])
+        self.assertTrue(result["3"]["is_high_impact_articulation"])
         self.assertEqual(result["0"]["lost_connected_pairs"], 0)
 
     def test_disconnected_graph_and_isolate_denominators(self):
@@ -122,14 +124,82 @@ class ResilienceTests(unittest.TestCase):
         self.assertIsNone(unknown["betweenness"])
 
     def test_classification_boundaries_and_overlaps(self):
-        self.assertIn("Critical bridge", classify_roles(10, 1, .01, 2, 1, 10))
+        self.assertIn("High-impact articulation point", classify_roles(10, 1, .01, 2, 1, 10))
         self.assertIn("Hub", classify_roles(10, 1, .01, 2, 1, 10))
         roles = classify_roles(10, 1, .00999, 2, 1, 10)
-        self.assertNotIn("Critical bridge", roles)
-        self.assertIn("Local bridge", roles)
+        self.assertNotIn("High-impact articulation point", roles)
+        self.assertIn("Lower-impact articulation point", roles)
         self.assertIn("Hub, low fragmentation", roles)
         self.assertIn("Redundant connector", classify_roles(3, 0, 0, 1, 0, 3))
         self.assertEqual(classify_roles(0, 0, 0, 0, 0, 3), ["Limited measured structural impact"])
+
+    def test_exact_one_percent_uses_counts_and_not_rounded_fraction(self):
+        below = math.nextafter(.01, 0)
+        self.assertIn("Lower-impact articulation point", classify_roles(2, 1, below, 0, 0, 3))
+        self.assertIn("High-impact articulation point", classify_roles(2, 1, below, 0, 0, 3, eligible_pairs=100))
+        self.assertIn("Lower-impact articulation point", classify_roles(2, 1, .01, 0, 0, 3, eligible_pairs=101))
+        self.assertIn("High-impact articulation point", classify_roles(2, 1, .01, 0, 0, 3, eligible_pairs=99))
+        self.assertNotIn("High-impact articulation point", classify_roles(2, 0, .01, 0, 0, 3, eligible_pairs=0))
+
+    def test_local_loss_null_small_components_and_formula(self):
+        for result in (analyze(range(4), []), analyze(range(2), [(0, 1)])):
+            for row in result["researchers"]:
+                self.assertEqual(row["component_survivor_pairs_before"], 0)
+                self.assertIsNone(row["local_pair_loss_fraction"])
+        for pairs in (list(itertools.combinations(range(7), 2)), [(i, i+1) for i in range(6)],
+                      [(0, i) for i in range(1, 7)]):
+            for row in analyze(range(7), pairs)["researchers"]:
+                sizes = row["fragment_sizes"]
+                survivors = sum(sizes)
+                denominator = survivors * (survivors-1) // 2
+                retained = sum(s*(s-1)//2 for s in sizes)
+                self.assertEqual(row["component_survivor_pairs_before"], denominator)
+                self.assertAlmostEqual(row["local_pair_loss_fraction"], (denominator-retained)/denominator)
+                self.assertAlmostEqual(row["local_pair_loss_fraction"], row["lost_pair_fraction"])
+
+    def test_local_loss_reveals_small_component_without_changing_global_rank(self):
+        # A 3-path and a larger component: a clique attached to a leaf via node 3.
+        pairs = [(0, 1), (1, 2)] + list(itertools.combinations(range(3, 9), 2)) + [(3, 9)]
+        result = analyze(range(10), pairs)
+        rows = by_id(result)
+        self.assertGreater(rows["3"]["lost_pair_fraction"], rows["1"]["lost_pair_fraction"])
+        self.assertLess(rows["3"]["local_pair_loss_fraction"], rows["1"]["local_pair_loss_fraction"])
+        self.assertEqual(rows["1"]["local_pair_loss_fraction"], 1)
+        self.assertEqual(result["researchers"][0]["person"], "3")
+
+    def test_more_than_twelve_fragments_preserves_all_sizes(self):
+        result = analyze(range(16), [(0, i) for i in range(1, 16)])
+        row = by_id(result)["0"]
+        self.assertEqual(row["fragment_sizes"], [1]*15)
+        self.assertEqual(row["component_survivor_pairs_before"], math.comb(15, 2))
+        self.assertEqual(row["lost_connected_pairs"], math.comb(15, 2))
+        self.assertEqual(row["local_pair_loss_fraction"], 1)
+
+    def test_tie_inclusive_rankings_and_overlap_are_primary_score_based(self):
+        rows = [dict(person=f"p{i:02}", degree=30-i if i<9 else 20,
+                     impact=20-i, lost=i) for i in range(12)]
+        strict = ranked_top(rows, "degree")
+        tied = ranked_top(rows, "degree", include_ties=True)
+        self.assertEqual([r["person"] for r in strict], [r["person"] for r in rows[:10]])
+        self.assertEqual(len(tied), len(rows))
+        rows[-1]["impact"] = rows[-2]["impact"] = rows[-3]["impact"]
+        impacts = ranked_top(rows, "impact", tie_fields=("lost",), include_ties=True)
+        self.assertEqual(len(impacts), len(rows))
+        self.assertEqual(impacts[9]["person"], rows[-1]["person"])
+        self.assertEqual(strict, ranked_top(list(reversed(rows)), "degree"))
+        self.assertEqual(ranked_top([], "degree"), [])
+        self.assertEqual(ranked_top(rows, "degree", 0), [])
+        self.assertEqual(ranked_top([dict(person="missing", degree=None)], "degree"), [])
+
+    def test_zero_loss_has_no_positive_impact_overlap_and_hub_cutoff_ties(self):
+        result = analyze(range(15), itertools.combinations(range(15), 2))
+        self.assertEqual(result["summary"]["degree_top10_impact_top10_overlap"], 0)
+        self.assertEqual(result["summary"]["degree_top10_impact_top10_tie_inclusive_overlap"], 0)
+        self.assertEqual(result["summary"]["degree_top10_tie_inclusive_size"], 15)
+        self.assertEqual(result["summary"]["impact_top10_tie_inclusive_size"], 0)
+        self.assertEqual(result["rules"]["hub_min_degree"], 14)
+        self.assertTrue(all(r["is_hub"] for r in result["researchers"]))
+        self.assertEqual(analyze(range(3), [(0,1),(1,2)])["rules"]["hub_min_degree"], 3)
 
     def test_determinism_independence_and_no_mutation(self):
         nodes = {str(i): dict(name=str(i)) for i in range(10)}
@@ -177,6 +247,7 @@ class ResilienceTests(unittest.TestCase):
                 lost = sum(reach[i][j] and not after[i][j] for i,j in itertools.combinations(remain, 2))
                 row = result[str(removed)]
                 self.assertEqual(row["lost_connected_pairs"], lost, (mask, removed))
+                self.assertEqual(row["is_articulation"], lost > 0)
 
     def test_known_community_denominator_and_weights(self):
         nodes = {"a": {}, "b": {}, "c": {}}
@@ -200,10 +271,12 @@ class ResilienceTests(unittest.TestCase):
             self.assertEqual(len(rows), 5)
             self.assertEqual(rows[0]["person"], result["researchers"][0]["person"])
             self.assertEqual(int(rows[0]["lost_connected_pairs"]), result["researchers"][0]["lost_connected_pairs"])
+            self.assertAlmostEqual(float(rows[0]["local_pair_loss_fraction"]), result["researchers"][0]["local_pair_loss_fraction"])
+            self.assertEqual(int(rows[0]["component_survivor_pairs_before"]), result["researchers"][0]["component_survivor_pairs_before"])
             with (Path(tmp)/"resilience_summary.csv").open(encoding="utf-8", newline="") as f:
                 summary = next(csv.DictReader(f))
             self.assertEqual(int(summary["nodes"]), 5)
-            self.assertEqual(float(summary["critical_loss_fraction"]), .01)
+            self.assertEqual(float(summary["high_impact_loss_fraction"]), .01)
 
 
 if __name__ == "__main__":

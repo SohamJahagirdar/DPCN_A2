@@ -7,8 +7,10 @@ import csv
 import math
 from collections import Counter
 
+from pipeline.rankings import ranked_top
 
-CRITICAL_LOSS_FRACTION = 0.01
+
+HIGH_IMPACT_LOSS_FRACTION = 0.01
 HUB_QUANTILE = 0.90
 
 REMOVAL_COLUMNS = [
@@ -20,8 +22,9 @@ REMOVAL_COLUMNS = [
     "connected_pairs_before_remaining", "possible_pairs_after", "connected_pairs_after",
     "survivor_connected_pair_fraction_before", "connected_pair_fraction_after",
     "connected_pair_fraction_change", "connected_pair_fraction_loss",
-    "lost_connected_pairs", "lost_pair_fraction", "is_articulation", "is_hub",
-    "is_critical_bridge", "roles",
+    "lost_connected_pairs", "lost_pair_fraction", "component_survivor_pairs_before",
+    "local_pair_loss_fraction", "is_articulation", "is_hub",
+    "is_high_impact_articulation", "roles",
 ]
 
 
@@ -52,17 +55,23 @@ def _known_community(value):
     return value is not None and value >= 0
 
 
+def _high_impact(lost_pairs, eligible_pairs):
+    # Exact >=1% test, before any CSV/JSON formatting or floating-point rounding.
+    return lost_pairs > 0 and eligible_pairs > 0 and 100 * lost_pairs >= eligible_pairs
+
+
 def classify_roles(degree, lost_pairs, loss_fraction, neighbor_communities,
-                   cross_community_edges, hub_min_degree):
-    """Overlapping operational roles; a hub is not automatically a bridge."""
+                   cross_community_edges, hub_min_degree, *, eligible_pairs=None):
+    """Overlapping roles; use exact integer counts at the 1% boundary if known."""
     roles = []
-    critical = lost_pairs > 0 and loss_fraction >= CRITICAL_LOSS_FRACTION
-    if critical:
-        roles.append("Critical bridge")
+    high_impact = (_high_impact(lost_pairs, eligible_pairs) if eligible_pairs is not None
+                   else lost_pairs > 0 and loss_fraction >= HIGH_IMPACT_LOSS_FRACTION)
+    if high_impact:
+        roles.append("High-impact articulation point")
     elif lost_pairs > 0:
-        roles.append("Local bridge")
+        roles.append("Lower-impact articulation point")
     if degree >= hub_min_degree:
-        roles.append("Hub" if critical else "Hub, low fragmentation")
+        roles.append("Hub" if high_impact else "Hub, low fragmentation")
     if neighbor_communities >= 2 and cross_community_edges > 0:
         roles.append("Cross-community connector")
     if degree >= 2 and lost_pairs == 0:
@@ -80,7 +89,8 @@ def analyze_resilience(nodes, edges, metrics=None):
     metrics: mapping keyed by person, with existing betweenness/community values.
 
     Every experiment ignores one node in the SAME original graph. Lost pairs
-    exclude pairs involving that node. Fractions with no eligible pairs are 0.
+    exclude pairs involving that node. Global loss with no eligible pairs is 0;
+    component-local loss with no eligible pairs is unavailable (None).
     """
     metrics = metrics or {}
     if any(not isinstance(n, str) for n in nodes):
@@ -132,8 +142,11 @@ def analyze_resilience(nodes, edges, metrics=None):
         after_connected = sum(_pairs(s) for s in after_sizes)
         lost = eligible - after_connected
         loss_fraction = lost / eligible if eligible else 0
+        local_eligible = _pairs(original_size - 1)
+        articulation = len(after) > len(parts)
         cpf = after_connected / possible if possible else 0
-        roles = classify_roles(len(neighbors), lost, loss_fraction, len(set(known)), cross, hub_cutoff)
+        roles = classify_roles(len(neighbors), lost, loss_fraction, len(set(known)), cross, hub_cutoff,
+                               eligible_pairs=eligible)
         row = dict(
             person=person, name=data.get("name", person), inst=data.get("inst", ""),
             department=data.get("dept", data.get("department", "")), degree=len(neighbors),
@@ -155,31 +168,42 @@ def analyze_resilience(nodes, edges, metrics=None):
             connected_pair_fraction_change=cpf - baseline["connected_pair_fraction"],
             connected_pair_fraction_loss=lost / possible if possible else 0,
             lost_connected_pairs=lost, lost_pair_fraction=loss_fraction,
-            is_articulation=lost > 0, is_hub=len(neighbors) >= hub_cutoff,
-            is_critical_bridge=lost > 0 and loss_fraction >= CRITICAL_LOSS_FRACTION,
+            component_survivor_pairs_before=local_eligible,
+            local_pair_loss_fraction=lost / local_eligible if local_eligible else None,
+            is_articulation=articulation, is_hub=len(neighbors) >= hub_cutoff,
+            is_high_impact_articulation=articulation and _high_impact(lost, eligible),
             roles="; ".join(roles),
             # Full original-component fragment sizes, not sizes in the sampled drawing.
             fragment_sizes=sorted((len(c & component_of[person]) for c in after
                                    if c & component_of[person]), reverse=True),
         )
         rows.append(row)
-    rows.sort(key=lambda r: (-r["lost_pair_fraction"], -r["lost_connected_pairs"], -r["degree"], r["person"]))
-    degree_order = sorted(rows, key=lambda r: (-r["degree"], r["person"]))[:10]
-    impact_order = rows[:10]
+    rows = ranked_top(rows, "lost_pair_fraction", len(rows), tie_fields=("lost_connected_pairs", "degree"))
+    degree_order = ranked_top(rows, "degree")
+    positive = [r for r in rows if r["lost_connected_pairs"] > 0]
+    impact_order = ranked_top(positive, "lost_pair_fraction", tie_fields=("lost_connected_pairs", "degree"))
+    degree_ties = ranked_top(rows, "degree", include_ties=True)
+    impact_ties = ranked_top(positive, "lost_pair_fraction", include_ties=True,
+                             tie_fields=("lost_connected_pairs", "degree"))
     summary = dict(
         scope="Combined IISc–TIFR faculty graph; institution selection filters researcher rows only",
         simulations=n, articulation_researchers=sum(r["is_articulation"] for r in rows),
-        critical_bridges=sum(r["is_critical_bridge"] for r in rows),
+        high_impact_articulations=sum(r["is_high_impact_articulation"] for r in rows),
         redundant_connectors=sum(r["degree"] >= 2 and not r["lost_connected_pairs"] for r in rows),
         max_lost_pairs=max((r["lost_connected_pairs"] for r in rows), default=0),
         max_lost_pair_fraction=max((r["lost_pair_fraction"] for r in rows), default=0),
         degree_top10_impact_top10_overlap=len({r["person"] for r in degree_order}
-                                            & {r["person"] for r in impact_order}) if any(r["lost_connected_pairs"] for r in rows) else 0,
+                                            & {r["person"] for r in impact_order}),
+        degree_top10_impact_top10_tie_inclusive_overlap=len({r["person"] for r in degree_ties}
+                                                         & {r["person"] for r in impact_ties}),
+        degree_top10_tie_inclusive_size=len(degree_ties),
+        impact_top10_tie_inclusive_size=len(impact_ties),
         role_counts=dict(sorted(Counter(role for r in rows for role in r["roles"].split("; ")).items())),
     )
     return dict(baseline=baseline, summary=summary, researchers=rows,
-                rules=dict(critical_loss_fraction=CRITICAL_LOSS_FRACTION,
-                           hub_quantile=HUB_QUANTILE, hub_min_degree=hub_cutoff),
+                rules=dict(high_impact_loss_fraction=HIGH_IMPACT_LOSS_FRACTION,
+                           hub_quantile=HUB_QUANTILE, hub_min_degree=hub_cutoff,
+                           ranking_policy="Descending score, then person ID; impact additionally breaks ties by lost pairs and degree. Tie-inclusive sets include all equal cutoff scores; impact comparison requires positive loss."),
                 edges=[[a, b, int(weights[(a, b)])] for a, b in sorted(weights)])
 
 

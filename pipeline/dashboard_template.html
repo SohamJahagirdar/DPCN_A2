@@ -215,7 +215,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
         <div class="hint">Undirected graph: nodes = faculty, edges = co-authored papers (mega-collaborations excluded), width = number of joint papers. Colour by <select id="auColor"><option value="comm">Louvain community</option><option value="inst">institution</option></select> · show links with ≥ <select id="auMinW"><option>1</option><option selected>2</option><option>3</option><option>5</option></select> joint papers</div>
         <div id="auNet" class="net"></div>
         <div class="legend" id="auLegend"></div></div>
-      <div class="card c6"><h3>Most collaborative faculty (degree centrality)</h3><div id="auDeg" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Most collaborative faculty (degree centrality)</h3><div class="hint">Exactly 10 from the combined graph, then institution-filtered. Degree ties use person ID for stable display, not a substantive distinction.</div><div id="auDeg" class="tablewrap"></div></div>
       <div class="card c6"><h3>Bridging faculty (betweenness centrality)</h3><div id="auBtw" class="tablewrap"></div></div>
       <div class="card c6"><h3>Collaboration communities (Louvain)</h3><div id="auComm" class="tablewrap"></div></div>
       <div class="card c6"><h3>Hub authors bridging Indian institutions</h3><div class="hint">Distinct other Indian institutions among co-authors</div><div id="auHubs" class="tablewrap"></div></div>
@@ -227,14 +227,14 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     <div class="tiles" id="rsTiles"></div>
     <div class="grid" style="margin-top:16px">
       <div class="card c6"><h3>Who holds the network together?</h3><div class="hint">Top 15 matching researchers by fraction of previously connected surviving pairs disconnected. Click a bar to inspect a removal.</div><div id="rsImpact" class="plot tall"></div></div>
-      <div class="card c6"><h3>Many collaborators, or a critical bridge?</h3><div class="hint">Each point is a researcher. Degree counts collaborators; vertical position measures actual connectivity loss. Click a point to inspect.</div><div id="rsScatter" class="plot tall"></div></div>
+      <div class="card c6"><h3>Degree versus removal impact</h3><div class="hint">Each point is a researcher. Degree counts collaborators; vertical position measures hypothetical global pair loss. Click a point to inspect.</div><div id="rsScatter" class="plot tall"></div></div>
       <div class="card c12"><h3>Researcher-removal experiments</h3>
         <div class="row"><input type="search" id="rsSearch" placeholder="Search name, ID, department…" size="32" aria-label="Search resilience researchers"><select id="rsRole" aria-label="Filter structural role"></select><span class="pill" id="rsCount"></span><button class="iconbtn" id="rsDownload">Download matching rows</button></div>
         <div id="rsTable" class="tablewrap"></div></div>
       <div class="card c12"><h3>Inspect one independent removal</h3>
         <div class="row"><select id="rsPerson" aria-label="Select researcher removal"></select><label><input type="checkbox" id="rsGhost"> Show removed researcher and original links</label></div>
         <div id="rsDetail" class="note"></div></div>
-      <div class="card c5"><h3>Fragments of their original component</h3><div class="hint">Computed on the full graph after removal; up to 12 largest fragments shown.</div><div id="rsFragments" class="plot"></div></div>
+      <div class="card c5"><h3>Largest fragments after removal (up to 12)</h3><div id="rsFragmentHint" class="hint"></div><div id="rsFragments" class="plot"></div></div>
       <div class="card c7"><h3>Focused collaboration view</h3><div id="rsNetHint" class="hint"></div><div id="rsNet" class="net" style="height:400px"></div></div>
       <div class="card c12"><h3>What the experiment establishes</h3><div id="rsMethod" class="note"></div></div>
     </div>
@@ -297,9 +297,9 @@ function table(id, rows, cols, opts={}) {
   let sortKey = opts.sort || null, asc = false;
   const render = () => {
     let r = rows.slice();
-    if (sortKey) r.sort((a,b) => { const x=a[sortKey], y=b[sortKey]; if (x==null) return 1; if (y==null) return -1;
+    if (sortKey) r.sort((a,b) => { const x=a[sortKey], y=b[sortKey]; if (x==null && y==null) return 0; if (x==null) return 1; if (y==null) return -1;
       return (typeof x==="number" ? x-y : String(x).localeCompare(String(y))) * (asc?1:-1); });
-    el.innerHTML = `<table><thead><tr>${cols.map(c=>`<th class="${c.n?'n':''}" data-k="${c.k}">${c.t}${sortKey===c.k?(asc?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${
+    el.innerHTML = `<table><thead><tr>${cols.map(c=>`<th class="${c.n?'n':''}" data-k="${c.k}"${c.title?` title="${esc(c.title)}"`:""}>${c.t}${sortKey===c.k?(asc?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${
       r.map(x=>`<tr>${cols.map(c=>`<td class="${c.n?'n':''}">${c.f?c.f(x[c.k],x):esc(x[c.k])}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
     el.querySelectorAll("th").forEach(th => th.onclick = () => { const k=th.dataset.k; asc = sortKey===k ? !asc : false; sortKey=k; render(); });
   };
@@ -760,7 +760,7 @@ function renderResilience() {
   tiles("rsTiles", [["Faculty / links", `${fmt(b.nodes)} / ${fmt(b.edges)}`, "combined graph"],
     ["Connected components", fmt(b.components), `largest: ${fmt(b.largest_component)} (${pct(b.largest_component_share)})`],
     ["Connected-pair fraction", pct(b.connected_pair_fraction), "all unordered researcher pairs"],
-    ["Removal causes fragmentation", fmt(s.articulation_researchers), `${fmt(s.critical_bridges)} critical bridges (≥1% pair loss)`],
+    ["Removal causes fragmentation", fmt(s.articulation_researchers), `${fmt(s.high_impact_articulations)} high-impact articulation points (≥1% global pair loss)`],
     ["Redundant connectors", fmt(s.redundant_connectors), "degree ≥2, zero lost surviving pairs"],
     ["Largest single-removal loss", pct(s.max_lost_pair_fraction), `${fmt(s.max_lost_pairs)} pairs at most; maxima may concern different people`]]);
   const scoped = R.researchers.filter(r=>state.inst==="All" || r.inst===state.inst);
@@ -778,10 +778,12 @@ function renderResilience() {
       document.getElementById("rsDetail").textContent = "No researchers match these filters.";
       document.getElementById("rsNet").textContent = "";
       document.getElementById("rsNetHint").textContent = "";
+      document.getElementById("rsFragmentHint").textContent = "";
       plot("rsFragments", [], {}); return;
     }
     document.getElementById("rsNet").textContent = "";
     document.getElementById("rsDetail").innerHTML = `<p><b>${esc(r.name)}</b> (${esc(r.person)}), ${esc(r.inst)} · ${esc(r.department)}. ${esc(r.roles)}.</p><p>Full graph: ${fmt(b.nodes)} → ${fmt(r.nodes_after)} nodes; ${fmt(b.edges)} → ${fmt(r.edges_after)} links; ${fmt(b.components)} → ${fmt(r.components_after)} components. Largest component: ${fmt(b.largest_component)} → ${fmt(r.largest_component_after)} (${pct(r.largest_component_share_after)} of remaining nodes).</p><p>Among ${fmt(r.connected_pairs_before_remaining)} pairs connected before removal, excluding this researcher, <b>${fmt(r.lost_connected_pairs)} (${pct(r.lost_pair_fraction)}) lose connectivity</b>. Surviving-pair fraction: ${pct(r.survivor_connected_pair_fraction_before)} → ${pct(r.connected_pair_fraction_after)}. Raw fraction change vs original graph: ${(100*r.connected_pair_fraction_change).toFixed(3)} percentage points; this raw change also reflects the changed denominator.</p>`;
+    document.getElementById("rsDetail").innerHTML += `<p>Component-local pair loss: <b>${r.local_pair_loss_fraction==null?"unavailable (no surviving pair)":pct(r.local_pair_loss_fraction)}</b>; ${fmt(r.lost_connected_pairs)} disconnected pairs / ${fmt(r.component_survivor_pairs_before)} previously connected surviving pairs within the original ${fmt(r.original_component_size)}-researcher component. Small components can have high local percentages with few affected pairs. Global loss determines rankings.</p>`;
     const adj = new Map(R.researchers.map(x=>[x.person, []]));
     R.edges.forEach(([a,c])=>{ adj.get(a).push(c); adj.get(c).push(a); });
     const original = new Set([r.person]), queue = [r.person];
@@ -794,6 +796,8 @@ function renderResilience() {
     }
     parts.sort((a,c)=>c.length-a.length || a[0].localeCompare(c[0]));
     const component = new Map(parts.flatMap((part,i)=>part.map(v=>[v,i])));
+    const shownParts = parts.slice(0,12), shownSurvivors = shownParts.reduce((n,p)=>n+p.length,0);
+    document.getElementById("rsFragmentHint").textContent = `${shownParts.length} of ${parts.length} fragments shown, covering ${shownSurvivors} of ${original.size-1} survivors in the original component. ${parts.length>12?`${parts.length-12} smaller fragments (${original.size-1-shownSurvivors} survivors) omitted; bars do not sum to all survivors.`:"All surviving members of this component are represented."}`;
     plot("rsFragments", [{type:"bar", x:parts.slice(0,12).map((_,i)=>`Fragment ${i+1}`), y:parts.slice(0,12).map(p=>p.length), marker:{color:css("--s1")}, hovertemplate:"%{x}: %{y} researchers<extra></extra>"}], {yaxis:{title:"researchers",gridcolor:css("--grid")}});
     // Sample across fragments, prioritizing original neighbors. Full metrics never
     // depend on this bounded display or on the institution-row filter.
@@ -824,26 +828,29 @@ function renderResilience() {
     personSel.value=rows.some(r=>r.person===oldPerson)?oldPerson:(rows[0]?.person||"");
     const top=rows.slice(0,15).reverse();
     plot("rsImpact", [{type:"bar",orientation:"h",x:top.map(r=>r.lost_pair_fraction),y:top.map(r=>`${r.name} [${r.person}]`),customdata:top.map(r=>r.person),marker:{color:css("--s1")},hovertemplate:"%{y}<br>%{x:.2%} of connected surviving pairs lost<extra></extra>"}], {margin:{l:8,r:16,t:8,b:40},xaxis:{title:"fraction of previously connected surviving pairs lost",tickformat:".1%",gridcolor:css("--grid")}});
-    plot("rsScatter", [{type:"scatter",mode:"markers",x:rows.map(r=>r.degree),y:rows.map(r=>r.lost_pair_fraction),customdata:rows.map(r=>r.person),text:rows.map(r=>r.name),marker:{size:8,color:rows.map(r=>r.is_critical_bridge?css("--s2"):css("--s1")),opacity:.7},hovertemplate:"%{text}<br>%{x} collaborators · %{y:.2%} pair loss<extra></extra>"}], {xaxis:{title:"degree (collaborators)",gridcolor:css("--grid")},yaxis:{title:"connected surviving pairs lost",tickformat:".1%",gridcolor:css("--grid")}});
+    plot("rsScatter", [{type:"scatter",mode:"markers",x:rows.map(r=>r.degree),y:rows.map(r=>r.lost_pair_fraction),customdata:rows.map(r=>r.person),text:rows.map(r=>r.name),marker:{size:8,color:rows.map(r=>r.is_high_impact_articulation?css("--s2"):css("--s1")),opacity:.7},hovertemplate:"%{text}<br>%{x} collaborators · %{y:.2%} global pair loss<extra></extra>"}], {xaxis:{title:"degree (collaborators)",gridcolor:css("--grid")},yaxis:{title:"global pair loss (%)",tickformat:".1%",gridcolor:css("--grid")}});
     ["rsImpact","rsScatter"].forEach(id=>{ const el=document.getElementById(id); if(el.removeAllListeners) el.removeAllListeners("plotly_click"); if(el.on) el.on("plotly_click",e=>focus(e.points[0].customdata)); });
     table("rsTable",rows,[{k:"person",t:"Researcher ID"},{k:"name",t:"Name"},{k:"inst",t:"Inst."},{k:"department",t:"Department",f:esc},
-      {k:"degree",t:"Degree",n:1},{k:"betweenness",t:"Betweenness",n:1,f:v=>fmt(v,4)},{k:"community",t:"Community",n:1},
-      {k:"neighbor_communities",t:"Collaborator communities",n:1},{k:"cross_community_fraction",t:"Cross-community links",n:1,f:pct},
-      {k:"cross_institution_edges",t:"Cross-institution links",n:1},{k:"lost_connected_pairs",t:"Lost pairs",n:1,f:v=>fmt(v)},
-      {k:"lost_pair_fraction",t:"Connected pairs lost",n:1,f:pct},{k:"components_after",t:"Components after",n:1},
+      {k:"degree",t:"Degree",n:1},{k:"betweenness",t:"Baseline betweenness",n:1,f:v=>fmt(v,4),title:"Normalized unweighted shortest-path betweenness; endpoints excluded; full-graph normalization including unreachable pairs. Larger means more shortest paths pass through this researcher. Not recomputed after removal."},{k:"community",t:"Community",n:1},
+      {k:"neighbor_communities",t:"Collaborator communities",n:1},{k:"cross_community_fraction",t:"Cross-community link share (%)",n:1,f:pct,title:"Cross-community links / links with known communities at both endpoints. CSV stores a fraction in [0,1]."},
+      {k:"cross_institution_edges",t:"Cross-institution links",n:1},{k:"lost_connected_pairs",t:"Pairs disconnected",n:1,f:v=>fmt(v)},
+      {k:"lost_pair_fraction",t:"Global pair loss (%)",n:1,f:pct,title:"Disconnected surviving pairs / previously connected surviving pairs across the full graph. CSV: lost_pair_fraction in [0,1]."},
+      {k:"local_pair_loss_fraction",t:"Component-local pair loss (%)",n:1,f:pct,title:"Same lost pairs / pairs among survivors of the original component. Blank if no pair; inspect component size and denominator. CSV stores a fraction."},
+      {k:"original_component_size",t:"Original component size",n:1},{k:"component_survivor_pairs_before",t:"Local eligible pairs",n:1,f:v=>fmt(v)},
+      {k:"components_after",t:"Components after",n:1},
       {k:"largest_component_after",t:"Largest after",n:1},{k:"roles",t:"Interpretation",f:esc}],{sort:"lost_pair_fraction"});
     drawSelected();
   };
   personSel.onchange=drawSelected; document.getElementById("rsGhost").onchange=drawSelected;
   document.getElementById("rsSearch").oninput=draw; roleSel.onchange=draw;
   document.getElementById("rsDownload").onclick=()=>{
-    const rows=filtered(), cols=rows.length?Object.keys(rows[0]).filter(k=>k!=="fragment_sizes"): ["person","name","lost_connected_pairs","lost_pair_fraction"];
+    const rows=filtered(), cols=Object.keys(R.researchers[0] || {person:null,name:null,lost_connected_pairs:null,lost_pair_fraction:null,local_pair_loss_fraction:null,component_survivor_pairs_before:null}).filter(k=>k!=="fragment_sizes");
     const quote=v=>`"${String(v??"").replace(/"/g,'""')}"`;
     const text=[cols.join(","),...rows.map(r=>cols.map(c=>quote(r[c])).join(","))].join("\r\n");
     const a=document.createElement("a"),url=URL.createObjectURL(new Blob(["\ufeff"+text],{type:"text/csv"}));
     a.href=url;a.download=`group18_resilience_${state.flag}_${state.inst}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
-  document.getElementById("rsMethod").innerHTML=`<p>Every researcher is removed independently from the same original undirected faculty graph, together with their incident links. Paths ignore weights; joint-paper counts are retained for the drawing. Isolates remain in the baseline. Community labels and betweenness are reused from the baseline of this paper variant.</p><p>Connected pairs = Σ s(s−1)/2 over component sizes s. Divide by n(n−1)/2 for the connected-pair fraction. Before comparing a removal, subtract pairs involving that person. Lost pairs = connected surviving pairs before − connected pairs after. Structural score = lost pairs / previously connected surviving pairs; zero when none exist. This avoids confusing removal of a person with fragmentation between other people.</p><p>Critical bridge: ≥${pct(R.rules.critical_loss_fraction)} loss and at least one lost pair. Local bridge: smaller positive loss. Hub: degree ≥${R.rules.hub_min_degree} (90th percentile of positive degrees, minimum 3); low fragmentation means below the critical threshold. Cross-community connector: neighbors in ≥2 known baseline communities and at least one cross-community link. Redundant connector: degree ≥2 and zero lost pairs. Roles overlap. Cross-community share uses only links with known communities at both ends; unavailable values stay blank.</p><p>This is a static hypothetical connectivity experiment, not evidence of actual staff departure, causation, institutional dependence, researcher quality, or societal value. Co-authorship is incomplete; other paths outside these institutions are unobserved. Removing a node leaves surviving co-author links intact. Baseline communities stay fixed during removals. Variant populations can differ, so compare both counts and normalized losses. Baseline tiles always describe the combined graph.</p>`;
+  document.getElementById("rsMethod").innerHTML=`<p>Every researcher is removed independently from the same original undirected faculty graph, together with their incident links. Paths ignore weights; joint-paper counts are retained for the drawing. Isolates remain in the baseline. Community labels and betweenness are reused from the baseline of this paper variant. Betweenness is exact normalized unweighted shortest-path betweenness, with endpoints excluded. It divides the sum over unordered endpoint pairs by (n-1)(n-2)/2 for the full graph; unreachable pairs contribute zero. Larger scores mean more shortest paths pass through a node, not necessarily more fragmentation.</p><p>Connected pairs = Σ s(s−1)/2 over component sizes s. Divide by n(n−1)/2 for the connected-pair fraction. Before comparing a removal, subtract pairs involving that person. Lost pairs = connected surviving pairs before − connected pairs after. Global pair-loss fraction (lost_pair_fraction in CSV) = lost pairs / previously connected surviving pairs; zero when none exist. This avoids confusing removal of a person with fragmentation between other people. Component-local pair loss uses the same numerator divided by (s-1)(s-2)/2, where s is the original component size; it is unavailable if no surviving pair exists. It is secondary and does not affect rankings or role thresholds.</p><p>Combined-graph degree/positive-impact top-10 overlap: ${s.degree_top10_impact_top10_overlap} using strict lists; ${s.degree_top10_impact_top10_tie_inclusive_overlap} including all cutoff-score ties (${s.degree_top10_tie_inclusive_size} degree entries, ${s.impact_top10_tie_inclusive_size} positive-impact entries). Degree ties use person ID. Impact ties use lost pairs, degree, then person ID. Tied primary scores are not substantively distinct; zero-loss rows are excluded from this comparison. Institution/search/role filters do not recompute these combined-graph comparisons.</p><p>High-impact articulation point: removal increases the component count and causes at least ${pct(R.rules.high_impact_loss_fraction)} global pair loss. Lower-impact articulation point: smaller positive global loss. Hub: degree ≥${R.rules.hub_min_degree} (90th percentile of positive degrees, minimum 3); cutoff recalculated independently for each paper variant; low fragmentation means below the high-impact threshold. Cross-community connector: neighbors in ≥2 known baseline communities and at least one cross-community link. Redundant connector: degree ≥2 and zero lost pairs. Roles overlap. Cross-community share uses only links with known communities at both ends; unavailable values stay blank.</p><p>This is a static hypothetical connectivity experiment, not evidence of actual staff departure, causation, institutional dependence, researcher quality, or societal value. Co-authorship is incomplete; other paths outside these institutions are unobserved. Removing a node leaves surviving co-author links intact. Baseline communities stay fixed during removals. Variant populations can differ, so compare both counts and normalized losses. Baseline tiles always describe the combined graph.</p>`;
   draw();
 }
 
@@ -852,7 +859,14 @@ const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Jou
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}
+  // The startup parser gives deep links precedence over saved state. Keep the
+  // link aligned with controls so reload/sharing preserves the visible variant.
+  const hash = new URLSearchParams(location.hash.slice(1));
+  for (const key of ["tab", "inst", "flag"]) hash.set(key, state[key]);
+  const nextHash = "#" + hash.toString();
+  if (location.hash !== nextHash) history.replaceState(null, "", nextHash);
   DATA = (state.flag==="out" && DATA_NF) ? DATA_NF : DATA_ALL;
+  document.getElementById("subtitle").textContent = `DPCN Research Mapping Project | Group ${DATA.meta.group} | Statistics built ${DATA.meta.generated} (timezone unrecorded) | Dashboard generated ${DATA.meta.dashboard_generated_utc || "unrecorded"} | Corpus snapshot date unrecorded`;
   document.querySelectorAll("#flagSeg button").forEach(b=>b.classList.toggle("on", b.dataset.f===state.flag));
   const nFlag = DATA_ALL.inst.All.kpis.many_author_papers;
   document.getElementById("banner").innerHTML = (state.flag==="out" && DATA_NF)
@@ -872,7 +886,6 @@ document.getElementById("themeBtn").onclick = () => {
   const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = cur==="dark" ? "light" : "dark"; render();
 };
-document.getElementById("subtitle").textContent = `DPCN Research Mapping Project · Group ${DATA.meta.group} · data generated ${DATA.meta.generated}`;
 if (!TABS.includes(state.tab)) state.tab = "Overview";
 render();
 </script>

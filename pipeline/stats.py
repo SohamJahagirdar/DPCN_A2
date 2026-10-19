@@ -7,6 +7,7 @@ import pandas as pd
 
 import config
 from pipeline.build import h_index
+from pipeline.rankings import ranked_top
 
 
 def _clean(o):
@@ -28,6 +29,14 @@ def _clean(o):
 def records(df, cols=None):
     df = df if cols is None else df[cols]
     return _clean(df.replace({np.nan: None}).to_dict("records"))
+
+
+def dashboard_payload(st):
+    """Keep JSON-safe analyzer precision so cutoff ties survive serialization."""
+    cleaned = _clean(st)
+    if "resilience" in st:
+        cleaned["resilience"] = st["resilience"]
+    return cleaned
 
 
 def inst_block(p, fac, inst):
@@ -169,7 +178,7 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
     st["resilience"] = nets["resilience"]
     st["authorship"] = dict(
         summary=nets["authorship_summary"],
-        top_degree=records(fm.sort_values("degree_centrality", ascending=False).head(10)) if len(fm) else [],
+        top_degree=ranked_top(records(fm), "n_faculty_coauthors") if len(fm) else [],
         top_betweenness=records(fm.sort_values("betweenness", ascending=False).head(10)) if len(fm) else [],
         hubs=records(fm.sort_values("n_partner_institutions", ascending=False).head(10)) if len(fm) else [],
         communities=records(nets["communities"].head(15)) if len(nets["communities"]) else [],
@@ -192,7 +201,7 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
     st["journals"] = journal_stats(t)
     from pipeline.reputable import reputable_stats
     st["reputable"] = reputable_stats(t, out_dir)
-    st = _clean(st)
+    st = dashboard_payload(st)
     json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
     write_stat_tables(st, out_dir)
     return st

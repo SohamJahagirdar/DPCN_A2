@@ -59,6 +59,24 @@ class SnapshotTests(unittest.TestCase):
         self.assertLess(nf_r["baseline"]["edges"], all_r["baseline"]["edges"])
         self.assertNotEqual(nf_r["researchers"], all_r["researchers"])
 
+    def test_rankings_ties_and_roles_against_independent_snapshot_sets(self):
+        for name, (result, payload, metrics) in self.results.items():
+            rows = result["researchers"]
+            degree = sorted(rows, key=lambda r: (-r["degree"], r["person"]))
+            positive = sorted((r for r in rows if r["lost_connected_pairs"]),
+                              key=lambda r: (-r["lost_pair_fraction"], -r["lost_connected_pairs"], -r["degree"], r["person"]))
+            deg_tied = {r["person"] for r in degree if r["degree"] >= degree[9]["degree"]}
+            imp_tied = {r["person"] for r in positive if r["lost_pair_fraction"] >= positive[9]["lost_pair_fraction"]}
+            summary = result["summary"]
+            self.assertEqual(summary["degree_top10_impact_top10_overlap"], len({r["person"] for r in degree[:10]} & {r["person"] for r in positive[:10]}))
+            self.assertEqual(summary["degree_top10_impact_top10_tie_inclusive_overlap"], len(deg_tied & imp_tied))
+            self.assertEqual(summary["degree_top10_tie_inclusive_size"], len(deg_tied))
+            self.assertEqual(summary["impact_top10_tie_inclusive_size"], len(imp_tied))
+            self.assertEqual(summary["high_impact_articulations"], sum(r["is_high_impact_articulation"] for r in rows))
+            self.assertEqual(summary["articulation_researchers"], sum(r["is_articulation"] for r in rows))
+            # The old generated ranking may legitimately differ only at ties.
+            self.assertTrue({r["person"] for r in payload["authorship"]["top_degree"]} <= deg_tied)
+
     def test_graphs_match_independent_dataset_attributions(self):
         # Reconcile the dashboard graph with a separate committed deliverable,
         # including node isolates and exact per-paper joint-collaboration weights.
@@ -137,11 +155,23 @@ class SnapshotTests(unittest.TestCase):
                     self.assertEqual(row["connected_pairs_before_remaining"], eligible)
                     self.assertEqual(row["connected_pairs_after"], after)
                     self.assertEqual(row["lost_connected_pairs"], eligible - after)
+                    original_members = {v for v in metrics if original[v] == original[row["person"]]}
+                    local_n = len(original_members) - 1
+                    local_eligible = local_n * (local_n - 1) // 2
+                    local_sizes = Counter(roots[v] for v in original_members - {row["person"]})
+                    local_lost = local_eligible - pairs(local_sizes.values())
+                    self.assertEqual(local_lost, eligible - after)
+                    self.assertEqual(row["component_survivor_pairs_before"], local_eligible)
+                    if local_eligible:
+                        self.assertAlmostEqual(row["local_pair_loss_fraction"], local_lost/local_eligible)
+                    else:
+                        self.assertIsNone(row["local_pair_loss_fraction"])
+                    self.assertEqual(row["is_articulation"], len(sizes) > len(set(original.values())))
                     self.assertAlmostEqual(row["lost_pair_fraction"], (eligible-after)/eligible if eligible else 0)
                     self.assertAlmostEqual(row["connected_pair_fraction_after"], after/possible)
                     self.assertAlmostEqual(row["connected_pair_fraction_loss"], (eligible-after)/possible)
                     self.assertAlmostEqual(row["connected_pair_fraction_change"], after/possible-original_connected/(n*(n-1)//2))
-                    self.assertEqual(row["is_critical_bridge"], eligible > 0 and 100*(eligible-after) >= eligible and after < eligible)
+                    self.assertEqual(row["is_high_impact_articulation"], eligible > 0 and 100*(eligible-after) >= eligible and after < eligible)
 
 
 if __name__ == "__main__":

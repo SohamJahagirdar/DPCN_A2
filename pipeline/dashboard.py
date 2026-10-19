@@ -2,6 +2,7 @@
 so it opens offline and can be sent as a single attachment."""
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -34,6 +35,14 @@ def _js(obj):
 
 
 def write_dashboard(st, st_without_flagged=None, comparison=None):
+    # Record this HTML build, without rewriting the statistics/corpus dates or
+    # mutating caller-owned payloads (previews may reuse historical statistics).
+    built = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    def stamped(payload):
+        return dict(payload, meta=dict(payload["meta"], dashboard_generated_utc=built))
+    st = stamped(st)
+    if st_without_flagged is not None:
+        st_without_flagged = stamped(st_without_flagged)
     if st_without_flagged:   # the full flagged-paper list is shown from the main data only
         st_without_flagged = dict(st_without_flagged, flagged=[])
     html = (TEMPLATE.read_text(encoding="utf-8")
