@@ -34,6 +34,10 @@ The analysis stays within our two institutions; links to other Indian institutes
 | Statistics report (≤10 slides) | 10-slide deck, shared separately as PPTX/PDF | ✅ |
 
 Supporting outputs:
+- **Follow the Idea**: independent global citation-reach study with a deterministic
+  pilot, resumable budgeted acquisition, coverage diagnostics and a separate local
+  explorer. See [methods and commands](docs/FOLLOW_THE_IDEA.md). Its acquired data
+  and generated preview stay outside this checkout; it does not require a legacy build.
 - `outputs/faculty_list.csv`: per-faculty department, papers, citations, h-indices, Q1 share and top journal.
 - `outputs/faculty_network_metrics.csv`: degree, betweenness, Louvain community and number of partner institutes per faculty.
 - `outputs/citation_paper_metrics.csv`: in-degree, out-degree and PageRank of every paper.
