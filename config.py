@@ -4,11 +4,14 @@ import os
 
 GROUP = 18
 YEAR_FROM, YEAR_TO = 2016, 2026
+# When the OpenAlex data in data/raw/ (the team's shared snapshot) was collected; shown on the dashboard.
+# Update it after a re-fetch. A fixed date, not a build timestamp, so rebuilding gives an identical dashboard.
+DATA_COLLECTED = "13–15 Oct 2026"
 
-# Assigned institutions. `openalex_ids` are matched exactly against authorship
-# institutions. TIFR's child centres (NCRA, ICTS, TIFR-Hyderabad, TIFR-CAM, HBCSE)
-# are NOT included by default; NCBS belongs to Group 23. Add their IDs here if the
-# professor wants them (see QUESTIONS_FOR_PROFESSOR.md).
+# Assigned institutions. `openalex_ids` are matched exactly against authorship institutions.
+# Scope (team decision, Oct 2026): IISc Bangalore and TIFR Mumbai only. TIFR's other centres
+# (NCBS = Group 23, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) are excluded, also when OpenAlex
+# gives their authors the main TIFR ID (see fetch.authorship_insts).
 INSTITUTIONS = {
     "IISc": {
         "name": "Indian Institute of Science, Bangalore",
@@ -65,6 +68,16 @@ JOURNAL_NETWORK_MIN_PAPERS = 15
 # Impact on India: an OpenAlex SDG tag counts only at score >= 0.8 ("correct about 7 in 10" per
 # https://help.openalex.org/data/sdgs ; scores 0.5-0.8 are right only about half the time).
 SDG_MIN_SCORE = 0.8
+
+# Impact beyond research - technology: patents citing our papers, from "Reliance on Science" v64 (Marx & Fuegi 2020,
+# Strategic Management Journal, doi:10.1002/smj.3145; 2022, J. Economics & Management Strategy, doi:10.1111/jems.12455;
+# Zenodo record 11461587, CC BY-NC 4.0). Worldwide patent offices, citations through 2023.
+PATENT_CITATIONS_URL = "https://zenodo.org/records/11461587/files/_pcs_oa.csv?download=1"
+# A patent-paper link counts at confidence score >= 4 (1-10 scale), the filter the dataset's authors apply to their
+# current release (https://relianceonscience.org/patent-to-paper-citations).
+PATENT_MIN_CONFIDENCE = 4
+# Last year covered by the patent data: papers from later years cannot have patent citations yet.
+PATENT_DATA_LAST_YEAR = 2023
 
 # Faculty heuristic thresholds (used only when no official roster match exists)
 FACULTY_MIN_PAPERS = 8

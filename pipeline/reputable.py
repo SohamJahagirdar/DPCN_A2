@@ -27,6 +27,7 @@ import pandas as pd
 
 import config
 from pipeline.build import OWN_IDS, classify_inst
+from pipeline.impact import pathways
 
 ELITE_OTHER = "Other University/College"
 
@@ -79,9 +80,11 @@ def indian_uptake(t):
     return out, cluster_cache
 
 
-def _group_metrics(p, up):
+def _group_metrics(p, up, pw):
     """One comparison row for a set of papers."""
     u = up.loc[p.index]
+    w = pw.reindex(p.index)
+    win = w[p["year"] <= config.PATENT_DATA_LAST_YEAR]
     cited = u[u["indian_citations"] > 0]
     return dict(
         papers=int(len(p)),
@@ -98,6 +101,10 @@ def _group_metrics(p, up):
         indian_coauthor_share=float((p["n_indian_partners"] > 0).mean()) if len(p) else None,
         india_focus_share=float(p["india_focus"].mean()) if p["india_focus"].notna().any() else None,
         sdg_share=float(p["top_sdg"].notna().mean()) if "top_sdg" in p else None,
+        # impact beyond research (pipeline/impact.py)
+        patent_share=float((win["patents"] > 0).mean()) if len(win) else None,
+        industry_share=float(w["industry"].mean()) if len(w) else None,
+        nonacademic_share=float(w["nonacademic_user"].mean()) if len(w) else None,
     )
 
 
@@ -107,6 +114,7 @@ def reputable_stats(t, out_dir=None):
     papers["n_indian_partners"] = papers["indian_inst_ids"].map(
         lambda x: len({i for i in x.split(";") if i} - own_all))
     up, clusters = indian_uptake(t)
+    pw = pathways(t)[0]
     inst_meta = t["inst_meta"]
     jp = papers[papers["venue_type"] == "journal"]
     fac = t["own_auth"].dropna(subset=["person"]).drop_duplicates(["work_id", "person"])
@@ -116,10 +124,10 @@ def reputable_stats(t, out_dir=None):
     for inst in list(config.INSTITUTIONS) + ["All"]:
         sub = jp if inst == "All" else jp[jp["homes"].str.contains(inst)]
         ni, other, flag = sub[sub["nature_index"]], sub[~sub["nature_index"]], sub[sub["flagship"]]
-        comp = [dict(group="Nature Index journals", **_group_metrics(ni, up)),
-                dict(group="…of which India-focused", **_group_metrics(ni[ni["india_focus"] == True], up)),
-                dict(group="Flagship (Nature, Science, Cell, PNAS)", **_group_metrics(flag, up)),
-                dict(group="Other journal papers", **_group_metrics(other, up))]
+        comp = [dict(group="Nature Index journals", **_group_metrics(ni, up, pw)),
+                dict(group="…of which India-focused", **_group_metrics(ni[ni["india_focus"] == True], up, pw)),
+                dict(group="Flagship (Nature, Science, Cell, PNAS)", **_group_metrics(flag, up, pw)),
+                dict(group="Other journal papers", **_group_metrics(other, up, pw))]
         u_ni = up.loc[ni.index]
         # who cites our reputable papers in India
         cnt = Counter(i for lst in u_ni["citing_insts"].dropna() for i in lst)

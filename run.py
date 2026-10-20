@@ -1,9 +1,22 @@
 """DPCN Research Mapping - Group 18 (IISc + TIFR) pipeline runner.
 
 Usage
-  python run.py fetch [--steps corpus,authors,partners,outflow,inflow] [--max-calls N]
-  python run.py build            # dataset + networks + stats + dashboard from fetched data
+  python run.py build            # dataset + networks + stats + dashboard from data/raw (~4 min, no API calls)
+  python run.py fetch [--steps S1,S2,...] [--max-calls N]
   python run.py all              # fetch then build
+
+Fetch steps (default = all except inflow_agg; every API response is cached in data/cache):
+  corpus       works of IISc and TIFR, 2016-2026 (list API)
+  fullauthors  full author lists where the list API cut them at 100 authors (free single lookups)
+  sources      journal metadata: impact (2-year mean citedness), publisher, open access, country
+  relevance    SDG tags, top-1%/10% flags, India terms in title/abstract
+  authors      OpenAlex author profiles (career h-index) for authors with >= 3 papers
+  partners     subfield profiles of partner institutions (topic similarity)
+  outflow      Indian works cited by our papers;  inflow: Indian works citing our papers
+  flows_new    flows for papers that joined the corpus after the flow fetch
+  profiles     profiles of matched faculty still missing one (needs outputs/faculty_list.csv)
+  patents      patents citing our papers (Reliance on Science, ~2.5 GB streamed from Zenodo; no API calls)
+  inflow_agg   optional, cheaper aggregate in-flow (not needed when inflow is fetched)
 
 OpenAlex API key(s): env var OPENALEX_API_KEY (comma-separated) or openalex_key.txt (one key per line).
 """
@@ -44,6 +57,8 @@ def do_fetch(steps, max_calls):
             fetch.fetch_flows(oa, flows)
         if "flows_new" in steps:
             fetch.fetch_flows_new_papers(oa)
+        if "patents" in steps:
+            fetch.fetch_patent_citations()
     except BudgetExhausted as e:
         print(f"\nSTOPPED: {e}\nEverything fetched so far is cached; just re-run the same command later.")
         print(oa.status())
@@ -74,7 +89,7 @@ def do_build():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["fetch", "build", "all"])
-    ap.add_argument("--steps", default="corpus,fullauthors,sources,relevance,authors,partners,outflow,inflow,flows_new,profiles",
+    ap.add_argument("--steps", default="corpus,fullauthors,sources,relevance,authors,partners,outflow,inflow,flows_new,profiles,patents",
                     help="'inflow' = exact in-flow citation edges (~1,400 calls; fills cited_by_indian_inst); "
                          "'inflow_agg' = cheaper aggregate in-flow (~700 calls)")
     ap.add_argument("--max-calls", type=int, default=None)

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "mynvax",
+    "title": "A heat-stable COVID-19 vaccine from an IISc start-up",
+    "institute": "IISc",
+    "pathways": ["Economy: start-up", "Health"],
+    "summary": "Mynvax was founded in 2017 by IISc professor Raghavan Varadarajan and alumnus Gautham Nadig, and incubated at IISc. Its vaccine formulations stayed stable at 37 °C for up to a month and at 100 °C for up to 90 minutes, so they would not need a cold chain. In 2021 it signed agreements to raise a $4.2 million Series A round led by Accel.",
+    "match": {"company": "Mynvax"},
+    "sources": [
+      {"label": "BioSpectrum India, 21 Jul 2021", "url": "https://biospectrumindia.com/news/20/19200/biotech-startup-mynvax-offers-warm-vaccine-for-covid-19.html"}
+    ]
+  },
+  {
+    "id": "agnit",
+    "title": "Gallium-nitride chips made in India",
+    "institute": "IISc",
+    "pathways": ["Technology", "Economy: start-up", "Defence & space"],
+    "summary": "AGNIT Semiconductors was founded in 2019 and incubated at IISc, and licenses background IP from IISc. It makes gallium-nitride (GaN) wafers and RF transistors and amplifiers; its markets include defence, space and telecom.",
+    "match": {"company": "AGNIT"},
+    "sources": [
+      {"label": "Electronics For You, 1 Dec 2025", "url": "https://www.electronicsforu.com/india-corner/from-lab-to-fab-how-agnitis-making-gallium-nitride-chips-in-india"},
+      {"label": "Compound Semiconductor, 1 Nov 2024", "url": "https://compoundsemiconductor.net/article/120483/Putting_India_on_the_global_GaN_stage"}
+    ]
+  },
+  {
+    "id": "bosch",
+    "title": "Industry-funded research: the Robert Bosch Centre for Cyber-Physical Systems",
+    "institute": "IISc",
+    "pathways": ["Economy: industry partnership"],
+    "summary": "In 2011 Bosch made a ₹115 crore (€22 million) grant to IISc over ten years, which set up the Robert Bosch Centre for Cyber-Physical Systems.",
+    "match": {"company": "Robert Bosch"},
+    "sources": [
+      {"label": "BioSpectrum India, 5 Nov 2015", "url": "https://biospectrumindia.com/news/97/4517/bosch-signs-mou-with-iisc.html"},
+      {"label": "RBCCPS, IISc: About", "url": "https://cps.iisc.ac.in/about-rbccps"}
+    ]
+  },
+  {
+    "id": "astrosat",
+    "title": "Instruments for India's first astronomy satellite",
+    "institute": "TIFR",
+    "pathways": ["National mission: space"],
+    "summary": "ISRO launched AstroSat on 28 September 2015. TIFR developed three of its five payloads: the Large Area X-ray Proportional Counter (LAXPC), the Cadmium Zinc Telluride Imager (CZTI) and the Soft X-ray Telescope (SXT). The papers here describe and calibrate those instruments and use their data.",
+    "match": {"india_term": "astrosat"},
+    "sources": [
+      {"label": "ISRO: AstroSat", "url": "https://www.isro.gov.in/Astrosat_Spacecraft.html"},
+      {"label": "ISSDC: AstroSat payloads", "url": "https://www.issdc.gov.in/docs/as1/AstroSat_Payloads.pdf"}
+    ]
+  },
+  {
+    "id": "monsoon",
+    "title": "Monsoon research used by India's forecasting agencies",
+    "institute": "IISc",
+    "pathways": ["Public services: weather and climate"],
+    "summary": "India's seasonal and extended-range monsoon forecasts come from models built under the Ministry of Earth Sciences' Monsoon Mission and run operationally by IMD. IISc's monsoon papers are cited by the agencies in that chain: IMD, IITM Pune, NCMRWF and INCOIS. This shows use of the research by forecasters, not a causal link to a specific forecast.",
+    "match": {"title": "monsoon", "inst": "IISc", "exclude_doi": ["https://doi.org/10.1175/bams-d-17-0330.1"]},
+    "note": "exclude_doi: OpenAlex attaches every listed institution to every author of this paper, so its IISc authorship cannot be confirmed.",
+    "sources": [
+      {"label": "IMD, Mausam: Evolution of monitoring and forecasting of the southwest monsoon", "url": "https://mausamjournal.imd.gov.in/index.php/MAUSAM/article/view/6468"}
+    ]
+  }
+]

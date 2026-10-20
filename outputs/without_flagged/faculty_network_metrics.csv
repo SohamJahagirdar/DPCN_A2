@@ -393,7 +393,7 @@ H:IISc:A5011113484,Subba Reddy B.,IISc,Electrical Engineering,9,2,4,0.0022831050
 H:IISc:A5012645042,Amar Hosamani,IISc,Solid State and Structural Chemistry Unit,13,2,2,0.00228310502283105,3.2429410120212474e-06,6,15
 R:TIFR:618,Rajdeep Mohan Chatterjee,TIFR,High Energy Physics,11,2,5,0.00228310502283105,0.00853228962818004,7,2
 H:IISc:A5022725819,Hari Sridhar,IISc,Centre for Ecological Sciences,8,2,4,0.00228310502283105,0.0,13,5
-H:IISc:A5024788338,Ahmadullah Zahed,IISc,Centre for High Energy Physics,13,2,8,0.00228310502283105,2.609262883235486e-06,22,1
+H:IISc:A5024788338,Ahmadullah Zahed,IISc,Centre for High Energy Physics,13,2,8,0.00228310502283105,2.609262883235486e-06,20,1
 H:IISc:A5027884054,Lailesh Kumar,IISc,Materials Engineering,13,2,7,0.00228310502283105,0.0,3,7
 H:IISc:A5028996052,Musti Narasimha Murty,IISc,Computer Science and Automation,44,2,6,0.00228310502283105,0.0003770037195312271,0,6
 R:TIFR:658,Shouvik Chatterjee,TIFR,Condensed Matter Physics and Materials Science,8,2,2,0.00228310502283105,5.199273448029595e-05,2,5
@@ -421,7 +421,7 @@ R:IISc:205,Bhavana Kanukurthi,IISc,Computer Science and Automation,11,2,8,0.0022
 R:IISc:207,Karthikeyan S,IISc,Materials Engineering,18,2,2,0.00228310502283105,0.0,3,5
 R:IISc:464,Deepak Subramani,IISc,Computational and Data Sciences,32,2,4,0.00228310502283105,0.0017168949771689498,12,5
 R:IISc:465,Sudha Kumari,IISc,Microbiology and Cell Biology,6,2,2,0.00228310502283105,9.81331613025024e-05,1,3
-R:IISc:445,Pooja Singla,IISc,Mathematics,3,2,2,0.00228310502283105,2.609262883235486e-06,21,0
+R:IISc:445,Pooja Singla,IISc,Mathematics,3,2,2,0.00228310502283105,2.609262883235486e-06,22,0
 R:IISc:184,Vishnu Mahadeva Iyer,IISc,Electrical Engineering,45,2,5,0.00228310502283105,0.0,0,3
 R:IISc:187,Chirag Jain,IISc,Computational and Data Sciences,21,2,3,0.00228310502283105,0.00015508588529348008,0,1
 R:IISc:133,Chaya Ganesh,IISc,Computer Science and Automation,26,2,3,0.00228310502283105,0.003428571428571429,0,3
@@ -485,8 +485,8 @@ H:IISc:A5081888703,Anshuman Sharma,IISc,Centre for Infrastructure,8,2,5,0.002283
 H:IISc:A5071708657,David E. Logan,IISc,Physics,11,2,2,0.00228310502283105,0.0,2,2
 R:TIFR:600,Shravan Hanasoge,TIFR,Astronomy and Astrophysics,68,2,4,0.00228310502283105,0.011908675799086759,14,16
 H:IISc:A5074973409,M. Manjunatha Nayak,IISc,Centre for Nano Science and Engineering,15,2,9,0.00228310502283105,0.0,8,3
-H:IISc:A5075224172,P. N. Bala Subramanian,IISc,Center for High Energy Physics,10,2,10,0.00228310502283105,2.609262883235486e-06,20,3
-H:IISc:A5075884923,Vinod Sharma,IISc,Electrical Communication Engineering,41,2,7,0.00228310502283105,0.0017168949771689498,26,5
+H:IISc:A5075224172,P. N. Bala Subramanian,IISc,Center for High Energy Physics,10,2,10,0.00228310502283105,2.609262883235486e-06,21,3
+H:IISc:A5075884923,Vinod Sharma,IISc,Electrical Communication Engineering,41,2,7,0.00228310502283105,0.0017168949771689498,28,5
 H:IISc:A5076295608,Puspendu K. Das,IISc,Inorganic and Physical Chemistry,22,2,2,0.00228310502283105,4.845644337672987e-05,1,6
 H:IISc:A5076390179,Abhishek Pariyar,IISc,Mechanical Engineering,10,2,10,0.00228310502283105,0.0,3,3
 R:TIFR:573,Mrinal Kumar,TIFR,School of Technology and Computer Science,17,2,14,0.00228310502283105,0.0,23,3
@@ -532,7 +532,7 @@ H:IISc:A5004969613,Pascal Jouquet,IISc,Indo-French Cell for Water Science (IFCWS
 H:IISc:A5013989953,Shuvajit Mukherjee,IISc,Aerospace Engineering,8,2,13,0.00228310502283105,0.0,12,0
 H:IISc:A5009983557,Annapurna Vyakarnam,IISc,Centre for Infectious Disease Research,15,2,2,0.00228310502283105,0.0,1,11
 H:IISc:A5009165779,Santosh Aparanji,IISc,Centre for Nano Science and Engineering,26,2,35,0.00228310502283105,0.0,5,0
-R:TIFR:668,Vaibhav Prabhudesai,TIFR,Nuclear and Atomic Physics,27,1,13,0.001141552511415525,0.0,36,7
+R:TIFR:668,Vaibhav Prabhudesai,TIFR,Nuclear and Atomic Physics,27,1,13,0.001141552511415525,0.0,30,7
 H:IISc:A5007378067,Pankaj Sagar,IISc,Centre for Cryogenic Technology,13,1,11,0.001141552511415525,0.0,24,6
 H:IISc:A5007396011,M. S. Hegde,IISc,Talent Development Centre,8,1,1,0.001141552511415525,0.0,2,3
 H:IISc:A5000660020,Indu K. Murthy,IISc,Centre for Sustainable Technologies,9,1,1,0.001141552511415525,0.0,9,7
@@ -549,25 +549,25 @@ H:IISc:A5041166410,Farah Ishtiaq,IISc,Centre for Ecological Sciences,14,1,1,0.00
 H:IISc:A5043170144,Ankit Jain,IISc,Materials Engineering,29,1,2,0.001141552511415525,0.0,1,16
 H:IISc:A5044280845,Shakuntala Acharya,IISc,Centre for Product Design and Manufacturing,12,1,12,0.001141552511415525,0.0,15,1
 H:IISc:A5047392445,Jyoti Shakya,IISc,Physics,16,1,3,0.001141552511415525,0.0,2,7
-H:IISc:A5030489766,Gopal Hazra,IISc,Physics,9,1,6,0.001141552511415525,0.0,25,2
+H:IISc:A5030489766,Gopal Hazra,IISc,Physics,9,1,6,0.001141552511415525,0.0,26,2
 R:IISc:297,Utpal Nath,IISc,Microbiology and Cell Biology,22,1,5,0.001141552511415525,0.0,1,6
 R:IISc:299,Prabhu R Nott,IISc,Chemical Engineering,20,1,2,0.001141552511415525,0.0,11,2
 R:IISc:333,Raghurama Rao S V,IISc,Aerospace Engineering,17,1,3,0.001141552511415525,0.0,9,3
 R:IISc:337,Nirmal Raj,IISc,Centre for High Energy Physics,14,1,1,0.001141552511415525,0.0,14,1
 R:IISc:398,Sashikumaar Ganesan,IISc,Computational and Data Sciences,44,1,1,0.001141552511415525,0.0,12,4
 R:IISc:324,Prathosh A P,IISc,Electrical Communication Engineering,40,1,1,0.001141552511415525,0.0,0,20
-R:IISc:325,Pikee Priya,IISc,Materials Engineering,3,1,1,0.001141552511415525,0.0,30,0
+R:IISc:325,Pikee Priya,IISc,Materials Engineering,3,1,1,0.001141552511415525,0.0,32,0
 R:IISc:326,Danish Pruthi,IISc,Computational and Data Sciences,7,1,1,0.001141552511415525,0.0,4,1
 R:IISc:29,Balakrishnan N,IISc,Aerospace Engineering,16,1,1,0.001141552511415525,0.0,0,6
 R:IISc:292,Narayan K Sundaram,IISc,Civil Engineering,30,1,1,0.001141552511415525,0.0,1,1
-R:IISc:293,Narayanan E K,IISc,Mathematics,8,1,1,0.001141552511415525,0.0,21,7
+R:IISc:293,Narayanan E K,IISc,Mathematics,8,1,1,0.001141552511415525,0.0,22,7
 R:IISc:404,Satish L,IISc,Electrical Engineering,15,1,3,0.001141552511415525,0.0,18,0
 R:IISc:386,Tarun Deep Saini,IISc,Physics,9,1,1,0.001141552511415525,0.0,14,3
 R:IISc:319,Prabhakaran E N,IISc,Organic Chemistry,15,1,1,0.001141552511415525,0.0,6,3
 R:IISc:320,Ravi Prakash,IISc,Robert Bosch Centre for Cyber Physical Systems,9,1,1,0.001141552511415525,0.0,0,2
 R:IISc:322,Bhagwati Prasad,IISc,Materials Engineering,16,1,1,0.001141552511415525,0.0,3,7
 H:IISc:A5053509020,Manish Kumar Mishra,IISc,Solid State and Structural Chemistry Unit,8,1,3,0.001141552511415525,0.0,3,5
-H:IISc:A5057349904,Konchady Gautam Shenoy,IISc,Electrical Communication Engineering,11,1,6,0.001141552511415525,0.0,26,4
+H:IISc:A5057349904,Konchady Gautam Shenoy,IISc,Electrical Communication Engineering,11,1,6,0.001141552511415525,0.0,28,4
 H:IISc:A5057421765,R. Madhavan,IISc,Materials Engineering,9,1,4,0.001141552511415525,0.0,3,5
 R:TIFR:584,Amitesh Anand,TIFR,Biological Sciences,10,1,1,0.001141552511415525,0.0,6,1
 R:TIFR:585,Debasis Das,TIFR,Biological Sciences,6,1,1,0.001141552511415525,0.0,6,1
@@ -586,7 +586,7 @@ R:IISc:287,Ravi S Nanjundaiah,IISc,Centre for Atmospheric and Oceanic Sciences,1
 H:IISc:A5069111704,Bhardwaj Pandit,IISc,Civil Engineering,16,1,4,0.001141552511415525,0.0,4,2
 H:IISc:A5048305700,Sulochana Gadgil,IISc,Centre for Atmospheric and Oceanic Sciences,9,1,2,0.001141552511415525,0.0,12,7
 H:IISc:A5048982964,S. Raghothama,IISc,NMR Research Centre,26,1,2,0.001141552511415525,0.0,27,20
-H:IISc:A5049946871,Aranya Bhattacharya,IISc,Centre for High Energy Physics,8,1,1,0.001141552511415525,0.0,22,4
+H:IISc:A5049946871,Aranya Bhattacharya,IISc,Centre for High Energy Physics,8,1,1,0.001141552511415525,0.0,20,4
 H:IISc:A5050400722,Garani Ananthakrishna,IISc,Materials Research Centre,8,1,2,0.001141552511415525,0.0,2,2
 R:TIFR:591,Shubha Tole,TIFR,Biological Sciences,32,1,3,0.001141552511415525,0.0,4,9
 R:TIFR:596,Sudip Bhattacharyya,TIFR,Astronomy and Astrophysics,83,1,2,0.001141552511415525,0.0,29,39
@@ -594,10 +594,10 @@ R:TIFR:597,Sourav Chatterjee,TIFR,Astronomy and Astrophysics,49,1,1,0.0011415525
 R:TIFR:567,Abhishek Sinha,TIFR,School of Technology and Computer Science,10,1,2,0.001141552511415525,0.0,0,2
 R:IISc:196,Chandrashekhar S Jog,IISc,Mechanical Engineering,24,1,1,0.001141552511415525,0.0,5,2
 R:IISc:234,Lakshmisha K N,IISc,Aerospace Engineering,1,1,1,0.001141552511415525,0.0,1,0
-R:IISc:434,Swarnendu Sil,IISc,Mathematics,6,1,1,0.001141552511415525,0.0,32,1
+R:IISc:434,Swarnendu Sil,IISc,Mathematics,6,1,1,0.001141552511415525,0.0,34,1
 R:IISc:441,Meetali Singh,IISc,Developmental Biology and Genetics,5,1,4,0.001141552511415525,0.0,1,2
 R:IISc:243,Uday Maitra,IISc,Organic Chemistry,46,1,1,0.001141552511415525,0.0,6,3
-R:IISc:247,Arka Mallick,IISc,Mathematics,3,1,1,0.001141552511415525,0.0,32,0
+R:IISc:247,Arka Mallick,IISc,Mathematics,3,1,1,0.001141552511415525,0.0,34,0
 R:TIFR:570,Hariharan Narayanan,TIFR,School of Technology and Computer Science,17,1,4,0.001141552511415525,0.0,10,1
 R:TIFR:571,Jatin Batra,TIFR,School of Technology and Computer Science,3,1,1,0.001141552511415525,0.0,10,1
 H:IISc:A5076266018,Ranajit Sai,IISc,Centre for Nano Science and Engineering,19,1,9,0.001141552511415525,0.0,5,8
@@ -613,41 +613,41 @@ R:IISc:452,Venkata R Sonti,IISc,Mechanical Engineering,14,1,1,0.0011415525114155
 R:IISc:455,Sreenivas T V,IISc,Electrical Communication Engineering,26,1,2,0.001141552511415525,0.0,4,5
 R:IISc:428,Sheshadri T S,IISc,Aerospace Engineering,8,1,1,0.001141552511415525,0.0,9,0
 R:IISc:218,Sachin Kotak,IISc,Microbiology and Cell Biology,14,1,1,0.001141552511415525,0.0,2,3
-R:IISc:219,Chethan Krishnan,IISc,Centre for High Energy Physics,65,1,9,0.001141552511415525,0.0,20,12
+R:IISc:219,Chethan Krishnan,IISc,Centre for High Energy Physics,65,1,9,0.001141552511415525,0.0,21,12
 R:TIFR:557,Sabyasachi Mukherjee,TIFR,School of Mathematics,19,1,5,0.001141552511415525,0.0,16,1
-R:TIFR:558,Swarnava Mukhopadhyay,TIFR,School of Mathematics,16,1,1,0.001141552511415525,0.0,34,2
-R:TIFR:560,Charanya Ravi,TIFR,School of Mathematics,3,1,1,0.001141552511415525,0.0,35,0
+R:TIFR:558,Swarnava Mukhopadhyay,TIFR,School of Mathematics,16,1,1,0.001141552511415525,0.0,36,2
+R:TIFR:560,Charanya Ravi,TIFR,School of Mathematics,3,1,1,0.001141552511415525,0.0,31,0
 R:IISc:89,Bhaskara Rao Chintada,IISc,Bioengineering,1,1,1,0.001141552511415525,0.0,4,0
 R:IISc:90,Chockalingam A,IISc,Electrical Communication Engineering,126,1,1,0.001141552511415525,0.0,3,6
-R:IISc:91,Arnab Rai Choudhuri,IISc,Physics,36,1,6,0.001141552511415525,0.0,25,6
+R:IISc:91,Arnab Rai Choudhuri,IISc,Physics,36,1,6,0.001141552511415525,0.0,26,6
 R:IISc:134,Nagaraju Ganesh,IISc,Biochemistry,16,1,1,0.001141552511415525,0.0,1,2
 R:IISc:467,Kartik Sunagar,IISc,Centre for Ecological Sciences,44,1,1,0.001141552511415525,0.0,2,8
-R:IISc:446,Aninda Sinha,IISc,Centre for High Energy Physics,35,1,7,0.001141552511415525,0.0,22,4
+R:IISc:446,Aninda Sinha,IISc,Centre for High Energy Physics,35,1,7,0.001141552511415525,0.0,20,4
 R:IISc:189,Rajeev Kumar Jain,IISc,Physics,22,1,2,0.001141552511415525,0.0,7,5
-R:IISc:19,Arvind Ayyer,IISc,Mathematics,46,1,1,0.001141552511415525,0.0,21,4
+R:IISc:19,Arvind Ayyer,IISc,Mathematics,46,1,1,0.001141552511415525,0.0,22,4
 R:IISc:163,Navneet Kumar Gupta,IISc,Centre for Sustainable Technologies,98,1,1,0.001141552511415525,0.0,4,35
 H:IISc:A5079779728,K. M. Nazeeh,IISc,Civil Engineering,10,1,2,0.001141552511415525,0.0,4,0
 H:IISc:A5069918566,Vasant Natarajan,IISc,Physics,16,1,1,0.001141552511415525,0.0,1,2
 H:IISc:A5071392609,Divya Ravi,IISc,Computer Science and Automation,9,1,9,0.001141552511415525,0.0,0,2
-R:IISc:96,Vivekanand Dabade,IISc,Aerospace Engineering,5,1,1,0.001141552511415525,0.0,33,0
-R:TIFR:547,Tanmay Deshpande,TIFR,School of Mathematics,7,1,1,0.001141552511415525,0.0,34,0
+R:IISc:96,Vivekanand Dabade,IISc,Aerospace Engineering,5,1,1,0.001141552511415525,0.0,35,0
+R:TIFR:547,Tanmay Deshpande,TIFR,School of Mathematics,7,1,1,0.001141552511415525,0.0,36,0
 R:IISc:77,Chandra Kishen J M,IISc,Civil Engineering,48,1,1,0.001141552511415525,0.0,8,6
 H:IISc:A5090399901,Chandra Shekhar Prajapati,IISc,Centre for Nano Science and Engineering,17,1,13,0.001141552511415525,0.0,5,4
 H:IISc:A5076913101,Anand Narayana Sarma,IISc,Centre for Atmospheric and Oceanic Sciences,9,1,9,0.001141552511415525,0.0,9,1
 R:IISc:79,Chandran L Sunil,IISc,Computer Science and Automation,36,1,1,0.001141552511415525,0.0,0,16
-R:IISc:88,Rajesh Chaunsali,IISc,Aerospace Engineering,12,1,1,0.001141552511415525,0.0,33,0
+R:IISc:88,Rajesh Chaunsali,IISc,Aerospace Engineering,12,1,1,0.001141552511415525,0.0,35,0
 R:IISc:59,Rajarshi Bhowmik Das,IISc,Interdisciplinary Centre for Water Research,29,1,3,0.001141552511415525,0.0,3,5
 H:IISc:A5103142240,V. Thushara,IISc,Centre for Atmospheric and Oceanic Sciences,8,1,8,0.001141552511415525,0.0,12,5
 H:IISc:A5103855943,Sruthi Sekar,IISc,Mathematics,9,1,6,0.001141552511415525,0.0,0,1
 H:IISc:A5109339036,K. B. Akhilesh,IISc,Management Studies,36,1,1,0.001141552511415525,0.0,4,7
-R:IISc:105,Suchandrima Das,IISc,Materials Engineering,2,1,1,0.001141552511415525,0.0,30,0
+R:IISc:105,Suchandrima Das,IISc,Materials Engineering,2,1,1,0.001141552511415525,0.0,32,0
 R:IISc:480,Pavankumar Tallapragada,IISc,Robert Bosch Centre for Cyber Physical Systems,31,1,1,0.001141552511415525,0.0,0,5
 R:IISc:139,Geetharani K,IISc,Inorganic and Physical Chemistry,35,1,2,0.001141552511415525,0.0,6,2
 R:IISc:144,Debraj Ghosh,IISc,Civil Engineering,29,1,2,0.001141552511415525,0.0,12,2
 R:IISc:121,Debsunder Dutta,IISc,Civil Engineering,10,1,1,0.001141552511415525,0.0,9,1
 H:IISc:A5111983228,U. Jayachandra Shenoy,IISc,Electrical Engineering,15,1,3,0.001141552511415525,0.0,0,1
 H:IISc:A5112905806,Jayaram Vishakantaiah,IISc,Shock Induced Materials Chemistry Laboratory,10,1,1,0.001141552511415525,0.0,11,6
-H:IISc:A5113372534,V. Prasad,IISc,Physics,41,1,12,0.001141552511415525,0.0,28,18
+H:IISc:A5113372534,V. Prasad,IISc,Physics,41,1,12,0.001141552511415525,0.0,25,18
 H:IISc:A5113689969,Anandi Giridharan,IISc,Electrical Communication Engineering,10,1,1,0.001141552511415525,0.0,8,4
 H:IISc:N:k-s-nanjunda-rao,K. S. Nanjunda Rao,IISc,Civil Engineering,9,1,1,0.001141552511415525,0.0,4,6
 H:IISc:A5102739567,Anjali A. Karande,IISc,Biochemistry,9,1,5,0.001141552511415525,0.0,1,2
@@ -659,7 +659,7 @@ H:TIFR:A5101756547,P. Das,TIFR,Unknown,5,1,1,0.001141552511415525,0.0,7,0
 H:TIFR:A5101878732,A. K. Nigam,TIFR,Condensed Matter Physics and Materials Science,49,1,1,0.001141552511415525,0.0,5,18
 H:TIFR:A5109269131,Sandeep Juneja,TIFR,School of Technology and Computer Science,15,1,1,0.001141552511415525,0.0,6,5
 R:IISc:472,Sundeep Prabhakar Chepuri,IISc,Electrical Communication Engineering,73,1,1,0.001141552511415525,0.0,8,0
-R:IISc:124,Subrahmanyam Duvvuri,IISc,Aerospace Engineering,19,1,1,0.001141552511415525,0.0,31,4
+R:IISc:124,Subrahmanyam Duvvuri,IISc,Aerospace Engineering,19,1,1,0.001141552511415525,0.0,33,4
 R:IISc:126,Raghavendra Gadagkar,IISc,Centre for Ecological Sciences,54,1,3,0.001141552511415525,0.0,2,7
 H:TIFR:A5049316350,Soumangsu Chakraborty,TIFR,Theoretical Physics,15,1,1,0.001141552511415525,0.0,7,2
 H:TIFR:A5051521935,Sanjay Wategaonkar,TIFR,Chemical Sciences,17,1,1,0.001141552511415525,0.0,10,2
@@ -670,21 +670,21 @@ R:IISc:541,Srinivasan R,IISc,Management Studies,19,1,1,0.001141552511415525,0.0,
 R:IISc:542,Thukaram D,IISc,Electrical Engineering,17,1,1,0.001141552511415525,0.0,0,4
 R:IISc:518,Bramha Vishwakarma Dutt,IISc,Interdisciplinary Centre for Water Research,16,1,1,0.001141552511415525,0.0,3,8
 R:IISc:519,Medhavi Vishwakarma,IISc,Bioengineering,2,1,1,0.001141552511415525,0.0,3,2
-H:TIFR:A5066114823,Amalendu Krishna,TIFR,School of Mathematics,18,1,1,0.001141552511415525,0.0,35,0
+H:TIFR:A5066114823,Amalendu Krishna,TIFR,School of Mathematics,18,1,1,0.001141552511415525,0.0,31,0
 R:IISc:103,Shibananda Das,IISc,Physics,9,1,1,0.001141552511415525,0.0,0,4
-H:TIFR:A5060572302,E. Krishnakumar,TIFR,Nuclear and Atomic Physics,16,1,13,0.001141552511415525,0.0,36,4
+H:TIFR:A5060572302,E. Krishnakumar,TIFR,Nuclear and Atomic Physics,16,1,13,0.001141552511415525,0.0,30,4
 R:IISc:507,Venkataram P,IISc,Electrical Communication Engineering,26,1,4,0.001141552511415525,0.0,8,3
 R:IISc:511,Venugopal S,IISc,Chemical Engineering,12,1,1,0.001141552511415525,0.0,11,4
 R:IISc:513,Kaushal Verma,IISc,Mathematics,29,1,1,0.001141552511415525,0.0,16,11
 R:IISc:514,Vidya Mangala Prasad,IISc,Molecular Biophysics Unit,13,1,3,0.001141552511415525,0.0,1,4
 R:IISc:489,Ajay Tijore,IISc,Bioengineering,10,1,6,0.001141552511415525,0.0,5,5
-R:IISc:11,Akshay Kumar M Arabhavi,IISc,Electrical Communication Engineering,1,1,1,0.001141552511415525,0.0,31,0
+R:IISc:11,Akshay Kumar M Arabhavi,IISc,Electrical Communication Engineering,1,1,1,0.001141552511415525,0.0,33,0
 H:TIFR:A5080294006,E. Yuvaraj,TIFR,High Energy Physics,10,1,5,0.001141552511415525,0.0,7,3
 H:TIFR:A5017813884,Pankaj S. Joshi,TIFR,Astronomy and Astrophysics,10,1,2,0.001141552511415525,0.0,29,2
 H:TIFR:A5018690663,Rabisankar Samanta,TIFR,Nano-Optics and Mesoscopic Optics Laboratory,8,1,8,0.001141552511415525,0.0,10,3
 H:TIFR:A5024372026,Roop Mallik,TIFR,Biological Sciences,13,1,1,0.001141552511415525,0.0,1,5
 R:IISc:529,Durga Rao C,IISc,Microbiology and Cell Biology,4,1,1,0.001141552511415525,0.0,1,0
-R:IISc:501,Sachindeo Vaidya,IISc,Centre for High Energy Physics,21,1,1,0.001141552511415525,0.0,20,4
+R:IISc:501,Sachindeo Vaidya,IISc,Centre for High Energy Physics,21,1,1,0.001141552511415525,0.0,21,4
 R:TIFR:660,Biswarup Das,TIFR,Nuclear and Atomic Physics,9,1,9,0.001141552511415525,0.0,10,7
 R:TIFR:664,Indranil Mazumdar,TIFR,Nuclear and Atomic Physics,30,1,1,0.001141552511415525,0.0,7,9
 H:IISc:A5024252179,Rhitaja Sengupta,IISc,Centre for High Energy Physics,8,1,8,0.001141552511415525,0.0,7,1
@@ -693,7 +693,7 @@ R:IISc:374,Nirupam Roy,IISc,Physics,68,1,1,0.001141552511415525,0.0,14,25
 R:IISc:378,Yagnaseni Roy,IISc,Centre for Sustainable Technologies,12,1,1,0.001141552511415525,0.0,3,2
 R:IISc:382,Giriraj Sahu,IISc,Molecular Biophysics Unit,2,1,1,0.001141552511415525,0.0,8,1
 R:IISc:355,Rangarajan P N,IISc,Biochemistry,14,1,1,0.001141552511415525,0.0,1,0
-H:IISc:A5013411807,Krishna Prasad Maity,IISc,Physics,12,1,12,0.001141552511415525,0.0,28,4
+H:IISc:A5013411807,Krishna Prasad Maity,IISc,Physics,12,1,12,0.001141552511415525,0.0,25,4
 H:IISc:A5015343003,Shubhi Bansal,IISc,Centre for Nano Science and Engineering,8,1,8,0.001141552511415525,0.0,5,1
 R:IISc:359,Chinmoy Ranjan,IISc,Inorganic and Physical Chemistry,13,0,0,0.0,0.0,139,0
 R:IISc:358,Ramsharan Rangarajan,IISc,Mechanical Engineering,15,0,0,0.0,0.0,138,0

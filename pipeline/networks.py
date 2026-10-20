@@ -21,7 +21,7 @@ def _jaccard(p, q, min_share=0.005):
     a = {k for k, v in P.items() if v >= min_share}
     b = {k for k, v in Q.items() if v >= min_share}
     binary = len(a & b) / len(a | b) if a | b else np.nan
-    keys = set(P) | set(Q)
+    keys = sorted(set(P) | set(Q))   # sorted: float sums must not depend on set order (reproducible output)
     weighted = sum(min(P.get(k, 0), Q.get(k, 0)) for k in keys) / (sum(max(P.get(k, 0), Q.get(k, 0)) for k in keys) or 1)
     return binary, weighted
 
@@ -96,7 +96,7 @@ def build_networks(t, out_dir=None):
         return ext.get(n, {}).get("year")
 
     crows = []
-    for (s, tg), (etype, _) in edges.items():
+    for (s, tg), (etype, _) in sorted(edges.items()):   # sorted: reproducible row order
         si, ti = node_inst(s), node_inst(tg)
         crows.append(dict(source_doi=node_doi(s), target_doi=node_doi(tg), source_inst=si, target_inst=ti,
                           year=node_year(s), source_id=s, target_id=tg, edge_type=etype,
@@ -110,16 +110,16 @@ def build_networks(t, out_dir=None):
 
     # metrics on the internal (within-corpus) citation graph
     G = nx.DiGraph()
-    G.add_nodes_from(corpus)
-    G.add_edges_from((s, tg) for (s, tg), (e, _) in edges.items() if e == "internal")
+    G.add_nodes_from(sorted(corpus))   # sorted: identical PageRank floats every run
+    G.add_edges_from((s, tg) for (s, tg), (e, _) in sorted(edges.items()) if e == "internal")   # sorted: same floats every run
     pr = nx.pagerank(G, alpha=0.85) if G.number_of_edges() else {n: 1 / max(len(corpus), 1) for n in corpus}
     papers["in_degree"] = pd.Series(dict(G.in_degree()))
     papers["out_degree"] = pd.Series(dict(G.out_degree()))
     papers["pagerank"] = pd.Series(pr)
     papers[["work_id", "doi", "title", "year", "homes", "venue", "citations", "n_authors",
             "many_authors", "in_degree", "out_degree", "pagerank"]].rename(columns={"many_authors": "authors_gt_12"}) \
-        .sort_values("pagerank", ascending=False).to_csv(out_dir / "citation_paper_metrics.csv",
-                                                         index=False, encoding="utf-8")
+        .reset_index(drop=True).sort_values(["pagerank", "work_id"], ascending=[False, True]) \
+        .to_csv(out_dir / "citation_paper_metrics.csv", index=False, encoding="utf-8")
     wcc = sorted((len(c) for c in nx.weakly_connected_components(G)), reverse=True) if len(G) else [0]
     nets["citation_summary"] = dict(
         nodes=G.number_of_nodes(), edges=G.number_of_edges(),
@@ -132,15 +132,16 @@ def build_networks(t, out_dir=None):
     # visualisation subgraph: top papers by PageRank (+ edges among them)
     # The top-300 PageRank papers alone are mostly disconnected; show instead the 350 highest-PageRank
     # papers inside the largest connected component of the top-5000 subgraph.
+    # Subgraph views iterate in set order, which changes between runs: break ties by ID and sort the output.
     pool = G.subgraph(papers.sort_values("pagerank", ascending=False).head(5000).index)
-    core = max(nx.weakly_connected_components(pool), key=len) if len(pool) else set()
-    top = sorted(core, key=lambda n: -pr.get(n, 0))[:350]
+    core = max(nx.weakly_connected_components(pool), key=lambda c: (len(c), min(c))) if len(pool) else set()
+    top = sorted(core, key=lambda n: (-pr.get(n, 0), n))[:350]
     H = G.subgraph(top)
     nets["citation_vis"] = dict(
         nodes=[dict(id=n, title=str(papers.at[n, "title"])[:140], year=int(papers.at[n, "year"]),
                     inst=papers.at[n, "homes"], field=papers.at[n, "field"], cites=int(papers.at[n, "citations"]),
-                    pr=float(pr.get(n, 0)), indeg=int(G.in_degree(n)), doi=papers.at[n, "doi"]) for n in H.nodes],
-        edges=[[s, tg] for s, tg in H.edges])
+                    pr=float(pr.get(n, 0)), indeg=int(G.in_degree(n)), doi=papers.at[n, "doi"]) for n in top],
+        edges=[[s, tg] for s, tg in sorted(H.edges)])
 
     # citation flows with other Indian institutions
     flow_rows = []
@@ -264,7 +265,7 @@ def build_networks(t, out_dir=None):
     deg_c = nx.degree_centrality(F) if len(F) > 1 else {}
     btw = nx.betweenness_centrality(F, normalized=True) if len(F) > 2 else {}
     comms = nx.community.louvain_communities(F, weight="weight", seed=42) if F.number_of_edges() else []
-    comm_of = {n: i for i, c in enumerate(sorted(comms, key=len, reverse=True)) for n in c}
+    comm_of = {n: i for i, c in enumerate(sorted(comms, key=lambda c: (-len(c), min(c)))) for n in c}
     modularity = nx.community.modularity(F, comms, weight="weight") if comms else None
     # hub authors: number of distinct other Indian institutions among co-authors
     partners_of = defaultdict(set)
@@ -325,7 +326,7 @@ def build_networks(t, out_dir=None):
         if inst in nets["inflow_agg"]:   # citing works per batch, from the aggregated in-flow
             cin = nets["inflow_agg"][inst]["partners"].set_index("partner")["citing_works"]
         cout = fl[fl["direction"] == "out"]["partner"].value_counts()
-        for pid in set(shared) | set(cin.index) | set(cout.index):
+        for pid in sorted(set(shared) | set(cin.index) | set(cout.index)):
             name, otype = inst_meta.get(pid, (pid, None, None))[:2]
             if NON_INSTITUTIONS.search(name or ""):
                 continue   # "Government of India", ministries: funders/parents, not research partners
@@ -340,7 +341,8 @@ def build_networks(t, out_dir=None):
                              citations_received_from_partner=int(cin.get(pid, 0)),
                              citations_given_to_partner=int(cout.get(pid, 0)),
                              topic_jaccard=jb, topic_weighted_jaccard=jw))
-    ic = pd.DataFrame(conn).sort_values(["your_inst", "shared_papers"], ascending=[True, False])
+    ic = pd.DataFrame(conn).sort_values(["your_inst", "shared_papers", "partner_openalex_id"],
+                                        ascending=[True, False, True], kind="stable")
     ic.to_csv(out_dir / "indian_connections.csv", index=False, encoding="utf-8")
     print(f"[networks] indian_connections.csv: {len(ic)} institution pairs")
     nets["connections"] = ic

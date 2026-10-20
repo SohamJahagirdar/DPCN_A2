@@ -159,6 +159,31 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="Impact on India">
+    <div class="tiles" id="imTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Does the research lead to something in India beyond more papers?</h3><div id="imMethod" class="note"></div></div>
+      <div class="card c12"><h3>Who in India uses the research, by sector</h3>
+        <div class="hint">Papers co-authored with an organisation of the sector, and papers cited by one. Citing papers that involve our own institute are excluded. Hover for the main citing organisations.</div>
+        <div id="imSectors" class="plot tall"></div></div>
+      <div class="card c6"><h3>Technology: patents citing our papers, by patent office</h3><div class="hint">Distinct patent documents. US = USPTO, CN = China, WO = international (PCT) application, EP = European Patent Office, KR = Korea, JP = Japan. The data has no Indian Patent Office patents.</div><div id="imOffices" class="plot"></div></div>
+      <div class="card c6"><h3>Technology: share of papers cited by a patent, by field</h3><div class="hint" id="imFieldsHint"></div><div id="imFields" class="plot"></div></div>
+      <div class="card c6"><h3>Economy: companies in India co-authoring with us</h3><div class="hint">Papers per company, coloured by ownership. ★ = start-up based at IISc's incubators or campus</div><div id="imCompanies" class="plot tall"></div></div>
+      <div class="card c6"><h3>Economy: companies in India citing our papers</h3><div class="hint">Citing papers with an author at the company (both institutes)</div><div id="imCiting" class="plot tall"></div></div>
+      <div class="card c6"><h3>Per year: papers cited by a patent or with an industry co-author</h3><div class="hint" id="imYearHint"></div><div id="imYear" class="plot"></div></div>
+      <div class="card c6"><h3>Most patent-cited papers</h3><div id="imTopPat" class="tablewrap" style="max-height:340px"></div></div>
+      <div class="card c12"><h3>Case studies: documented outcomes and the papers behind them</h3>
+        <div class="hint">The text of each case comes from the sources listed under it; the numbers come from our data.</div>
+        <div id="imCases" class="grid"></div></div>
+      <div class="card c12"><h3>Evidence: papers with a pathway beyond academia</h3>
+        <div class="row"><input type="search" id="imSearch" placeholder="Search title, company, sector…" size="34">
+          <select id="imPath"><option value="">All pathways</option><option value="pat">Cited by a patent</option><option value="self">Patent by our own author</option><option value="ind">Industry co-author</option><option value="start">IISc start-up co-author</option><option value="mis">Mission or public-service co-author</option></select>
+          <span class="pill" id="imCount"></span><button class="iconbtn" id="imDownload">Download CSV</button></div>
+        <div id="imTable" class="tablewrap" style="max-height:640px"></div>
+        <div class="hint" id="imNote" style="margin-top:6px"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Faculty">
     <div class="grid">
       <div class="card c12"><h3>Faculty performance and journal choices</h3>
@@ -242,7 +267,7 @@ const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Impact on India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -553,7 +578,7 @@ function renderMethod() {
   document.getElementById("method").innerHTML = `
   <h3>Data &amp; method</h3>
   <ul>
-   <li><b>Source:</b> OpenAlex works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}: journal articles, reviews, letters, book chapters and conference papers. Generated ${esc(m.generated)}. ${fmt(m.n_papers)} papers, ${fmt(m.n_rows)} dataset rows.</li>
+   <li><b>Source:</b> OpenAlex works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}: journal articles, reviews, letters, book chapters and conference papers, collected ${esc(m.data_collected)}. ${fmt(m.n_papers)} papers, ${fmt(m.n_rows)} dataset rows.</li>
    <li><b>TIFR scope:</b> TIFR Mumbai only; authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) are recognised from their affiliation text and excluded.</li>
    <li><b>Author lists:</b> where OpenAlex's list API cut a paper's authors at 100, the full list was fetched, so author counts are exact. Papers with no identifiable IISc/TIFR author are removed as OpenAlex mis-tags.</li>
    <li><b>Faculty:</b> official rosters (IISc Directory 2025-26, IISc Centre for Society and Policy, IISc retired-faculty list; TIFR department pages) matched to OpenAlex authors by name and department; former faculty added by a publication rule (≥ 8 papers over ≥ 4 years, ≥ 30% as last or corresponding author). Rank = current (2025-26) title. Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
@@ -561,6 +586,7 @@ function renderMethod() {
    <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors. The switch <i>Flagged: included / excluded</i> recomputes every tab without them.</li>
    <li><b>Journal choice:</b> who = per-faculty journals used, top-3 share (loyalty), Q1 and high-impact share, by rank and department; why = shares by team size, collaboration, field and rank, plus a logistic regression holding the others fixed; how = journal co-usage network (journals linked by shared faculty; Louvain communities).</li>
    <li><b>Reputable journals &amp; impact on India:</b> Nature Index journals (with the index's article rules) and flagship journals; impact on India measured by Indian citations, their share, breadth, reach, speed and an Indian Citation Index, plus India-focused topics and SDG tags. Full definitions and sources are on that tab and in the README; per-paper values are in outputs/stats/india_impact_per_paper.csv.</li>
+   <li><b>Impact on India beyond research:</b> patents citing the papers (Reliance on Science), co-authorship with companies in India and IISc start-ups, and co-authorship with or citation by national missions and public services (space, defence, atomic energy, weather and climate, agriculture, health, CSIR, government), plus documented case studies. Definitions and sources are on that tab and in the README; per-paper values are in outputs/stats/india_pathways_per_paper.csv.</li>
    <li><b>Citation network:</b> nodes = our papers, edges = OpenAlex references among them; PageRank α = 0.85. Citations to and from other Indian institutes are in citation_network.csv.</li>
    <li><b>Co-authorship network:</b> nodes = faculty, edges = joint papers with ≤ ${m.mega_threshold} authors; Louvain communities (seed 42), degree and betweenness centrality (NetworkX).</li>
    <li><b>Indian connectivity:</b> partner institutions = Indian institutions in the author lists; clusters follow the course PPT; topic similarity = Jaccard over OpenAlex subfields.</li>
@@ -651,6 +677,103 @@ function renderLarge() {
     {hovermode:"x unified", yaxis:{title:"mean citations", gridcolor:css("--grid"), automargin:true}});
 }
 
+function renderImpact() {
+  const I = DATA.impact, b = I[state.inst], k = b.kpis, S = I.settings, hasPat = S.patents_available;
+  const L = S.last_patent_year, dash = v => hasPat ? fmt(v) : "–";
+  tiles("imTiles", [
+    ["Used outside academia in India", fmt(k.nonacademic), `${pct(k.nonacademic_share)} of papers: co-authored or cited by companies, government agencies, hospitals or NGOs`],
+    ["Cited by patents", dash(k.patent_cited), hasPat ? `${pct(k.patent_cited_share)} of papers up to ${L} · ${fmt(k.patents)} patents` : "patent data not loaded"],
+    ["Patent offices", dash(k.offices), hasPat ? `mainly ${(k.top_offices||[]).join(", ")}; Indian Patent Office not covered` : ""],
+    ["Patents by our own authors", dash(k.patents_self), "an author of the paper is an inventor on the patent"],
+    ["Industry co-authored papers", fmt(k.industry_papers), `${pct(k.industry_share)} of papers · ${fmt(k.companies)} companies in India`],
+    ["Start-ups at IISc co-authoring", fmt(k.iisc_startups), "address at IISc's incubators or campus"],
+  ]);
+  const ref = (t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+  document.getElementById("imMethod").innerHTML = `<ul>
+   <li><b>What can and cannot be shown.</b> No dataset can prove that a paper <i>caused</i> economic growth or a better product. What can be measured are the documented <b>pathways</b> through which research reaches users outside academia: technology, the economy, national missions and public services (${ref("Bornmann 2013","https://doi.org/10.1002/asi.22803")}; the "payback" categories of ${ref("Buxton &amp; Hanney 1996","https://doi.org/10.1177/135581969600100107")}). Every number here can be traced to a patent, a paper or an organisation.</li>
+   <li><b>Technology: patents.</b> Patents worldwide that cite our papers, from the <i>Reliance on Science</i> dataset v64 (${ref("Marx &amp; Fuegi 2020","https://doi.org/10.1002/smj.3145")}; ${ref("2022","https://doi.org/10.1111/jems.12455")}; ${ref("data","https://zenodo.org/records/11461587")}), counted at match confidence ≥ ${S.min_confidence} as its authors do. Patent citations are the standard bibliometric link between science and technology (${ref("Narin et al. 1997","https://doi.org/10.1016/S0048-7333(97)00013-9")}; ${ref("Ahmadpoor &amp; Jones 2017","https://doi.org/10.1126/science.aam9527")}). The office comes from the patent number. The dataset is built from full-text patent collections that do not include the Indian Patent Office, so patents filed only in India are missing. <i>Patents by our own authors</i> = an author of the paper is an inventor on the patent. The data runs to ${L}; counts are patent documents, so an application and its grant can both count.</li>
+   <li><b>Economy: industry.</b> Co-authorship with companies in India, a standard indicator of university–industry links (${ref("Tijssen 2012","https://doi.org/10.1093/reseval/rvs013")}; used in the ${ref("CWTS Leiden Ranking","https://www.leidenranking.com/information/indicators")}). Companies = organisations OpenAlex types as "company", plus company addresses in the authors' affiliation text (Pvt. Ltd., Limited, LLP) with an Indian location, which finds start-ups missing from the registry. Ownership: public sector company (PSU), Indian private company, or multinational (foreign headquarters). <i>Start-ups at IISc</i> = companies whose address is IISc's incubators (Society for Innovation and Development, CeNSE, CPDM) or campus. Industry use is also measured by citations from company researchers.</li>
+   <li><b>National missions and public services.</b> Co-authorship with, and citation by, Indian organisations grouped by sector from their name and OpenAlex type: space (ISRO and its centres), defence and aerospace (DRDO labs, NAL, armed forces), atomic energy (BARC, IGCAR, RRCAT, NPCIL), earth, climate and environment (MoES, IMD, IITM, INCOIS, GSI…), agriculture (ICAR institutes, agricultural universities), health (ICMR, hospitals, medical colleges), CSIR industrial R&amp;D labs, government departments and regulators, and NGOs and think tanks. Universities and basic-research institutes are not counted here.</li>
+   <li><b>Not measured.</b> Revenue, jobs, products sold and policy documents citing the research: no open data exists for Indian organisations (policy-citation databases such as Overton are commercial). Patents filed only at the Indian Patent Office are not in the patent data, and it has no assignees, so Indian companies' patents cannot be singled out. Only a minority of Indian companies are in the registry OpenAlex uses, so industry links are undercounted.</li></ul>`;
+  // sectors
+  const sec = b.sectors.slice().reverse(), allSec = I.All.sectors;
+  const tip = s => (allSec.find(x => x.sector === s.sector) || {top_citers: []}).top_citers.join("<br>");
+  plot("imSectors", [
+    {type:"bar", orientation:"h", y:sec.map(s=>s.sector), x:sec.map(s=>s.coauthored), name:"Papers co-authored with the sector", marker:{color:css("--s1")},
+     hovertemplate:"%{y}: %{x:,} papers co-authored<extra></extra>"},
+    {type:"bar", orientation:"h", y:sec.map(s=>s.sector), x:sec.map(s=>s.cited_papers), name:"Papers cited by the sector", marker:{color:css("--s3")},
+     customdata:sec.map(s=>[s.citing_works, tip(s)]), hovertemplate:"%{y}: %{x:,} papers cited, by %{customdata[0]:,} citing papers<br>%{customdata[1]}<extra></extra>"}],
+    {barmode:"group", margin:{l:8,r:16,t:8,b:36}});
+  // technology
+  const off = b.offices.slice().reverse();
+  plot("imOffices", [{type:"bar", orientation:"h", y:off.map(o=>o.office), x:off.map(o=>o.patents), marker:{color:off.map(o=>o.office==="IN"?css("--s2"):css("--s1"))},
+    hovertemplate:"%{y}: %{x:,} patents<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  document.getElementById("imFieldsHint").textContent = `Papers published up to ${L} (the patent data ends in ${L}); fields with at least 100 papers`;
+  const fl = b.patent_fields.slice().reverse();
+  plot("imFields", [{type:"bar", orientation:"h", y:fl.map(f=>short(f.field)), x:fl.map(f=>f.share), marker:{color:css("--s1")},
+    customdata:fl.map(f=>[f.cited, f.papers, f.patents]), hovertemplate:"%{y}: %{x:.1%} (%{customdata[0]:,} of %{customdata[1]:,} papers; %{customdata[2]:,} patent citations)<extra></extra>"}],
+    {margin:{l:8,r:16,t:8,b:36}, xaxis:{tickformat:".0%", gridcolor:css("--grid")}});
+  // economy
+  const OWN = {"Public sector company (PSU)":css("--s2"), "Indian private company":css("--s1"), "Multinational in India":css("--s3")};
+  const co = b.companies.slice(0, 20).reverse();
+  plot("imCompanies", Object.keys(OWN).map(o => {
+    const r = co.filter(c => c.owner === o);
+    return {type:"bar", orientation:"h", name:o, y:r.map(c=>(c.iisc?"★ ":"")+short(c.name)), x:r.map(c=>c.papers), marker:{color:OWN[o]},
+      hovertemplate:"%{y}: %{x:,} papers ("+o+")<extra></extra>"};
+  }), {margin:{l:8,r:16,t:8,b:36}, yaxis:{categoryorder:"array", categoryarray:co.map(c=>(c.iisc?"★ ":"")+short(c.name)), automargin:true}});
+  const cc = I.All.citing_companies.slice().reverse();
+  plot("imCiting", [{type:"bar", orientation:"h", y:cc.map(c=>short(c.name)), x:cc.map(c=>c.works), marker:{color:css("--s3")},
+    hovertemplate:"%{y}: %{x:,} citing papers<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
+  const y = b.by_year;
+  document.getElementById("imYearHint").textContent = `Patent citations for recent papers are incomplete: the patent data ends in ${L}, and patents usually cite papers years after publication`;
+  plot("imYear", [
+    {type:"scatter", mode:"lines+markers", x:y.years, y:y.industry, name:"Industry co-author", line:{color:css("--s1")}, hovertemplate:"%{x}: %{y:,} papers with an industry co-author<extra></extra>"},
+    {type:"scatter", mode:"lines+markers", x:y.years.filter(v=>v<=L), y:y.patent_cited.slice(0, y.years.filter(v=>v<=L).length), name:"Cited by a patent", line:{color:css("--s2")}, hovertemplate:"%{x}: %{y:,} papers cited by a patent<extra></extra>"}],
+    {shapes:[{type:"rect", xref:"x", yref:"paper", x0:L-2.5, x1:L+0.5, y0:0, y1:1, fillcolor:css("--grid"), opacity:0.35, line:{width:0}}]});
+  table("imTopPat", b.top_patented, [{k:"title",t:"Title",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
+    {k:"patents",t:"Patents",n:1,f:v=>fmt(v)},{k:"patents_self",t:"Own",n:1,f:v=>fmt(v)},
+    {k:"offices",t:"Offices",f:v=>esc((v||"").replace(/;/g,", "))},{k:"doi",t:"",f:doiLink}], {sort:"patents"});
+  // case studies
+  document.getElementById("imCases").innerHTML = I.cases.map(c => `<div class="card c6" style="background:var(--surface-2)">
+     <h3>${esc(c.title)}</h3>
+     <div class="row">${[c.institute, ...c.pathways].map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div>
+     <div class="note">${esc(c.summary)}</div>
+     <div class="note" style="margin-top:8px"><b>In our data:</b> ${fmt(c.papers)} papers, ${fmt(c.citations)} citations${hasPat && c.patents?`, cited by ${fmt(c.patents)} patent${c.patents===1?"":"s"}`:""}.
+       ${c.coauthor_orgs.length?`Co-authors: ${esc(c.coauthor_orgs.slice(0,4).join(", "))}.`:""}
+       ${c.users.length?`Cited by: ${c.users.slice(0,5).map(u=>`${esc(u.name.replace(/ \(India\)$/,""))} (${fmt(u.papers)} paper${u.papers===1?"":"s"})`).join(", ")}.`:""}</div>
+     <div class="note" style="margin-top:6px">${c.top.slice(0,3).map(p=>`${esc(short(p.title))} (${p.year}) ${doiLink(p.doi)}`).join("<br>")}</div>
+     <div class="hint" style="margin-top:8px">Sources: ${c.sources.map(x=>ref(esc(x.label), x.url)).join(" · ")}</div></div>`).join("");
+  // evidence table
+  const all = I.evidence.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
+  document.getElementById("imNote").textContent = `${fmt(I.evidence_total)} papers have at least one pathway (both institutes); the ${fmt(I.evidence.length)} strongest are listed here. Every paper and every measure is in outputs/stats/india_pathways_per_paper.csv.`;
+  const keep = {pat:r=>r.patents>0, self:r=>r.patents_self>0, ind:r=>!!r.companies, start:r=>!!r.startup,
+    mis:r=>r.coauthor_sectors.split(";").some(x=>x && x!=="Industry")};
+  const filt = () => {
+    const q = document.getElementById("imSearch").value.toLowerCase(), f = keep[document.getElementById("imPath").value];
+    return all.filter(r => (!f || f(r)) && (!q || [r.title, r.field, r.companies, r.coauthor_sectors, r.citing_sectors].join(" ").toLowerCase().includes(q)));
+  };
+  const draw = () => {
+    const rows = filt();
+    document.getElementById("imCount").textContent = `${fmt(rows.length)} papers`;
+    table("imTable", rows, [{k:"title",t:"Title",f:(v,r)=>`${esc(v)}${r.startup?' <span class="pill">IISc start-up: '+esc(r.startup)+'</span>':''}`},
+      {k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},{k:"field",t:"Field",f:v=>esc(short(v))},
+      {k:"patents",t:"Patents",n:1,f:v=>fmt(v)},
+      {k:"companies",t:"Companies",f:v=>esc(v)},{k:"coauthor_sectors",t:"Co-author sectors",f:v=>esc((v||"").replace(/;/g,", "))},
+      {k:"citing_sectors",t:"Cited by sectors",f:v=>esc((v||"").replace(/;/g,", "))},{k:"doi",t:"",f:doiLink}], {sort:"patents"});
+  };
+  document.getElementById("imSearch").oninput = draw;
+  document.getElementById("imPath").onchange = draw;
+  document.getElementById("imDownload").onclick = () => {
+    const cols = ["title","year","homes","field","patents","patents_self","companies","startup","coauthor_sectors","citing_sectors","doi"];
+    const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+    const csv = [cols.join(","), ...filt().map(r => cols.map(c => q(r[c])).join(","))].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], {type:"text/csv"}));
+    a.download = `group18_india_pathways_${state.inst}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  draw();
+}
+
 function renderReputable() {
   const R = DATA.reputable, b = R[state.inst], k = b.kpis;
   const ni = b.comparison[0];
@@ -670,11 +793,12 @@ function renderReputable() {
    <li><b>Speed</b> = years from publication to the first Indian citation. <b>Indian co-authors</b> = at least one co-author at another Indian institution.</li>
    <li><b>India-focused</b> = the title or abstract names India, an Indian state or city, a region (Himalaya, Western Ghats, Ganga, …) or a national facility or mission (AstroSat, GMRT, Chandrayaan, …). Abstracts come from OpenAlex; ${pct(0.706)} of papers have one, so the rest are judged on the title only.</li>
    <li><b>SDG</b> = UN Sustainable Development Goal tag from <a href="https://help.openalex.org/data/sdgs" target="_blank" rel="noopener">OpenAlex's SDG classifier</a>, counted only at score ≥ ${R.sdg_min_score} (tags at that level are correct about 7 times in 10). <a href="https://sdgs.un.org/goals" target="_blank" rel="noopener">UN goals</a>.</li>
-   <li><b>Not measured</b>: policy and patent citations, media coverage and technology transfer. Free, citable data for these is not available for Indian institutions. Indian citations count papers, not people or practice.</li></ul>`;
+   <li><b>Beyond research</b>: patents, industry, start-ups and use by national missions and public services are measured on the <i>Impact on India</i> tab; the last three rows of the table compare them here. Indian citations count papers, not people or practice.</li></ul>`;
   const metrics = [["papers","Papers","n"],["median_citations","Median citations","n1"],["mean_fwci","Mean FWCI (world = 1)","n2"],["top10_share","In global top 10% of their field","p"],
     ["cited_in_india_share","Cited at least once in India","p"],["indian_citations_mean","Indian citations per paper","n1"],["indian_institutions_mean","Indian institutions citing, per paper","n1"],
     ["ici_mean","Indian Citation Index (1 = typical)","n2"],["indian_share","Indian share of all citations","p"],["reaches_wider_share","Cited by a state/private university or college","p"],
-    ["median_lag","Years to first Indian citation (median)","n1"],["indian_coauthor_share","With an Indian co-author institution","p"],["india_focus_share","India-focused","p"],["sdg_share","Tagged with an SDG","p"]];
+    ["median_lag","Years to first Indian citation (median)","n1"],["indian_coauthor_share","With an Indian co-author institution","p"],["india_focus_share","India-focused","p"],["sdg_share","Tagged with an SDG","p"],
+    ["patent_share",`Cited by a patent (papers up to ${DATA.impact.settings.last_patent_year})`,"p"],    ["industry_share","With an industry co-author in India","p"],["nonacademic_share","Used outside academia in India (Impact on India tab)","p"]];
   const groups = b.comparison.map(g=>g.group);
   const rows = metrics.map(([key,label,f]) => Object.assign({metric:label}, ...b.comparison.map((g,i)=>({["g"+i]: g[key], ["f"+i]: f}))));
   table("rpComp", rows, [{k:"metric",t:"Measure"}, ...groups.map((g,i)=>({k:"g"+i, t:esc(g), n:1,
@@ -727,7 +851,7 @@ function renderReputable() {
   draw();
 }
 
-const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Faculty":renderFaculty,
+const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Impact on India":renderImpact,"Faculty":renderFaculty,
   "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
@@ -752,7 +876,7 @@ document.getElementById("themeBtn").onclick = () => {
   const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = cur==="dark" ? "light" : "dark"; render();
 };
-document.getElementById("subtitle").textContent = `DPCN Research Mapping Project · Group ${DATA.meta.group} · data generated ${DATA.meta.generated}`;
+document.getElementById("subtitle").textContent = `DPCN Research Mapping Project · Group ${DATA.meta.group} · OpenAlex data collected ${DATA.meta.data_collected}`;
 if (!TABS.includes(state.tab)) state.tab = "Overview";
 render();
 </script>

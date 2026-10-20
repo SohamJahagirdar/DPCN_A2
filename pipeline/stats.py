@@ -1,5 +1,4 @@
 """Step 4 - statistics at institution / department / faculty level (+ network & connectivity summaries)."""
-import datetime as dt
 import json
 
 import numpy as np
@@ -86,7 +85,7 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
     papers, fac = t["papers"], t["faculty"]
     st = dict(meta=dict(group=config.GROUP, institutions={k: v["name"] for k, v in config.INSTITUTIONS.items()},
                         years=[config.YEAR_FROM, config.YEAR_TO], sample=config.SAMPLE,
-                        generated=dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        data_collected=config.DATA_COLLECTED,
                         mega_threshold=config.MEGA_AUTHOR_THRESHOLD,
                         flows_available=nets["flows_available"],
                         n_papers=len(papers), n_rows=len(t["dataset"]),
@@ -110,7 +109,8 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
 
     st["faculty"] = records(fac.sort_values("papers", ascending=False),
                             ["name", "inst", "department", "rank", "papers", "citations", "h_index", "h_index_career",
-                             "q1_share", "high_impact_papers", "journals_used", "top3_journal_share", "top3_journals"]
+                             "q1_share", "high_impact_papers", "nature_index_papers", "journals_used", "top3_journal_share",
+                             "top3_journals"]
                             if "h_index_nonmega" in fac else None)
 
     # --------------------------------------------------------------- citation network
@@ -191,6 +191,8 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
     st["journals"] = journal_stats(t)
     from pipeline.reputable import reputable_stats
     st["reputable"] = reputable_stats(t, out_dir)
+    from pipeline.impact import impact_stats
+    st["impact"] = impact_stats(t, out_dir)
     st = _clean(st)
     json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
     write_stat_tables(st, out_dir)

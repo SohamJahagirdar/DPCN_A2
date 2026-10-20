@@ -14,7 +14,9 @@ import config
 
 SJR_RDA = config.EXTERNAL / "sjr_journals.rda"
 SJR_PKL = config.EXTERNAL / "sjr_lookup.pkl"
-SJR_URL = "https://raw.githubusercontent.com/ikashnitsky/sjrdata/master/data/sjr_journals.rda"
+# pinned to sjrdata v1.0.25 (7 Jun 2026; SJR years up to 2025) so every teammate's build gets the same quartiles
+SJR_URL = ("https://raw.githubusercontent.com/ikashnitsky/sjrdata/"
+           "f7ed8273edd350cfd36db0a4832a5ce1542cf77f/data/sjr_journals.rda")
 CORE_CSV = config.EXTERNAL / "core_2023.csv"
 
 
