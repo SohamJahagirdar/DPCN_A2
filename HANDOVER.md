@@ -77,6 +77,10 @@ The course (instructor: **Prof. Chittaranjan Hens**) maps the research output of
 - **Statistics report:** a 10-slide draft was made on 13–14 Oct. Its numbers and flag definition are outdated and it is not in the repo. See section 12.
 - **Team names** for the report cover are not recorded yet.
 - **Design decisions** still worth confirming with the instructor are listed in README §6. None of them blocks anything.
+- **Additional network analyses:** `python run.py advanced` computes IISc–TIFR bridge nodes,
+  centrality versus publication prestige, and rich-club/assortativity measures from
+  the committed generated CSV outputs, and regenerates the dashboard's Network extensions
+  tab. It does not require `data/raw/`.
 
 ### 2.3 Data snapshot
 The data was collected from OpenAlex on **13–15 Oct 2026** (plus the patent citations, 20 Oct) and is shared as `group18_data_raw_2026-10-20.zip`. OpenAlex changes daily, so **everyone should build from this same raw data** (section 3) or the numbers will drift between teammates. The other downloads are pinned to fixed versions: SCImago data from `sjrdata` v1.0.25, Plotly 2.35.2 and vis-network 9.1.9. The build itself is deterministic, so the same raw data always gives the same files.
@@ -282,7 +286,7 @@ All thresholds live in `config.py`. Change them there and rebuild. Every definit
   - `DATA` points to whichever version the *Flagged* switch selects. **Renderers must read `DATA`** so the switch works.
   - Exception: the Large-team tab reads the flagged-paper list from `DATA_ALL`.
 - **State and deep links.** `state = {inst, tab, flag}` is saved in localStorage and can be set by URL hash, e.g. `dashboard/index.html#tab=Journal%20choice&inst=TIFR&flag=out&theme=light`.
-- **Tabs (11):** Overview · Publications · Journal choice · Reputable journals & India · Impact on India · Faculty · Large-team papers · Citation network · Co-authorship network · Indian connectivity · Method.
+- **Tabs (12):** Overview · Publications · Journal choice · Reputable journals & India · Impact on India · Faculty · Large-team papers · Citation network · Co-authorship network · Indian connectivity · Network extensions · Method.
 - **Helpers in the template:**
   - `plot(id, traces, layout)` for Plotly charts and `table(id, rows, cols)` for sortable tables;
   - `tiles(id, items)` for the key-number tiles;

@@ -256,6 +256,23 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+  <section class="tab" data-tab="Network extensions">
+    <div class="tiles" id="nxTiles"></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card c6"><h3>IISc–TIFR bridge nodes</h3>
+        <div class="hint">Faculty with cross-institute co-authorship edges; rankings use the generated authorship network.</div>
+        <div id="nxBridge" class="tablewrap"></div></div>
+      <div class="card c6"><h3>Network fragmentation</h3>
+        <div class="hint">Faculty-network components before and after removing IISc–TIFR edges.</div>
+        <div id="nxFragment" class="tablewrap"></div></div>
+      <div class="card c12"><h3>Centrality vs. publication prestige</h3>
+        <div class="hint">Pearson and Spearman correlations; these are associations, not causal effects.</div>
+        <div id="nxCentrality" class="plot tall"></div></div>
+      <div class="card c6"><h3>Rich-club coefficient</h3><div id="nxRich" class="plot"></div></div>
+      <div class="card c6"><h3>Degree assortativity</h3><div id="nxAssort" class="tablewrap"></div></div>
+    </div>
+  </section>
+
   <section class="tab" data-tab="Method">
     <div class="card"><div id="method" class="note"></div></div>
   </section>
@@ -267,7 +284,7 @@ const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Impact on India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Impact on India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Network extensions","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -573,6 +590,46 @@ function renderConnectivity() {
   plot("icFlowCl", tr, {barmode:"group", margin:{l:48,r:16,t:8,b:90}});
 }
 
+function renderNetworkExtensions() {
+  const x = DATA.advanced;
+  if (!x) {
+    document.getElementById("nxTiles").innerHTML = `<div class="note">Advanced network statistics are unavailable. Run <code>python run.py build</code>.</div>`;
+    return;
+  }
+  const s = x.bridge.summary || {};
+  tiles("nxTiles", [
+    ["IISc–TIFR edges", fmt(s.cross_institute_edges)],
+    ["Faculty nodes", fmt(s.faculty_nodes)],
+    ["Largest component", fmt(s.largest_component_all)],
+    ["After bridge removal", fmt(s.largest_component_without_iisc_tifr_edges)],
+    ["Degree assortativity", fmt((x.rich_club.summary.find(r=>r.variant==="with_flagged")||{}).degree_assortativity, 3)]
+  ]);
+  table("nxBridge", x.bridge.nodes, [
+    {k:"name",t:"Faculty"}, {k:"inst",t:"Inst."}, {k:"department",t:"Department",f:v=>esc(short(v))},
+    {k:"cross_institute_edges",t:"Cross-institute edges",n:1},
+    {k:"cross_institute_partners",t:"IISc/TIFR partners",n:1}
+  ], {sort:"cross_institute_edges"});
+  table("nxFragment", [
+    {metric:"Connected components", all:s.components_all, without:s.components_without_iisc_tifr_edges},
+    {metric:"Largest component", all:s.largest_component_all, without:s.largest_component_without_iisc_tifr_edges}
+  ], [{k:"metric",t:"Metric"},{k:"all",t:"All edges",n:1,f:v=>fmt(v)},{k:"without",t:"Without IISc–TIFR edges",n:1,f:v=>fmt(v)}]);
+  const corr = x.centrality.correlations.filter(r => ["q1_share","high_impact_share","h_index"].includes(r.prestige));
+  plot("nxCentrality", [
+    {type:"bar", x:corr.map(r=>`${r.centrality} · ${r.prestige}`), y:corr.map(r=>r.pearson), name:"Pearson", marker:{color:css("--s1")}},
+    {type:"bar", x:corr.map(r=>`${r.centrality} · ${r.prestige}`), y:corr.map(r=>r.spearman), name:"Spearman", marker:{color:css("--s2")}}
+  ], {barmode:"group", yaxis:{title:"correlation", zeroline:true, gridcolor:css("--grid")}, xaxis:{tickangle:-35}});
+  const rc = x.rich_club.coefficients.filter(r => r.degree_threshold > 0);
+  plot("nxRich", ["with_flagged","without_flagged"].map((variant, j) => {
+    const rows = rc.filter(r=>r.variant===variant);
+    return {x:rows.map(r=>r.degree_threshold), y:rows.map(r=>r.rich_club_coefficient), name:variant.replace("_"," "), mode:"lines+markers", marker:{color:j?css("--s2"):css("--s1")}};
+  }), {xaxis:{title:"minimum degree"}, yaxis:{title:"rich-club coefficient", gridcolor:css("--grid")}});
+  table("nxAssort", x.rich_club.summary, [
+    {k:"variant",t:"Variant",f:v=>esc(String(v).replace("_"," "))},
+    {k:"nodes",t:"Nodes",n:1,f:v=>fmt(v)}, {k:"edges",t:"Edges",n:1,f:v=>fmt(v)},
+    {k:"degree_assortativity",t:"Assortativity",n:1,f:v=>fmt(v,3)}
+  ]);
+}
+
 function renderMethod() {
   const m = DATA.meta;
   document.getElementById("method").innerHTML = `
@@ -852,7 +909,7 @@ function renderReputable() {
 }
 
 const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Impact on India":renderImpact,"Faculty":renderFaculty,
-  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Method":renderMethod};
+  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Indian connectivity":renderConnectivity,"Network extensions":renderNetworkExtensions,"Method":renderMethod};
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}

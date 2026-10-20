@@ -4,6 +4,7 @@ Usage
   python run.py build            # dataset + networks + stats + dashboard from data/raw (~4 min, no API calls)
   python run.py fetch [--steps S1,S2,...] [--max-calls N]
   python run.py all              # fetch then build
+  python run.py advanced         # extra network analyses from existing outputs
 
 Fetch steps (default = all except inflow_agg; every API response is cached in data/cache):
   corpus       works of IISc and TIFR, 2016-2026 (list API)
@@ -88,7 +89,7 @@ def do_build():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["fetch", "build", "all"])
+    ap.add_argument("cmd", choices=["fetch", "build", "all", "advanced"])
     ap.add_argument("--steps", default="corpus,fullauthors,sources,relevance,authors,partners,outflow,inflow,flows_new,profiles,patents",
                     help="'inflow' = exact in-flow citation edges (~1,400 calls; fills cited_by_indian_inst); "
                          "'inflow_agg' = cheaper aggregate in-flow (~700 calls)")
@@ -100,6 +101,9 @@ def main():
             print("Building with what is available so far ...")
     if a.cmd in ("build", "all"):
         do_build()
+    if a.cmd == "advanced":
+        from pipeline import dashboard
+        dashboard.write_dashboard_from_outputs()
 
 
 if __name__ == "__main__":

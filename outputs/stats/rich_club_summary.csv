@@ -1,0 +1,3 @@
+variant,nodes,edges,degree_assortativity,max_degree
+with_flagged,734,2002,0.2056947651612022,40
+without_flagged,723,1809,0.21523812576553158,38

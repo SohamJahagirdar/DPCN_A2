@@ -1,0 +1,88 @@
+person,name,inst,department,cross_institute_edges,cross_institute_partners
+R:TIFR:655,Pratap Raychaudhuri,TIFR,Condensed Matter Physics and Materials Science,14,7
+R:TIFR:594,Ullas Kolthur,TIFR,Biological Sciences,12,9
+R:IISc:443,Vibhor Singh,IISc,Physics,9,3
+R:TIFR:609,Jyotishman Dasgupta,TIFR,Chemical Sciences,8,3
+R:TIFR:579,Rahul Vaze,TIFR,School of Technology and Computer Science,8,3
+R:IISc:60,Aveek Bid,IISc,Physics,7,2
+R:TIFR:643,Rajdeep Sensarma,TIFR,Theoretical Physics,6,4
+R:IISc:97,Anindya Das,IISc,Physics,6,3
+R:IISc:403,Satish A Patil,IISc,Solid State and Structural Chemistry Unit,6,1
+R:IISc:469,Rajesh Sundaresan,IISc,Electrical Communication Engineering,5,5
+H:IISc:A5060263169,Sarath Yasodharan,IISc,Electrical Communication Engineering,5,5
+R:TIFR:617,Ravindra Venkatramani,TIFR,Chemical Sciences,5,3
+R:TIFR:647,A Thamizhavel,TIFR,Condensed Matter Physics and Materials Science,5,2
+R:IISc:275,Chandra R Murthy,IISc,Electrical Communication Engineering,5,1
+R:TIFR:650,Mandar Deshmukh,TIFR,Condensed Matter Physics and Materials Science,5,1
+R:IISc:233,Ranjan Laha,IISc,Centre for High Energy Physics,4,2
+R:IISc:470,Ravi Nagalingam Sundaresan,IISc,Microbiology and Cell Biology,4,1
+R:IISc:271,Banibrata Mukhopadhyay,IISc,Physics,3,3
+R:IISc:188,Manish Jain,IISc,Physics,3,3
+R:IISc:374,Nirupam Roy,IISc,Physics,3,3
+R:TIFR:614,Vivek Polshettiwar,TIFR,Chemical Sciences,3,3
+R:IISc:504,Kaliginedi Veerabhadrarao,IISc,Inorganic and Physical Chemistry,3,1
+R:TIFR:556,Mahan Mj,TIFR,School of Mathematics,3,1
+R:IISc:369,Narayanan Rishikesh,IISc,Molecular Biophysics Unit,3,1
+R:TIFR:591,Shubha Tole,TIFR,Biological Sciences,3,1
+R:IISc:37,Siddharth Barman,IISc,Computer Science and Automation,3,1
+R:IISc:166,Subhojoy Gupta,IISc,Mathematics,3,1
+R:TIFR:582,Umang Bhaskar,TIFR,School of Technology and Computer Science,3,1
+R:TIFR:648,Arnab Bhattacharya,TIFR,Condensed Matter Physics and Materials Science,2,2
+R:TIFR:575,Piyush Srivastava,TIFR,School of Technology and Computer Science,2,2
+R:IISc:319,Prabhakaran E N,IISc,Organic Chemistry,2,2
+R:TIFR:576,Prahladh Harsha,TIFR,School of Technology and Computer Science,2,2
+R:IISc:423,Prateek Sharma,IISc,Physics,2,2
+H:TIFR:A5064593742,Pushan Ayyub,TIFR,Condensed Matter Physics and Materials Science,2,2
+H:TIFR:A5055374689,Ramakrishna V. Hosur,TIFR,Chemical Sciences,2,2
+R:TIFR:580,Ramprasad Saptharishi,TIFR,School of Technology and Computer Science,2,2
+H:TIFR:A5109269131,Sandeep Juneja,TIFR,School of Technology and Computer Science,2,2
+R:IISc:406,Saumitra Das,IISc,Microbiology and Cell Biology,2,2
+R:IISc:3,Shubhada Agrawal,IISc,Electrical Communication Engineering,2,2
+R:IISc:10,Anil Kumar P S,IISc,Physics,2,1
+R:IISc:487,Anoop Thomas,IISc,Inorganic and Physical Chemistry,2,1
+H:TIFR:A5060279025,Anupam Ray,TIFR,Unknown,2,1
+R:TIFR:627,Basudeb Dasgupta,TIFR,Theoretical Physics,2,1
+R:TIFR:612,Kalaivanan Nagarajan,TIFR,Chemical Sciences,2,1
+R:IISc:183,Srikanth Krishnan Iyer,IISc,Mathematics,2,1
+R:IISc:267,Subroto Mukerjee,IISc,Physics,2,1
+R:TIFR:599,A. Gopakumar,TIFR,Astronomy and Astrophysics,1,1
+H:TIFR:A5101878732,A. K. Nigam,TIFR,Condensed Matter Physics and Materials Science,1,1
+R:IISc:436,Abhishek Kumar Singh,IISc,Materials Research Centre,1,1
+R:IISc:1,Aetukuri Naga Phani B,IISc,Solid State and Structural Chemistry Unit,1,1
+R:IISc:527,Ajay Kumar Sood,IISc,Physics,1,1
+R:IISc:141,Ambarish Ghosh,IISc,Centre for Nano Science and Engineering,1,1
+R:IISc:291,Awadhesh Narayan,IISc,Solid State and Structural Chemistry Unit,1,1
+R:IISc:26,Balaji K N,IISc,Microbiology and Cell Biology,1,1
+R:IISc:185,Balaji R Jagirdar,IISc,Inorganic and Physical Chemistry,1,1
+R:TIFR:601,Bhaswati Mookerjea,TIFR,Astronomy and Astrophysics,1,1
+R:IISc:84,Chattopadhyay K,IISc,Materials Engineering,1,1
+R:TIFR:604,Devendra K. Ojha,TIFR,Astronomy and Astrophysics,1,1
+H:IISc:A5052290692,Hanudatta S. Atreya,IISc,NMR Research Centre,1,1
+H:IISc:A5075379669,Jayashree Nagesh,IISc,Solid State and Structural Chemistry Unit,1,1
+R:TIFR:603,Joe Philip Ninan,TIFR,Astronomy and Astrophysics,1,1
+H:TIFR:A5049444353,K. Sridhar,TIFR,Theoretical Physics,1,1
+R:IISc:20,Kavita Babu,IISc,Centre for Neuroscience,1,1
+R:IISc:531,Krupanidhi S B,IISc,MRC,1,1
+R:IISc:451,Kumaravel Somasundaram,IISc,Microbiology and Cell Biology,1,1
+R:IISc:440,Mahavir Singh,IISc,Molecular Biophysics Unit,1,1
+R:IISc:208,Navin Kashyap,IISc,Electrical Communication Engineering,1,1
+R:IISc:300,Pavan Nukala,IISc,Centre for Nano Science and Engineering,1,1
+H:IISc:A5031956198,Perumal Arumugam Desingu,IISc,Microbiology and Cell Biology,1,1
+R:IISc:241,Prabal Kumar Maiti,IISc,Physics,1,1
+R:IISc:228,Praveen Kumar,IISc,Materials Engineering,1,1
+R:IISc:189,Rajeev Kumar Jain,IISc,Physics,1,1
+R:IISc:360,Rajeev Ranjan,IISc,Materials Engineering,1,1
+H:TIFR:A5024372026,Roop Mallik,TIFR,Biological Sciences,1,1
+H:IISc:A5048982964,S. Raghothama,IISc,NMR Research Centre,1,1
+R:TIFR:590,Sandhya Koushika,TIFR,Biological Sciences,1,1
+R:TIFR:600,Shravan Hanasoge,TIFR,Astronomy and Astrophysics,1,1
+R:IISc:338,Sona Rajakumari,IISc,Developmental Biology and Genetics,1,1
+R:TIFR:597,Sourav Chatterjee,TIFR,Astronomy and Astrophysics,1,1
+R:TIFR:635,Subhabrata Majumdar,TIFR,Theoretical Physics,1,1
+R:IISc:506,Sudhir Kumar Vempati,IISc,Centre for High Energy Physics,1,1
+R:TIFR:596,Sudip Bhattacharyya,TIFR,Astronomy and Astrophysics,1,1
+R:TIFR:602,Suvodip Mukherjee,TIFR,Astronomy and Astrophysics,1,1
+R:IISc:107,Tanmoy Das,IISc,Physics,1,1
+R:IISc:503,Umesh Varshney,IISc,Microbiology and Cell Biology,1,1
+R:TIFR:615,Vamsee Voora,TIFR,Chemical Sciences,1,1
+R:TIFR:659,Varun Harbola,TIFR,Condensed Matter Physics and Materials Science,1,1

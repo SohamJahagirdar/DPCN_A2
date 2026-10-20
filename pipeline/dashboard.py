@@ -46,3 +46,36 @@ def write_dashboard(st, st_without_flagged=None, comparison=None):
         print(f"[dashboard] could not embed JS libraries ({e}); keeping CDN links")
     config.DASHBOARD_FILE.write_text(html, encoding="utf-8")
     print(f"[dashboard] {config.DASHBOARD_FILE} ({len(html) / 1e6:.1f} MB)")
+
+
+def write_dashboard_from_outputs():
+    """Regenerate the dashboard from committed generated outputs.
+
+    This path is for the repository snapshot, where ``data/raw`` and
+    ``data/processed`` are intentionally absent. The existing dashboard
+    supplies the previously generated statistics; the advanced network
+    section is recomputed from the committed CSV outputs.
+    """
+    from pipeline import advanced_networks
+
+    existing = config.DASHBOARD_FILE.read_text(encoding="utf-8")
+
+    def embedded(name, next_declaration):
+        start = existing.index(f"const {name} = ") + len(f"const {name} = ")
+        value, _ = json.JSONDecoder().raw_decode(existing[start:])
+        return value
+
+    data_all = embedded("DATA_ALL", "const DATA_NF")
+    data_nf = embedded("DATA_NF", "const COMPARE")
+    compare = embedded("COMPARE", "let DATA")
+    advanced_networks.run()
+    advanced = advanced_networks.load_results()
+    data_all["advanced"] = advanced
+    if data_nf:
+        data_nf["advanced"] = advanced
+    html = (TEMPLATE.read_text(encoding="utf-8")
+            .replace("/*__DATA__*/null", _js(data_all))
+            .replace("/*__DATA_NF__*/null", _js(data_nf))
+            .replace("/*__COMPARE__*/null", _js(compare)))
+    config.DASHBOARD_FILE.write_text(html, encoding="utf-8")
+    print(f"[dashboard] {config.DASHBOARD_FILE} regenerated from committed outputs")
