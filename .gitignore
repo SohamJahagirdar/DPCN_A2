@@ -24,7 +24,8 @@ QUESTIONS_FOR_PROFESSOR.md
 HANDOVER.md
 AGENTS.md
 CLAUDE.md
-report/
+report/*
+!report/18_IISc_TIFR.pdf
 
 __pycache__/
 *.pyc
