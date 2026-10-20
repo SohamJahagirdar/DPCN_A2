@@ -4,6 +4,16 @@ Course: Dynamics & Physics of Complex Networks (DPCN), 2026 · Instructor: Prof.
 
 ---
 
+## Unified dashboard on the development branch
+
+The offline `dashboard/index.html` combines the original Research Map, Network
+Resilience and a native Follow the Idea tab in the existing horizontal-tab design.
+Shared institution and flagged-seed-paper controls, light/dark/system themes,
+worldwide citation scope and evidence limitations are preserved. Deterministic
+offline generation requires the explicitly supplied verified external study and
+historical baseline; it never acquires data or publishes anything. See
+[the generation command, required inputs and checks](docs/UNIFIED_DASHBOARD.md).
+
 ## 1. Objective
 
 The course maps the research output of 43+ Indian institutions (IITs, IIITs, NITs, central universities, IISc/TIFR/IISERs, CSIR and DAE labs). Each of the 30 groups maps its 2–3 assigned institutions. Group 18 covers **IISc Bangalore** and **TIFR Mumbai**.
@@ -30,7 +40,7 @@ The analysis stays within our two institutions; links to other Indian institutes
 | Citation network edges | `outputs/citation_network.csv` | ✅ |
 | Authorship network edges | `outputs/authorship_network.csv` | ✅ |
 | Aggregated Indian connections | `outputs/indian_connections.csv` | ✅ |
-| Interactive dashboard (incl. both network visualisations) | **Live: https://sohamjahagirdar.github.io/DPCN_A2/** · or open `dashboard/index.html` offline | ✅ |
+| Interactive dashboard (incl. both network visualisations) | Published baseline: https://sohamjahagirdar.github.io/DPCN_A2/ · unified development version: open `dashboard/index.html` offline | ✅ |
 | Statistics report (≤10 slides) | 10-slide deck, shared separately as PPTX/PDF | ✅ |
 
 Supporting outputs:
@@ -245,9 +255,11 @@ with all papers versus 10.072% without >12-author papers; the top ten by degree
 and structural score have no overlap in either variant. These are hypothetical
 connectivity effects, not measures of researcher quality or actual departures.
 
-This feature branch changes source, tests and documentation only. Existing
-generated outputs and the dashboard are unchanged; the integrator must rebuild
-with the historical raw snapshot before publishing the new tab and CSVs.
+The permanent development branch now includes the unified generated dashboard
+with both analyses. It is rendered offline from the pinned historical baseline
+and verified external study; existing output CSVs remain unchanged. Follow
+[the dashboard-only generation instructions](docs/UNIFIED_DASHBOARD.md).
+The published baseline and main branch are unchanged; publication is separate.
 
 ## 4. How to run
 

@@ -80,6 +80,11 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
 .tab [hidden]{display:none!important}
 .note{color:var(--ink-2);font-size:13px}
 .note li{margin:4px 0}
+
+.if-view h2{font-size:18px;margin:12px 0}.if-view h3{font-size:14px}.if-view .section-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:20px 0 10px}.if-view .section-head p,.if-view .tiny,.if-view .eyebrow{font-size:12px;color:var(--ink-2)}
+.if-view .card{margin-bottom:16px}.if-details>.card{grid-column:span 6}.if-cases>.case{grid-column:span 4;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}.if-view .tablewrap{max-height:620px}.if-view .seed-button{border:0;background:transparent;color:var(--accent);font:inherit;text-align:left;padding:0;cursor:pointer}.if-view .id{display:block;font-size:11px;color:var(--muted);overflow-wrap:anywhere}.if-view .toolbar,.if-view .pager,.if-view .metric-row,.if-view .path-direction{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0}.if-view .metric-row strong{display:block;font-size:24px}.if-view .metric-row span,.if-view .badge{font-size:12px}.if-view .badge{border:1px solid var(--border);border-radius:8px;padding:2px 6px;color:var(--ink-2);background:var(--surface-2)}.if-view .detail-title{font-weight:600;margin:12px 0}.if-view button:not(.seed-button){background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink-2);padding:6px 10px;font:inherit;cursor:pointer}.if-view button:disabled{opacity:.5;cursor:default}.if-view .path-row{border-left:2px solid var(--accent);padding:8px 12px;margin:12px 0}.if-view pre{font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto}.if-view summary{cursor:pointer;color:var(--accent)}.if-view dl{font-size:13px;display:grid;grid-template-columns:150px 1fr;gap:8px}.if-view dd{margin:0;overflow-wrap:anywhere}.if-view .empty{padding:16px;color:var(--ink-2)}.if-view .plot{min-height:340px}.if-view .row label{display:flex;flex-direction:column;gap:4px}.if-view .toolbar label{display:flex;gap:6px;align-items:center}.if-view input[type=search]{max-width:100%}
+@media(max-width:1000px){.if-details>.card,.if-cases>.case{grid-column:span 12}}@media(max-width:560px){.if-view dl{grid-template-columns:1fr}.if-view dd{margin-bottom:8px}.if-view .row{align-items:stretch}.if-view .row label{max-width:100%}}
+
 </style>
 </head>
 <body>
@@ -240,6 +245,23 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     </div>
   </section>
 
+<section class="tab if-view" data-tab="Follow the Idea" id="ideaFlowTab">
+<div class="row note"><span>IISc Bangalore &nbsp; / &nbsp; TIFR Mumbai</span><span id="if-cutoffLabel"></span></div>
+<section id="if-overview"><h2>Follow the Idea</h2><p class="note">Explore worldwide papers citing the original collection. Bibliographic links do not establish idea adoption. <span class="pill" id="if-scopePill"></span></p><div id="if-notice" class="banner" role="status"></div><div class="tiles" id="if-tiles"></div><p id="if-scopeNote" class="note"></p></section>
+<section id="if-explorer"><div class="section-head"><div><div class="eyebrow">The original paper collection</div><h2>Explore the seeds</h2><p>One paper per original work ID. Joint institutional homes remain visible.</p></div><button id="if-downloadSeeds">Export filtered seeds · CSV</button></div>
+<div class="card"><div class="row"><label>Search title or work ID<input id="if-search" type="search" placeholder="Find a paper…"></label><label hidden>Institution<select id="if-institution"><option value="All">Both institutions</option><option>IISc</option><option>TIFR</option><option value="Joint">Joint IISc / TIFR</option></select></label><label>Retrieved seed field<select id="if-field"><option value="All">All fields</option></select></label><label>Publication year<select id="if-year"><option value="All">All years</option></select></label><label>Query coverage<select id="if-coverageFilter"><option value="All">All states</option><option value="complete">Complete</option><option value="partial">Partial / inconsistent</option><option value="not_started">Not acquired</option></select></label></div>
+<div class="toolbar"><label><input id="if-pilotOnly" type="checkbox">24-paper pilot only</label><span id="if-resultCount" aria-live="polite"></span><label class="push">Sort<select id="if-sort"><option value="id">Work ID</option><option value="citers">Observed G1 count</option><option value="share">Cross-field share</option><option value="year">Publication year</option></select></label></div>
+<div class="tablewrap"><table><thead><tr><th>Seed paper</th><th>Home / year</th><th>Retrieved field</th><th>Observed G1</th><th>Known / unknown fields</th><th>Cross-field share</th><th>Query</th></tr></thead><tbody id="if-seedRows"></tbody></table></div>
+<div class="pager"><span id="if-pageCount"></span><div><button id="if-previous">← Previous</button> <button id="if-next">Next →</button></div></div></div></section>
+<section id="if-paths"><div class="section-head"><div><div class="eyebrow">Read the relationship</div><h2>A paper, and what cites it</h2><p>Displayed direction: original paper → its citers. Every arrow means “is cited by.”</p></div></div>
+<div class="grid if-details"><div class="card" id="if-seedDetail"></div><div class="card"><div class="eyebrow">Citing disciplines</div><label class="tiny">Field-composition scope<select id="if-compositionWindow"><option value="cutoff">G1 · all observations through cutoff</option><option value="age">G1 · seed year and three following years</option><option value="g2">G2 · sampled intermediates only</option></select></label><div id="if-composition"></div><div id="if-compositionChart" class="plot" hidden></div></div></div>
+<div class="card" style="margin-top:16px"><div class="path-direction"><b>G0 · seed</b><span class="arrow">→</span><b>G1 · direct citer</b><span class="arrow">→</span><b>G2 · sampled later citer</b></div><p class="tiny" id="if-pathScope"></p><div id="if-pathRows"></div><button id="if-downloadPaths">Export displayed path excerpt · CSV</button></div></section>
+<section><div class="section-head"><div><div class="eyebrow">Candidates for closer reading</div><h2>Links worth investigating</h2><p>Selected transparently after acquisition. Candidate status is separate from passage-level verification.</p></div></div><div id="if-cases" class="grid if-cases"></div></section>
+<section id="if-reviewedSection"><div class="section-head"><div><div class="eyebrow">Evidence from the actual papers</div><h2>Source-checked links</h2><p>Text inspection supports only the stated interpretation; independent human review is reported separately.</p></div></div><div id="if-reviewedCases" class="grid if-cases"></div></section>
+<section id="if-coverage"><div class="section-head"><div><div class="eyebrow">What this record can establish</div><h2>Coverage & methods</h2></div></div><div class="grid if-details"><div class="card"><h3>Full-study acquisition coverage</h3><dl id="if-coverageStats"></dl><details><summary>Show frontier states</summary><pre id="if-frontierStates"></pre></details></div><div class="card methods"><h3>Read the measures</h3><p>Cross-field share is the number of distinct, known-field direct citers whose primary field differs from the seed’s retrieved primary field, divided by all known-field direct citers. An unknown field is never counted as in-field.</p><p>Raw field richness grows with citation volume. Exact rarefied richness at ten known citers is available only when at least ten are classified. It addresses sample size, not indexing bias.</p><p>Equal-age comparisons cover the publication year and three following calendar years. Recent incomplete windows are right-censored. Same-year order is indeterminate; year inversions remain flagged.</p><p>A complete query means its OpenAlex Core pagination was exhausted. It does not establish complete coverage of world scholarship. G2 is sampled, with unvisited branches explicitly unknown.</p><p id="if-taxonomyNote"></p></div></div><details class="card" style="margin-top:16px"><summary>Source provenance and input hashes</summary><pre id="if-provenance"></pre></details></section>
+<div class="footer" id="if-footer"></div>
+</section>
+
   <section class="tab" data-tab="Indian connectivity">
     <div class="tiles" id="icTiles"></div>
     <div class="grid" style="margin-top:16px">
@@ -256,18 +278,20 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
 </main>
 
 <script>
+const IDEA_DATA = /*__IDEA_DATA__*/null;
+/*__IDEA_VIEW__*/
 const DATA_ALL = /*__DATA__*/null;
 const DATA_NF = /*__DATA_NF__*/null;     // same analysis without flagged papers (> 12 authors)
 const COMPARE = /*__COMPARE__*/null;
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Network Resilience","Indian connectivity","Method"];
+const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Faculty","Large-team papers","Citation network","Co-authorship network","Network Resilience","Follow the Idea","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
 new URLSearchParams(location.hash.slice(1)).forEach((v,k) => {
   if (k in state) state[k] = decodeURIComponent(v);
-  if (k === "theme" && (v === "light" || v === "dark")) document.documentElement.dataset.theme = v;
+  if (k === "theme") { if(v === "light" || v === "dark") document.documentElement.dataset.theme = v; else if(v === "system") delete document.documentElement.dataset.theme; }
 });
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const SER = () => [1,2,3,4,5,6,7,8].map(i => css("--s"+i));
@@ -854,8 +878,21 @@ function renderResilience() {
   draw();
 }
 
+
+let ideaFlowView=null,ideaChartWork=Promise.resolve(),ideaChartRevision=0;
+function renderIdeaFlow(){
+ const root=document.getElementById('ideaFlowTab');
+ if(!IDEA_DATA){root.innerHTML='<div class="banner">Follow the Idea data is unavailable in this build. Generate with the verified external study inputs.</div>';return;}
+ if(!ideaFlowView){ideaFlowView=window.IdeaFlowView.create({data:IDEA_DATA,root,prefix:'if-',deferRender:true,compositionPlot:(entries,seed,metric,names)=>{
+   const element=document.getElementById('if-compositionChart'),revision=++ideaChartRevision;element.hidden=!entries.length;if(!entries.length){element.style.visibility='visible';element.setAttribute('aria-busy','false');return;}
+   element.style.visibility='hidden';element.setAttribute('aria-busy','true');
+   ideaChartWork=ideaChartWork.then(()=>{if(revision!==ideaChartRevision)return;return plot(element.id,[{type:'bar',orientation:'h',x:entries.map(e=>e[1]),y:entries.map(e=>names[e[0]]||e[0]),marker:{color:entries.map(e=>e[0]===seed.field_id?css('--s3'):css('--s1'))}}],{margin:{l:200,r:16,t:8,b:40},yaxis:{autorange:'reversed',automargin:true},xaxis:{title:'Classified distinct citing works'}});}).then(()=>{if(revision===ideaChartRevision){element.style.visibility='visible';element.setAttribute('aria-busy','false');}}).catch(error=>{element.style.visibility='visible';element.setAttribute('aria-busy','false');console.error(error);});
+ }});window.unifiedIdeaFlow=ideaFlowView;}
+ ideaFlowView.setScope(state.inst,state.flag);
+}
+
 const RENDER = {"Overview":renderOverview,"Publications":renderPublications,"Journal choice":renderJournals,"Reputable journals & India":renderReputable,"Faculty":renderFaculty,
-  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Network Resilience":renderResilience,"Indian connectivity":renderConnectivity,"Method":renderMethod};
+  "Large-team papers":renderLarge,"Citation network":renderCitation,"Co-authorship network":renderAuthorship,"Network Resilience":renderResilience,"Follow the Idea":renderIdeaFlow,"Indian connectivity":renderConnectivity,"Method":renderMethod};
 
 function render() {
   try { localStorage.setItem("g18dash", JSON.stringify(state)); } catch(e) {}
@@ -883,9 +920,16 @@ document.getElementById("flagSeg").onclick = e => { if (e.target.dataset.f) { st
 document.getElementById("nav").innerHTML = TABS.map(t=>`<button data-t="${t}">${t}</button>`).join("");
 document.getElementById("nav").onclick = e => { if (e.target.dataset.t) { state.tab = e.target.dataset.t; render(); } };
 document.getElementById("themeBtn").onclick = () => {
-  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  document.documentElement.dataset.theme = cur==="dark" ? "light" : "dark"; render();
+  const explicit=document.documentElement.dataset.theme;
+  const next=explicit==='light'?'dark':explicit==='dark'?'system':(matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark');
+  if(next==='system')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=next;
+  const hash=new URLSearchParams(location.hash.slice(1));hash.set('theme',next);history.replaceState(null,'','#'+hash.toString());
+  document.getElementById('themeBtn').title='Theme: '+next+' (click to cycle)';
+  render();
 };
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)render();});
+if(!['All',...INSTS].includes(state.inst))state.inst='All';
+if(!['in','out'].includes(state.flag))state.flag='in';
 if (!TABS.includes(state.tab)) state.tab = "Overview";
 render();
 </script>

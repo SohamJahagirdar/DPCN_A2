@@ -9,10 +9,13 @@
 - Preserve uncommitted work. Never discard, overwrite, stash, reset, or rebase
   work merely to obtain a clean checkout. Stop if unexpected changes or remote
   divergence make the intended continuation unsafe.
-- Development commits contain source, tests, and documentation. Do not commit
-  generated `outputs/`, `dashboard/index.html`, raw data, caches, processed
-  intermediates, API keys, or secrets. The designated integrator handles official
-  output regeneration separately. Do not add AI co-author trailers.
+- Development work contains source, tests, documentation and the explicitly
+  authorized unified `dashboard/index.html`, generated offline from verified
+  inputs and copied from the exact browser-tested external staging artifact.
+  This exception applies only on the permanent development branch. Do not add
+  generated `outputs/`, raw data, caches, processed intermediates, API keys or
+  secrets. Never publish or change main automatically. Do not add AI co-author
+  trailers. Phase 2 requires stopping for review before any commit or push.
 - Obtain the user's authorization before pushing. Push only the intended
   development branch, normally and without force; verify its remote ancestry
   and upstream first. The audit task authorizes its own development-branch push.

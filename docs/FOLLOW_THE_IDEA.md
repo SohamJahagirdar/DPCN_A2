@@ -312,7 +312,14 @@ retry/cache/resume, G2 overlaps and precision. Browser tests are separate real
 installed-browser checks with actual controls/downloads, offline/mobile load,
 explicit synthetic negative states and runtime/network-error reporting.
 
-Commit only source, tests and methods on the permanent development branch.
+The native **Follow the Idea** tab now shares the Research Map's top navigation,
+institution/seed-paper flag controls and light/dark/system styling. The released
+standalone explorer remains preserved outside the checkout. See
+[Unified dashboard generation](UNIFIED_DASHBOARD.md) for the implemented pure
+payload builder, deterministic offline command, pinned external inputs and tests.
+
+The user has authorized the generated unified `dashboard/index.html` on the
+permanent development branch in addition to source, tests and methods.
 Keep the actual run report, acquired data, previews, screenshots and logs outside
-the checkout. Publication, main merges and historical output regeneration require
-their own decision.
+the checkout. Other historical outputs remain protected. Publication or changes
+to main require separate authorization. Phase 2 stops before committing/pushing.

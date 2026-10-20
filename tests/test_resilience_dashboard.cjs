@@ -44,7 +44,10 @@ function dashboard(withFilteredData=true, hasFilteredPayload=true, resilience=nu
   if(nf && !withFilteredData)delete nf.resilience;
   const all=structuredClone(payloads.DATA_ALL);
   if(resilience)all.resilience=resilience;
-  const script=template.match(/<script>\s*(const DATA_ALL[\s\S]*?)<\/script>/)[1]
+  // This adapter exercises legacy/resilience renderers. The native explorer's
+  // actual DOM/controller is exercised separately, including in real Chrome.
+  const script=template.match(/<script>\s*((?:const IDEA_DATA|const DATA_ALL)[\s\S]*?)<\/script>/)[1]
+    .replace(/^const IDEA_DATA =.*$/m,'const IDEA_DATA = null;')
     .replace('/*__DATA__*/null',JSON.stringify(payloads.DATA_ALL))
     .replace('/*__DATA_NF__*/null',JSON.stringify(nf)).replace('/*__COMPARE__*/null','[]')
     .replace(/^const DATA_ALL =.*$/m,()=> 'const DATA_ALL = '+JSON.stringify(all)+';')

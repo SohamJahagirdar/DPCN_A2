@@ -9,6 +9,9 @@ import itertools
 import json
 from pathlib import Path
 import re
+import hashlib
+import os
+import subprocess
 import unittest
 
 from pipeline.resilience import analyze_resilience
@@ -16,8 +19,24 @@ from pipeline.resilience import analyze_resilience
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def historical_html():
+    """The reference must not become the newly generated unified output."""
+    explicit = os.environ.get("DPCN_BASELINE_HTML")
+    if explicit:
+        data = Path(explicit).read_bytes()
+    else:
+        data = subprocess.check_output(["git", "-C", str(ROOT), "show",
+                                        "32640db4a6e657ddb0dc2ac4174bec1608bdb64b:dashboard/index.html"])
+    if hashlib.sha256(data).hexdigest() not in {
+        "38d05a4062a151ff68b098bd72908eda4007038a6fd3c873ca40c7a5f8e34ddc",
+        "fb005c9784e9af9dcc9fb373818777b471ccf2348a0ca392195ae3a5da59ea8e",
+    }:
+        raise ValueError("Historical test baseline hash mismatch")
+    return data.decode("utf-8")
+
+
 def snapshot_result(name):
-    html = (ROOT/"dashboard/index.html").read_text(encoding="utf-8")
+    html = historical_html()
     match = re.search(r"^const " + name + r" = (.*);[^\r\n]*$", html, re.M)
     payload = json.loads(match.group(1))
     folder = ROOT/"outputs"
