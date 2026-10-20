@@ -1,0 +1,197 @@
+"""Read-only checks against exact faculty edges embedded in committed dashboard.
+
+No project config/build import, APIs, or committed output writes. Full raw-data
+integration remains a separate integrator check when the historical snapshot exists.
+"""
+import csv
+from collections import Counter, defaultdict
+import itertools
+import json
+from pathlib import Path
+import re
+import hashlib
+import os
+import subprocess
+import unittest
+
+from pipeline.resilience import analyze_resilience
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def historical_html():
+    """The reference must not become the newly generated unified output."""
+    explicit = os.environ.get("DPCN_BASELINE_HTML")
+    if explicit:
+        data = Path(explicit).read_bytes()
+    else:
+        data = subprocess.check_output(["git", "-C", str(ROOT), "show",
+                                        "32640db4a6e657ddb0dc2ac4174bec1608bdb64b:dashboard/index.html"])
+    if hashlib.sha256(data).hexdigest() not in {
+        "38d05a4062a151ff68b098bd72908eda4007038a6fd3c873ca40c7a5f8e34ddc",
+        "fb005c9784e9af9dcc9fb373818777b471ccf2348a0ca392195ae3a5da59ea8e",
+    }:
+        raise ValueError("Historical test baseline hash mismatch")
+    return data.decode("utf-8")
+
+
+def snapshot_result(name):
+    html = historical_html()
+    match = re.search(r"^const " + name + r" = (.*);[^\r\n]*$", html, re.M)
+    payload = json.loads(match.group(1))
+    folder = ROOT/"outputs"
+    if name == "DATA_NF":
+        folder = folder/"without_flagged"
+    with (folder/"faculty_network_metrics.csv").open(encoding="utf-8", newline="") as f:
+        metrics = {r["person"]: dict(r, community=int(r["community"]), betweenness=float(r["betweenness"]))
+                   for r in csv.DictReader(f)}
+    nodes = {p: dict(name=r["name"], inst=r["inst"], dept=r["department"]) for p, r in metrics.items()}
+    edges = [(a, b, dict(weight=w)) for a, b, w in payload["authorship"]["vis"]["edges"]]
+    return analyze_resilience(nodes, edges, metrics), payload, metrics
+
+
+class SnapshotTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.results = {name: snapshot_result(name) for name in ["DATA_ALL", "DATA_NF"]}
+
+    def test_both_variants_use_exact_committed_graph_and_ids(self):
+        for name, (result, payload, metrics) in self.results.items():
+            with self.subTest(name=name):
+                b = result["baseline"]
+                s = payload["authorship"]["summary"]
+                self.assertEqual(b["nodes"], s["faculty_nodes"])
+                self.assertEqual(b["edges"], s["faculty_edges"])
+                self.assertEqual(b["largest_component"], s["largest_cc"])
+                self.assertEqual(sum(size == 1 for size in b["component_sizes"]), s["isolated_faculty"])
+                self.assertEqual({r["person"] for r in result["researchers"]}, set(metrics))
+                for r in result["researchers"]:
+                    self.assertEqual(r["degree"], int(metrics[r["person"]]["n_faculty_coauthors"]))
+                    self.assertEqual(r["community"], metrics[r["person"]]["community"])
+                    self.assertGreaterEqual(r["lost_connected_pairs"], 0)
+                    self.assertLessEqual(r["lost_connected_pairs"], r["connected_pairs_before_remaining"])
+
+    def test_variant_changes_are_preserved(self):
+        all_r = self.results["DATA_ALL"][0]
+        nf_r = self.results["DATA_NF"][0]
+        self.assertLessEqual(nf_r["baseline"]["nodes"], all_r["baseline"]["nodes"])
+        self.assertLess(nf_r["baseline"]["edges"], all_r["baseline"]["edges"])
+        self.assertNotEqual(nf_r["researchers"], all_r["researchers"])
+
+    def test_rankings_ties_and_roles_against_independent_snapshot_sets(self):
+        for name, (result, payload, metrics) in self.results.items():
+            rows = result["researchers"]
+            degree = sorted(rows, key=lambda r: (-r["degree"], r["person"]))
+            positive = sorted((r for r in rows if r["lost_connected_pairs"]),
+                              key=lambda r: (-r["lost_pair_fraction"], -r["lost_connected_pairs"], -r["degree"], r["person"]))
+            deg_tied = {r["person"] for r in degree if r["degree"] >= degree[9]["degree"]}
+            imp_tied = {r["person"] for r in positive if r["lost_pair_fraction"] >= positive[9]["lost_pair_fraction"]}
+            summary = result["summary"]
+            self.assertEqual(summary["degree_top10_impact_top10_overlap"], len({r["person"] for r in degree[:10]} & {r["person"] for r in positive[:10]}))
+            self.assertEqual(summary["degree_top10_impact_top10_tie_inclusive_overlap"], len(deg_tied & imp_tied))
+            self.assertEqual(summary["degree_top10_tie_inclusive_size"], len(deg_tied))
+            self.assertEqual(summary["impact_top10_tie_inclusive_size"], len(imp_tied))
+            self.assertEqual(summary["high_impact_articulations"], sum(r["is_high_impact_articulation"] for r in rows))
+            self.assertEqual(summary["articulation_researchers"], sum(r["is_articulation"] for r in rows))
+            # The old generated ranking may legitimately differ only at ties.
+            self.assertTrue({r["person"] for r in payload["authorship"]["top_degree"]} <= deg_tied)
+
+    def test_graphs_match_independent_dataset_attributions(self):
+        # Reconcile the dashboard graph with a separate committed deliverable,
+        # including node isolates and exact per-paper joint-collaboration weights.
+        with (ROOT/"outputs/faculty_list.csv").open(encoding="utf-8", newline="") as f:
+            lookup, faculty = {}, {}
+            for r in csv.DictReader(f):
+                faculty[r["person"]] = r
+                for aid in filter(None, r["openalex_ids"].split(";")):
+                    key = (r["inst"], aid)
+                    self.assertTrue(key not in lookup or lookup[key] == r["person"])
+                    lookup[key] = r["person"]
+        with (ROOT/"outputs/group18_data.csv").open(encoding="utf-8", newline="") as f:
+            dataset = list(csv.DictReader(f))
+        for name, (result, payload, metrics) in self.results.items():
+            with self.subTest(name=name):
+                papers, nodes = defaultdict(set), set()
+                limit = 12 if name == "DATA_NF" else 50
+                for r in dataset:
+                    if r["is_faculty"] != "True":
+                        continue
+                    person = lookup[(r["institution"], r["author_openalex_id"])]
+                    if name == "DATA_ALL" or int(r["n_authors"]) <= limit:
+                        nodes.add(person)
+                    if int(r["n_authors"]) <= limit:
+                        papers[r["openalex_work_id"]].add(person)
+                weights = Counter(pair for people in papers.values()
+                                  for pair in itertools.combinations(sorted(people), 2))
+                embedded = {tuple(sorted((a, b))): w
+                            for a, b, w in payload["authorship"]["vis"]["edges"]}
+                self.assertEqual(nodes, set(metrics))
+                self.assertEqual(dict(weights), embedded)
+                for r in result["researchers"]:
+                    original = faculty[r["person"]]
+                    for field in ("name", "inst", "department"):
+                        self.assertEqual(r[field], original[field])
+                    self.assertEqual(r["betweenness"], metrics[r["person"]]["betweenness"])
+
+    def test_all_removal_metrics_against_independent_union_find(self):
+        # Independent oracle: union remaining edge endpoints, then count roots.
+        # This does not call the analyzer's component traversal or pair helpers.
+        def components(nodes, edges):
+            parents = {n: n for n in nodes}
+
+            def root(node):
+                while parents[node] != node:
+                    parents[node] = parents[parents[node]]
+                    node = parents[node]
+                return node
+
+            for a, b, _ in edges:
+                if a in parents and b in parents:
+                    parents[root(a)] = root(b)
+            return {n: root(n) for n in parents}
+
+        def pairs(sizes):
+            return sum(n * (n - 1) // 2 for n in sizes)
+
+        for name, (result, payload, metrics) in self.results.items():
+            edges = payload["authorship"]["vis"]["edges"]
+            original = components(metrics, edges)
+            n = len(metrics)
+            original_connected = pairs(Counter(original.values()).values())
+            for row in result["researchers"]:
+                with self.subTest(name=name, person=row["person"]):
+                    remaining = set(metrics) - {row["person"]}
+                    roots = components(remaining, edges)
+                    sizes = list(Counter(roots.values()).values())
+                    eligible = pairs(Counter(original[v] for v in remaining).values())
+                    after = pairs(sizes)
+                    possible = (n - 1) * (n - 2) // 2
+                    self.assertEqual(row["nodes_after"], n - 1)
+                    self.assertEqual(row["edges_after"], sum(a in remaining and b in remaining for a, b, _ in edges))
+                    self.assertEqual(row["components_after"], len(sizes))
+                    self.assertEqual(row["largest_component_after"], max(sizes, default=0))
+                    self.assertAlmostEqual(row["largest_component_share_after"], max(sizes, default=0)/(n-1))
+                    self.assertEqual(row["connected_pairs_before_remaining"], eligible)
+                    self.assertEqual(row["connected_pairs_after"], after)
+                    self.assertEqual(row["lost_connected_pairs"], eligible - after)
+                    original_members = {v for v in metrics if original[v] == original[row["person"]]}
+                    local_n = len(original_members) - 1
+                    local_eligible = local_n * (local_n - 1) // 2
+                    local_sizes = Counter(roots[v] for v in original_members - {row["person"]})
+                    local_lost = local_eligible - pairs(local_sizes.values())
+                    self.assertEqual(local_lost, eligible - after)
+                    self.assertEqual(row["component_survivor_pairs_before"], local_eligible)
+                    if local_eligible:
+                        self.assertAlmostEqual(row["local_pair_loss_fraction"], local_lost/local_eligible)
+                    else:
+                        self.assertIsNone(row["local_pair_loss_fraction"])
+                    self.assertEqual(row["is_articulation"], len(sizes) > len(set(original.values())))
+                    self.assertAlmostEqual(row["lost_pair_fraction"], (eligible-after)/eligible if eligible else 0)
+                    self.assertAlmostEqual(row["connected_pair_fraction_after"], after/possible)
+                    self.assertAlmostEqual(row["connected_pair_fraction_loss"], (eligible-after)/possible)
+                    self.assertAlmostEqual(row["connected_pair_fraction_change"], after/possible-original_connected/(n*(n-1)//2))
+                    self.assertEqual(row["is_high_impact_articulation"], eligible > 0 and 100*(eligible-after) >= eligible and after < eligible)
+
+
+if __name__ == "__main__":
+    unittest.main()

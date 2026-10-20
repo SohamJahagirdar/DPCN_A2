@@ -24,10 +24,10 @@ OpenAlex API key(s): env var OPENALEX_API_KEY (comma-separated) or openalex_key.
 import argparse
 import time
 
-import config
 
 
 def do_fetch(steps, max_calls):
+    import config
     from pipeline import fetch
     from pipeline.openalex import BudgetExhausted, OpenAlex
     oa = OpenAlex(max_calls=max_calls)
@@ -69,6 +69,7 @@ def do_fetch(steps, max_calls):
 
 
 def do_build():
+    import config
     from pipeline import build, dashboard, networks, stats, variants
     t = time.time()
     tables = build.build_all()
@@ -90,6 +91,9 @@ def do_build():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["fetch", "build", "all", "report"])
+    ap.add_argument("--dashboard-html", help="Report only: verified frozen unified dashboard input")
+    ap.add_argument("--dashboard-sha256", help="Report only: required expected SHA-256 of frozen dashboard")
+    ap.add_argument("--report-output", help="Report only: optional external output directory")
     ap.add_argument("--steps", default="corpus,fullauthors,sources,relevance,authors,partners,outflow,inflow,flows_new,profiles,patents",
                     help="'inflow' = exact in-flow citation edges (~1,400 calls; fills cited_by_indian_inst); "
                          "'inflow_agg' = cheaper aggregate in-flow (~700 calls)")
@@ -103,7 +107,7 @@ def main():
         do_build()
     if a.cmd == "report":
         from pipeline.report import write_report
-        write_report()
+        write_report(a.dashboard_html, a.dashboard_sha256, a.report_output)
 
 
 if __name__ == "__main__":

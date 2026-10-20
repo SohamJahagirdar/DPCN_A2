@@ -301,6 +301,13 @@ def build_networks(t, out_dir=None):
     nets["faculty_graph"], nets["faculty_communities"] = F, comms   # in memory only (pipeline/netstats.py)
     nets["citation_graph"] = G
     nets["communities"] = comms_df
+    # Use this exact faculty graph and its existing identities/centralities for
+    # each paper variant. Never reconstruct a second collaboration definition.
+    from pipeline.resilience import analyze_resilience, write_resilience_csv
+    nets["resilience"] = analyze_resilience(
+        dict(F.nodes(data=True)), F.edges(data=True),
+        fm.set_index("person").to_dict("index") if len(fm) else {})
+    write_resilience_csv(nets["resilience"], out_dir)
     nets["authorship_vis"] = dict(
         nodes=[dict(id=n, name=d["name"], inst=d["inst"], dept=d["dept"], papers=d["papers"],
                     comm=comm_of.get(n, -1), btw=btw.get(n, 0), deg=F.degree(n)) for n, d in F.nodes(data=True)

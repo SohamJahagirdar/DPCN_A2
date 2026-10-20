@@ -1,0 +1,2 @@
+# Preserve the reproducible, browser-tested HTML bytes across Windows checkouts.
+dashboard/index.html text eol=lf

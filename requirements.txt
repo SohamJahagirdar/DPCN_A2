@@ -5,3 +5,5 @@ scipy>=1.10
 requests>=2.31
 pyreadr>=0.5
 statsmodels>=0.14
+matplotlib>=3.8
+pypdf>=5.0
