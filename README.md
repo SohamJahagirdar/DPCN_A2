@@ -267,7 +267,7 @@ Large-team papers are a small part of IISc's output. They supply nearly three qu
 
 ```bash
 python -m pip install -r requirements.txt
-# Option A (recommended): unzip the team's data snapshot (HANDOVER.md §3.2) into data/ so data/raw/ exists, then
+# Option A (recommended): unzip the team's data snapshot into data/ so data/raw/ exists, then
 python run.py build      # dataset, networks, stats, dashboard (~4 min, no API calls)
 
 # Option B: collect the data yourself. Put a free OpenAlex API key in openalex_key.txt
@@ -275,7 +275,7 @@ python run.py build      # dataset, networks, stats, dashboard (~4 min, no API c
 python run.py fetch      # cached and resumable; a free key allows ~10,000 calls/day
 python run.py build
 ```
-Settings such as institution IDs, years, publication types, the flag and impact thresholds and the faculty-rule thresholds live in `config.py`. Team members and their coding agents: start with `HANDOVER.md`.
+Settings such as institution IDs, years, publication types, the flag and impact thresholds and the faculty-rule thresholds live in `config.py`.
 
 ---
 
@@ -336,6 +336,4 @@ data/external/            CORE ranks, faculty rosters, Nature Index list, impact
 data/raw/, data/cache/    fetched OpenAlex records - created by `run.py fetch` or the shared snapshot, not stored in the repo
 outputs/                  deliverables (outputs/without_flagged/ = the same without flagged papers)
 dashboard/index.html      dashboard (also served by GitHub Pages)
-HANDOVER.md               handover guide for team members and their coding agents
-AGENTS.md, CLAUDE.md      short rules for coding agents (CLAUDE.md imports AGENTS.md)
 ```

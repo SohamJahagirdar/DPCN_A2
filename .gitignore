@@ -19,8 +19,11 @@ outputs_sample/
 report_sample/
 dashboard/index_sample.html
 
-# internal team notes
+# internal team notes and agent instructions (shared privately, not in the public repo)
 QUESTIONS_FOR_PROFESSOR.md
+HANDOVER.md
+AGENTS.md
+CLAUDE.md
 report/
 
 __pycache__/
