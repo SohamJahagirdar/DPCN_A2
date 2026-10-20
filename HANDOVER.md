@@ -282,7 +282,8 @@ All thresholds live in `config.py`. Change them there and rebuild. Every definit
   - `DATA` points to whichever version the *Flagged* switch selects. **Renderers must read `DATA`** so the switch works.
   - Exception: the Large-team tab reads the flagged-paper list from `DATA_ALL`.
 - **State and deep links.** `state = {inst, tab, flag}` is saved in localStorage and can be set by URL hash, e.g. `dashboard/index.html#tab=Journal%20choice&inst=TIFR&flag=out&theme=light`.
-- **Tabs (11):** Overview · Publications · Journal choice · Reputable journals & India · Impact on India · Faculty · Large-team papers · Citation network · Co-authorship network · Indian connectivity · Method.
+- **Tabs (11), story first:** Overview (with *Key findings*, computed live from `DATA`) · Impact on India · Reputable journals & India · Journal choice · Large-team papers · Publications · Faculty · Citation network · Co-authorship network · Indian connectivity · Method.
+- **Audience: a visiting professor.** Tabs open with results, not theory. Definitions and references live in collapsible sections on the *Method* tab; a tab keeps at most a one-line hint with a link there (`data-goto="Method"`).
 - **Helpers in the template:**
   - `plot(id, traces, layout)` for Plotly charts and `table(id, rows, cols)` for sortable tables;
   - `tiles(id, items)` for the key-number tiles;

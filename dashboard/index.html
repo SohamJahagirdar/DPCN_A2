@@ -124,6 +124,15 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
 .tab{display:none}.tab.on{display:block}
 .note{color:var(--ink-2);font-size:13px}
 .note li{margin:4px 0}
+.find{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:10px}
+.find a{display:block;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--ink);text-decoration:none}
+.find a:hover{border-color:var(--accent)}
+.find .t{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.find .b{font-size:13.5px;line-height:1.45;margin-top:4px}
+.find .go{font-size:12px;color:var(--accent);margin-top:6px}
+details.m{border-top:1px solid var(--grid);padding:10px 0}
+details.m summary{cursor:pointer;font-weight:600;font-size:14px}
+details.m .note{margin-top:6px}
 </style>
 </head>
 <body>
@@ -147,6 +156,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
   <section class="tab" data-tab="Overview">
     <div class="tiles" id="kpis"></div>
     <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Key findings</h3><div class="hint">Click a finding to open its tab.</div><div id="ovFind" class="find"></div></div>
       <div class="card c12"><h3>Publications per year</h3><div class="hint">Unique papers by publication year; joint IISc–TIFR papers count for both institutions; 2026 is a partial year</div><div id="ovTrend" class="plot"></div></div>
       <div class="card c6"><h3>Research areas: fields</h3><div class="hint">Share of papers by OpenAlex primary-topic field</div><div id="ovFields" class="plot tall"></div></div>
       <div class="card c6"><h3>Research areas: top 20 subfields</h3><div class="hint">Papers per subfield</div><div id="ovSub" class="plot tall"></div></div>
@@ -171,7 +181,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
         <div class="hint">Share of journal papers by group. <select id="jcFactor"></select> <select id="jcMetric"><option value="high_impact_share">in high-impact journals (impact ≥ 10)</option><option value="q1_share">in Q1 journals</option><option value="median_impact">median journal impact</option></select></div>
         <div id="jcDrivers" class="plot tall"></div></div>
       <div class="card c6"><h3>What matters when the other factors are held fixed</h3>
-        <div class="hint">Logistic regression on faculty–paper pairs (current faculty with a known rank; standard errors clustered by paper). Odds ratio &gt; 1 = more likely. Reference groups: Professor, 4–6 authors, within IISc/TIFR, largest field, IISc. <select id="jcOutcome"><option>High-impact journal</option><option>Q1 journal</option></select></div>
+        <div class="hint">Odds ratio &gt; 1 = more likely than the reference group, with the other factors held fixed (logistic regression; details in Method). Reference groups: Professor, 4–6 authors, within IISc/TIFR, largest field, IISc. <select id="jcOutcome"><option>High-impact journal</option><option>Q1 journal</option></select></div>
         <div id="jcReg" class="tablewrap"></div></div>
       <div class="card c12"><h3>Journal choice over time</h3><div class="hint">Share of journal papers in high-impact (impact ≥ 10) and in fully open-access journals</div><div id="jcYear" class="plot"></div></div>
       <div class="card c6"><h3>Journal loyalty of faculty</h3><div class="hint">Share of each faculty member's journal papers that appear in their own top-3 journals (faculty with ≥ 5 papers)</div><div id="jcLoyal" class="plot"></div></div>
@@ -185,9 +195,8 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
   <section class="tab" data-tab="Reputable journals &amp; India">
     <div class="tiles" id="rpTiles"></div>
     <div class="grid" style="margin-top:16px">
-      <div class="card c12"><h3>How "reputable" and "impact on India" are measured</h3><div id="rpMethod" class="note"></div></div>
       <div class="card c12"><h3>Reputable papers compared with our other journal papers</h3>
-        <div class="hint">Journal papers only. Indian citations exclude citing papers that involve the paper's own institute.</div>
+        <div class="hint">Reputable = the Nature Index list of 178 journals chosen by panels of scientists. Journal papers only; Indian citations exclude self-citation. Definitions and sources: <a href="#" data-goto="Method">Method</a>.</div>
         <div id="rpComp" class="tablewrap" style="max-height:none"></div></div>
       <div class="card c6"><h3>Nature Index papers per year</h3><div class="hint">Hover for the share of all journal papers</div><div id="rpYear" class="plot"></div></div>
       <div class="card c6"><h3>Our main Nature Index journals</h3><div id="rpJour" class="plot"></div></div>
@@ -208,12 +217,11 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     <div class="tiles" id="imTiles"></div>
     <div class="grid" style="margin-top:16px">
       <div class="card c12"><h3>Case studies: documented outcomes and the papers behind them</h3>
-        <div class="hint">What IISc and TIFR research has led to in India, each case checked against the sources listed under it. <b>Documented outcome</b> = the sources report a concrete result (a product, licence, approval, court order, funded company or national facility). <b>Partly documented</b> = the link or the result is only partly shown. The numbers under each case come from our data.</div>
+        <div class="hint">What IISc and TIFR research has led to in India. <b>Documented outcome</b> = the cited sources report a concrete result (product, licence, approval, court order, funded company, national facility); <b>partly documented</b> = the link or the result is only partly shown. Numbers under each case come from our data. How impact is measured: <a href="#" data-goto="Method">Method</a>.</div>
         <div class="row"><select id="csCat"><option value="">All areas</option></select>
           <select id="csEv"><option value="">All evidence levels</option><option>Documented outcome</option><option>Partly documented</option></select>
           <span class="pill" id="csCount"></span></div>
         <div id="imCases" class="grid"></div></div>
-      <div class="card c12"><h3>Does the research lead to something in India beyond more papers?</h3><div id="imMethod" class="note"></div></div>
       <div class="card c12"><h3>Who in India uses the research, by sector</h3>
         <div class="hint">Papers co-authored with an organisation of the sector, and papers cited by one. Citing papers that involve our own institute are excluded. Hover for the main citing organisations.</div>
         <div id="imSectors" class="plot tall"></div></div>
@@ -247,7 +255,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     <div class="tiles" id="flTiles"></div>
     <div class="grid" style="margin-top:16px">
       <div class="card c12"><h3>Analysis with and without the flagged papers (&gt; 12 authors)</h3>
-        <div class="hint">Every statistic recomputed on all papers and on the papers with 12 or fewer authors. Change = without vs with. The switch <i>Flagged: included / excluded</i> at the top applies the same choice to every tab.</div>
+        <div class="hint">Every statistic recomputed without the papers that have more than 12 authors. The <i>Flagged</i> switch at the top does the same for every tab.</div>
         <div id="cmpTable" class="tablewrap" style="max-height:none"></div></div>
       <div class="card c6"><h3>Flagged papers per year</h3><div class="hint">Papers with &gt; 12 authors vs ≤ 12 authors</div><div id="pubMany" class="plot"></div></div>
       <div class="card c6"><h3>Mean citations: &gt; 12 vs ≤ 12 authors</h3><div class="hint">Average citations per paper by publication year</div><div id="pubManyCit" class="plot"></div></div>
@@ -270,7 +278,7 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
     <div class="tiles" id="citTiles"></div>
     <div class="grid" style="margin-top:16px">
       <div class="card c12"><h3>Citation network: most influential papers (PageRank)</h3>
-        <div class="hint">Directed graph: an arrow A→B means paper A cites paper B. Shown: the 350 highest-PageRank papers in the connected core of the corpus citation graph. Node size = PageRank; colour = institution. Drag, scroll to zoom, hover for details.</div>
+        <div class="hint">The 350 most influential papers (PageRank) and the citations among them; arrow A→B = A cites B. Node size = PageRank, colour = institution. Drag, zoom, hover.</div>
         <div id="citNet" class="net"></div>
         <div class="legend" id="citLegend"></div></div>
       <div class="card c8"><h3>Top 10 papers by PageRank</h3><div class="hint"><label><input type="checkbox" id="citMega"> include mega-collaboration papers (&gt; 50 authors; mostly CMS)</label></div><div id="citTop" class="tablewrap"></div></div>
@@ -315,7 +323,7 @@ const DATA_NF = {"meta":{"group":18,"institutions":{"IISc":"Indian Institute of 
 const COMPARE = [{"institution":"IISc","group":"Output","metric":"Papers","with_flagged":35818,"without_flagged":34120,"change":-0.047406332011837624,"fmt":"int"},{"institution":"IISc","group":"Output","metric":"Citations","with_flagged":610269,"without_flagged":517557,"change":-0.15191989106443224,"fmt":"int"},{"institution":"IISc","group":"Output","metric":"Mean citations per paper","with_flagged":17.038053,"without_flagged":15.168728,"change":-0.10971470742578401,"fmt":"1dp"},{"institution":"IISc","group":"Output","metric":"Institutional h-index","with_flagged":217,"without_flagged":195,"change":-0.10138248847926268,"fmt":"int"},{"institution":"IISc","group":"Quality","metric":"Q1 share of journal papers","with_flagged":0.690437,"without_flagged":0.68392,"change":-0.009438949534859799,"fmt":"pct"},{"institution":"IISc","group":"Quality","metric":"Top journal","with_flagged":"Journal of High Energy Physics","without_flagged":"Physical review. B./Physical review. B","change":null,"fmt":"text"},{"institution":"IISc","group":"Quality","metric":"Most-cited paper","with_flagged":"Guidelines for the use and interpretation of assays for monitoring autophagy (3rd edition)","without_flagged":"Guided wave based structural health monitoring: A review","change":null,"fmt":"text"},{"institution":"IISc","group":"Faculty","metric":"Faculty with papers","with_flagged":720,"without_flagged":720,"change":0.0,"fmt":"int"},{"institution":"IISc","group":"Faculty","metric":"Median faculty h-index","with_flagged":9,"without_flagged":9,"change":0.0,"fmt":"int"},{"institution":"IISc","group":"Collaboration","metric":"Papers with another Indian institute","with_flagged":0.41951,"without_flagged":0.404279,"change":-0.03630664346499486,"fmt":"pct"},{"institution":"IISc","group":"Indian citation flow","metric":"Citations from other Indian institutes","with_flagged":106000,"without_flagged":97387,"change":-0.08125471698113207,"fmt":"int"},{"institution":"IISc","group":"Indian citation flow","metric":"Citations to other Indian institutes","with_flagged":112657,"without_flagged":105765,"change":-0.06117684653417009,"fmt":"int"},{"institution":"IISc","group":"Indian citation flow","metric":"In / out ratio","with_flagged":0.940909,"without_flagged":0.920787,"change":-0.021385702549343213,"fmt":"2dp"},{"institution":"IISc","group":"Indian connectivity","metric":"Partner institutions","with_flagged":1372,"without_flagged":1276,"change":-0.06997084548104957,"fmt":"int"},{"institution":"IISc","group":"Indian connectivity","metric":"Top partner","with_flagged":"Indian Institute of Technology Madras","without_flagged":"Indian Institute of Technology Madras","change":null,"fmt":"text"},{"institution":"TIFR","group":"Output","metric":"Papers","with_flagged":7752,"without_flagged":5640,"change":-0.2724458204334365,"fmt":"int"},{"institution":"TIFR","group":"Output","metric":"Citations","with_flagged":223983,"without_flagged":63769,"change":-0.7152953572369332,"fmt":"int"},{"institution":"TIFR","group":"Output","metric":"Mean citations per paper","with_flagged":28.893576,"without_flagged":11.30656,"change":-0.6086825666715674,"fmt":"1dp"},{"institution":"TIFR","group":"Output","metric":"Institutional h-index","with_flagged":162,"without_flagged":91,"change":-0.4382716049382716,"fmt":"int"},{"institution":"TIFR","group":"Quality","metric":"Q1 share of journal papers","with_flagged":0.716729,"without_flagged":0.682562,"change":-0.047670737475391606,"fmt":"pct"},{"institution":"TIFR","group":"Quality","metric":"Top journal","with_flagged":"Journal of High Energy Physics","without_flagged":"Physical review. B./Physical review. B","change":null,"fmt":"text"},{"institution":"TIFR","group":"Quality","metric":"Most-cited paper","with_flagged":"Observation of Gravitational Waves from a Binary Black Hole Merger","without_flagged":"Probing magnetism in 2D van der Waals crystalline insulators via electron tunneling","change":null,"fmt":"text"},{"institution":"TIFR","group":"Faculty","metric":"Faculty with papers","with_flagged":159,"without_flagged":157,"change":-0.012578616352201259,"fmt":"int"},{"institution":"TIFR","group":"Faculty","metric":"Median faculty h-index","with_flagged":8,"without_flagged":6,"change":-0.25,"fmt":"int"},{"institution":"TIFR","group":"Collaboration","metric":"Papers with another Indian institute","with_flagged":0.563209,"without_flagged":0.45266,"change":-0.19628415028879148,"fmt":"pct"},{"institution":"TIFR","group":"Indian citation flow","metric":"Citations from other Indian institutes","with_flagged":17348,"without_flagged":8287,"change":-0.5223080470371224,"fmt":"int"},{"institution":"TIFR","group":"Indian citation flow","metric":"Citations to other Indian institutes","with_flagged":15652,"without_flagged":12251,"change":-0.21728852542806032,"fmt":"int"},{"institution":"TIFR","group":"Indian citation flow","metric":"In / out ratio","with_flagged":1.108357,"without_flagged":0.676435,"change":-0.38969573882783254,"fmt":"2dp"},{"institution":"TIFR","group":"Indian connectivity","metric":"Partner institutions","with_flagged":445,"without_flagged":387,"change":-0.1303370786516854,"fmt":"int"},{"institution":"TIFR","group":"Indian connectivity","metric":"Top partner","with_flagged":"Indian Institute of Technology Madras","without_flagged":"Indian Institute of Technology Bombay","change":null,"fmt":"text"},{"institution":"All","group":"Output","metric":"Papers","with_flagged":42725,"without_flagged":39606,"change":-0.07300175541252195,"fmt":"int"},{"institution":"All","group":"Output","metric":"Citations","with_flagged":803550,"without_flagged":579322,"change":-0.27904673013502584,"fmt":"int"},{"institution":"All","group":"Output","metric":"Mean citations per paper","with_flagged":18.80749,"without_flagged":14.627127,"change":-0.22227118025850345,"fmt":"1dp"},{"institution":"All","group":"Output","metric":"Institutional h-index","with_flagged":247,"without_flagged":203,"change":-0.17813765182186234,"fmt":"int"},{"institution":"All","group":"Quality","metric":"Q1 share of journal papers","with_flagged":0.695906,"without_flagged":0.683386,"change":-0.01799093555738846,"fmt":"pct"},{"institution":"All","group":"Quality","metric":"Top journal","with_flagged":"Journal of High Energy Physics","without_flagged":"Physical review. B./Physical review. B","change":null,"fmt":"text"},{"institution":"All","group":"Quality","metric":"Most-cited paper","with_flagged":"Observation of Gravitational Waves from a Binary Black Hole Merger","without_flagged":"Guided wave based structural health monitoring: A review","change":null,"fmt":"text"},{"institution":"All","group":"Faculty","metric":"Faculty with papers","with_flagged":879,"without_flagged":877,"change":-0.0022753128555176336,"fmt":"int"},{"institution":"All","group":"Faculty","metric":"Median faculty h-index","with_flagged":8,"without_flagged":8,"change":0.0,"fmt":"int"},{"institution":"All","group":"Collaboration","metric":"Papers with another Indian institute","with_flagged":0.431059,"without_flagged":0.405671,"change":-0.058896809949450124,"fmt":"pct"},{"institution":"All","group":"Citation network","metric":"Citations among our papers","with_flagged":75581,"without_flagged":59975,"change":-0.20648046466704595,"fmt":"int"},{"institution":"All","group":"Citation network","metric":"Share in largest component","with_flagged":0.464576,"without_flagged":0.426299,"change":-0.08239125568260092,"fmt":"pct"},{"institution":"All","group":"Citation network","metric":"Top paper by PageRank","with_flagged":"Event generator tunes obtained from underlying event and multiparton scattering measurements","without_flagged":"High frequency millimetre wave absorbers derived from polymeric nanocomposites","change":null,"fmt":"text"},{"institution":"All","group":"Co-authorship network","metric":"Faculty–faculty links","with_flagged":1814,"without_flagged":1642,"change":-0.09481808158765159,"fmt":"int"},{"institution":"All","group":"Co-authorship network","metric":"Louvain communities","with_flagged":37,"without_flagged":37,"change":0.0,"fmt":"int"},{"institution":"All","group":"Co-authorship network","metric":"Modularity","with_flagged":0.740836,"without_flagged":0.741313,"change":0.000643867198678182,"fmt":"2dp"},{"institution":"All","group":"Co-authorship network","metric":"Isolated faculty","with_flagged":171,"without_flagged":181,"change":0.05847953216374269,"fmt":"int"}];
 let DATA = DATA_ALL;
 const INSTS = Object.keys(DATA.meta.institutions);
-const TABS = ["Overview","Publications","Journal choice","Reputable journals & India","Impact on India","Faculty","Large-team papers","Citation network","Co-authorship network","Indian connectivity","Method"];
+const TABS = ["Overview","Impact on India","Reputable journals & India","Journal choice","Large-team papers","Publications","Faculty","Citation network","Co-authorship network","Indian connectivity","Method"];
 let state = {inst: "All", tab: "Overview", flag: "in"};
 try { const s = JSON.parse(localStorage.getItem("g18dash")||"{}"); Object.assign(state, s); } catch(e) {}
 // deep links: #tab=Faculty&inst=TIFR
@@ -379,6 +387,7 @@ function renderOverview() {
     ["Papers with > 12 authors", fmt(ka.many_author_papers), `${pct(ka.many_author_share)} of papers${state.flag==="out" ? " (excluded)" : ""} · <a href="#" id="toLarge">details →</a>`],
   ]);
   document.getElementById("toLarge").onclick = e => { e.preventDefault(); state.tab = "Large-team papers"; render(); window.scrollTo(0,0); };
+  renderFindings();
   const yrs = DATA.inst.All.trend.years;
   plot("ovTrend", instList().map(i => ({x:yrs, y:DATA.inst[i].trend.total, name:i, type:"scatter", mode:"lines+markers",
     line:{width:2,color:instColor(i)}, marker:{size:8,color:instColor(i),line:{width:2,color:css("--surface")}},
@@ -621,24 +630,74 @@ function renderConnectivity() {
   plot("icFlowCl", tr, {barmode:"group", margin:{l:48,r:16,t:8,b:90}});
 }
 
+function renderFindings() {
+  const k = B().kpis, I = DATA.impact[state.inst].kpis, R = DATA.reputable[state.inst], J = DATA.journals[state.inst].kpis;
+  const ni = R.comparison[0], other = R.comparison[R.comparison.length-1];
+  const cases = DATA.impact.cases.filter(c => state.inst==="All" || c.institute===state.inst);
+  const doc = cases.filter(c => c.evidence==="Documented outcome");
+  const hi = DATA.journals.regression.filter(r => r.outcome==="High-impact journal" && r.p < 0.05).sort((a,b)=>b.odds_ratio-a.odds_ratio)[0];
+  const cit = (COMPARE||[]).find(r => r.institution===state.inst && r.metric==="Citations");
+  const partners = instList().flatMap(i=>DATA.connectivity[i].top_partners).sort((a,b)=>b.shared_papers-a.shared_papers);
+  const a = DATA.authorship.summary;
+  const items = [
+    ["Impact on India", "Impact on India",
+     `${pct(I.nonacademic_share)} of papers are co-authored or cited by Indian companies, government agencies, hospitals or NGOs. ${fmt(I.patent_cited)} papers are cited by ${fmt(I.patents)} patents, and ${fmt(I.industry_papers)} have an industry co-author. ${cases.length} case studies (${doc.length} documented outcomes)${doc.length?`, e.g. ${esc(doc[0].title.charAt(0).toLowerCase()+doc[0].title.slice(1))}`:""}.`],
+    ["Reputable journals", "Reputable journals & India",
+     `${fmt(R.kpis.ni_papers)} papers (${pct(R.kpis.ni_share)} of journal papers) are in Nature Index journals. ${pct(R.kpis.ni_cited_in_india)} of them are cited in India, with ${fmt(ni.indian_citations_mean/other.indian_citations_mean,1)}× the Indian citations of our other papers, though India is only ${pct(ni.indian_share)} of their citing audience.`],
+    ["Journal choice", "Journal choice",
+     `${pct(J.q1_share)} of journal papers are in Q1 journals, but only ${pct(J.high_impact_share)} in high-impact journals (impact ≥ 10).${hi?` Team size matters most: papers with ${esc(hi.level)} authors have ${fmt(hi.odds_ratio,1)}× the odds of a high-impact journal (both institutes, other factors fixed).`:""}`],
+    ["Large-team papers", "Large-team papers",
+     `${fmt(DATA_ALL.inst[state.inst].kpis.many_author_papers)} papers (${pct(DATA_ALL.inst[state.inst].kpis.many_author_share)}) have more than 12 authors${cit && cit.change!=null?`; without them, citations fall by ${pct(-cit.change)}`:""}. The <i>Flagged</i> switch at the top repeats every tab without them.`],
+    ["Collaboration in India", "Indian connectivity",
+     `${pct(k.with_indian_coauthor)} of papers have a co-author at another Indian institute${partners.length?`; the largest partner is ${esc(short(partners[0].partner_inst))} (${fmt(partners[0].shared_papers)} shared papers)`:""}.`],
+    ["Faculty network", "Co-authorship network",
+     `${fmt(a.faculty_nodes)} faculty form ${fmt(a.n_communities)} research communities (modularity ${fmt(a.modularity,2)}), largely following departments; ${fmt(a.isolated_faculty)} faculty have no co-author among our faculty.`],
+  ];
+  document.getElementById("ovFind").innerHTML = items.map(([t, tab, b]) =>
+    `<a href="#" data-goto="${esc(tab)}"><div class="t">${esc(t)}</div><div class="b">${b}</div><div class="go">Open ${esc(tab)} →</div></a>`).join("");
+}
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-goto]");
+  if (g) { e.preventDefault(); state.tab = g.dataset.goto; render(); window.scrollTo(0, 0); }
+});
+
 function renderMethod() {
-  const m = DATA.meta;
-  document.getElementById("method").innerHTML = `
-  <h3>Data &amp; method</h3>
-  <ul>
+  const m = DATA.meta, R = DATA.reputable, S = DATA.impact.settings, L = S.last_patent_year;
+  const ref = (t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+  const sec = (title, body, open) => `<details class="m"${open?" open":""}><summary>${title}</summary><div class="note">${body}</div></details>`;
+  document.getElementById("method").innerHTML = `<h3>Data &amp; method</h3>
+  <div class="hint">How every number on this dashboard is defined, with sources. Full write-up: README of the project repository.</div>` +
+  sec("Data, scope and quality", `<ul>
    <li><b>Source:</b> OpenAlex works affiliated with ${Object.entries(m.institutions).map(([k,v])=>`${esc(v)} [${k}]`).join(" and ")}, ${m.years[0]}–${m.years[1]}: journal articles, reviews, letters, book chapters and conference papers, collected ${esc(m.data_collected)}. ${fmt(m.n_papers)} papers, ${fmt(m.n_rows)} dataset rows.</li>
    <li><b>TIFR scope:</b> TIFR Mumbai only; authors at TIFR's other centres (NCBS, NCRA, ICTS, TIFR Hyderabad, TIFR-CAM, HBCSE) are recognised from their affiliation text and excluded.</li>
    <li><b>Author lists:</b> where OpenAlex's list API cut a paper's authors at 100, the full list was fetched, so author counts are exact. Papers with no identifiable IISc/TIFR author are removed as OpenAlex mis-tags.</li>
    <li><b>Faculty:</b> official rosters (IISc Directory 2025-26, IISc Centre for Society and Policy, IISc retired-faculty list; TIFR department pages) matched to OpenAlex authors by name and department; former faculty added by a publication rule (≥ 8 papers over ≥ 4 years, ≥ 30% as last or corresponding author). Rank = current (2025-26) title. Counts by source: ${Object.entries(m.faculty_sources).map(([k,v])=>`${esc(k)} ${v}`).join(", ")}.</li>
    <li><b>Quality:</b> SCImago SJR best quartile of the journal in the publication year (2026 uses SJR 2025); CORE 2023 for conferences. Journal impact = OpenAlex 2-year mean citedness (the impact-factor equivalent); high-impact = impact ≥ 10. Impact is not field-normalised: physics and mathematics journals have lower values.</li>
    <li><b>Large-team flag (instructor's request):</b> <code>authors_gt_12</code> = TRUE when a paper has more than 12 authors. The switch <i>Flagged: included / excluded</i> recomputes every tab without them.</li>
+  </ul>`, true) +
+  sec("Journal choice", `<ul>
    <li><b>Journal choice:</b> who = per-faculty journals used, top-3 share (loyalty), Q1 and high-impact share, by rank and department; why = shares by team size, collaboration, field and rank, plus a logistic regression holding the others fixed; how = journal co-usage network (journals linked by shared faculty; Louvain communities).</li>
-   <li><b>Reputable journals &amp; impact on India:</b> Nature Index journals (with the index's article rules) and flagship journals; impact on India measured by Indian citations, their share, breadth, reach, speed and an Indian Citation Index, plus India-focused topics and SDG tags. Full definitions and sources are on that tab and in the README; per-paper values are in outputs/stats/india_impact_per_paper.csv.</li>
-   <li><b>Impact on India beyond research:</b> patents citing the papers (Reliance on Science), co-authorship with companies in India and IISc start-ups, and co-authorship with or citation by national missions and public services (space, defence, atomic energy, weather and climate, agriculture, health, CSIR, government), plus documented case studies. Definitions and sources are on that tab and in the README; per-paper values are in outputs/stats/india_pathways_per_paper.csv.</li>
+  </ul>`) +
+  sec("Reputable journals and research uptake in India", `<ul>
+   <li><b>Reputable journals</b> = the <a href="https://www.nature.com/nature-index/faq" target="_blank" rel="noopener">Nature Index</a> list of 178 journals and proceedings, chosen by panels of active scientists independently of Springer Nature. Its article rules are applied: for Physical Review A/B/D only Letters, for MNRAS only its Letters, and A&amp;A not at all, since its Letters and the Editors' Suggestions cannot be identified in OpenAlex. <b>Flagship</b> = Nature, Science, Cell, PNAS.</li>
+   <li><b>Indian citations (uptake)</b> = papers citing ours that have at least one author at an Indian institution (OpenAlex institution <code>country_code</code> = IN), excluding papers that involve our own institute. Built from those papers' <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener">OpenAlex <code>referenced_works</code></a>.</li>
+   <li><b>Indian share</b> = Indian citations ÷ all citations (OpenAlex <code>cited_by_count</code>). <b>Breadth</b> = distinct Indian institutions citing. <b>Reaches wider</b> = cited by at least one state or private university or college (not IIT, NIT, IIIT, IISER, CSIR, DAE or central university).</li>
+   <li><b>Indian Citation Index</b> = a paper's Indian citations ÷ the average for our journal papers of the same field and year (1.0 = typical), built like OpenAlex's <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener"><code>fwci</code></a> (citations ÷ expected for the same type, year and subfield; 1.0 = world average). <b>Top 10%</b> = OpenAlex <code>citation_normalized_percentile</code>.</li>
+   <li><b>Speed</b> = years from publication to the first Indian citation. <b>Indian co-authors</b> = at least one co-author at another Indian institution.</li>
+   <li><b>India-focused</b> = the title or abstract names India, an Indian state or city, a region (Himalaya, Western Ghats, Ganga, …) or a national facility or mission (AstroSat, GMRT, Chandrayaan, …). Abstracts come from OpenAlex; ${pct(0.706)} of papers have one, so the rest are judged on the title only.</li>
+   <li><b>SDG</b> = UN Sustainable Development Goal tag from <a href="https://help.openalex.org/data/sdgs" target="_blank" rel="noopener">OpenAlex's SDG classifier</a>, counted only at score ≥ ${R.sdg_min_score} (tags at that level are correct about 7 times in 10). <a href="https://sdgs.un.org/goals" target="_blank" rel="noopener">UN goals</a>.</li>
+   <li>Indian citations count papers, not people or practice.</li></ul>`) +
+  sec("Impact on India beyond research: patents, industry, missions, case studies", `<ul>
+   <li><b>What can and cannot be shown.</b> No dataset can prove that a paper <i>caused</i> economic growth or a better product. What can be measured are the documented <b>pathways</b> through which research reaches users outside academia: technology, the economy, national missions and public services (${ref("Bornmann 2013","https://doi.org/10.1002/asi.22803")}; the "payback" categories of ${ref("Buxton &amp; Hanney 1996","https://doi.org/10.1177/135581969600100107")}). Every number here can be traced to a patent, a paper or an organisation.</li>
+   <li><b>Technology: patents.</b> Patents worldwide that cite our papers, from the <i>Reliance on Science</i> dataset v64 (${ref("Marx &amp; Fuegi 2020","https://doi.org/10.1002/smj.3145")}; ${ref("2022","https://doi.org/10.1111/jems.12455")}; ${ref("data","https://zenodo.org/records/11461587")}), counted at match confidence ≥ ${S.min_confidence} as its authors do. Patent citations are the standard bibliometric link between science and technology (${ref("Narin et al. 1997","https://doi.org/10.1016/S0048-7333(97)00013-9")}; ${ref("Ahmadpoor &amp; Jones 2017","https://doi.org/10.1126/science.aam9527")}). The office comes from the patent number. The dataset is built from full-text patent collections that do not include the Indian Patent Office, so patents filed only in India are missing. <i>Patents by our own authors</i> = an author of the paper is an inventor on the patent. The data runs to ${L}; counts are patent documents, so an application and its grant can both count.</li>
+   <li><b>Economy: industry.</b> Co-authorship with companies in India, a standard indicator of university–industry links (${ref("Tijssen 2012","https://doi.org/10.1093/reseval/rvs013")}; used in the ${ref("CWTS Leiden Ranking","https://www.leidenranking.com/information/indicators")}). Companies = organisations OpenAlex types as "company", plus company addresses in the authors' affiliation text (Pvt. Ltd., Limited, LLP) with an Indian location, which finds start-ups missing from the registry. Ownership: public sector company (PSU), Indian private company, or multinational (foreign headquarters). <i>Start-ups at IISc</i> = companies whose address is IISc's incubators (Society for Innovation and Development, CeNSE, CPDM) or campus. Industry use is also measured by citations from company researchers.</li>
+   <li><b>National missions and public services.</b> Co-authorship with, and citation by, Indian organisations grouped by sector from their name and OpenAlex type: space (ISRO and its centres), defence and aerospace (DRDO labs, NAL, armed forces), atomic energy (BARC, IGCAR, RRCAT, NPCIL), earth, climate and environment (MoES, IMD, IITM, INCOIS, GSI…), agriculture (ICAR institutes, agricultural universities), health (ICMR, hospitals, medical colleges), CSIR industrial R&amp;D labs, government departments and regulators, and NGOs and think tanks. Universities and basic-research institutes are not counted here.</li>
+   <li><b>Not measured.</b> Revenue, jobs, products sold and policy documents citing the research: no open data exists for Indian organisations (policy-citation databases such as Overton are commercial). Patents filed only at the Indian Patent Office are not in the patent data, and it has no assignees, so Indian companies' patents cannot be singled out. Only a minority of Indian companies are in the registry OpenAlex uses, so industry links are undercounted.</li></ul>`) +
+  sec("Networks", `<ul>
    <li><b>Citation network:</b> nodes = our papers, edges = OpenAlex references among them; PageRank α = 0.85. Citations to and from other Indian institutes are in citation_network.csv.</li>
    <li><b>Co-authorship network:</b> nodes = faculty, edges = joint papers with ≤ ${m.mega_threshold} authors; Louvain communities (seed 42), degree and betweenness centrality (NetworkX).</li>
    <li><b>Indian connectivity:</b> partner institutions = Indian institutions in the author lists; clusters follow the course PPT; topic similarity = Jaccard over OpenAlex subfields.</li>
-  </ul>`;
+  </ul>`);
 }
 
 function flaggedRows() {
@@ -738,13 +797,7 @@ function renderImpact() {
     ["Case studies", fmt(I.cases.filter(c => state.inst==="All" || c.institute===state.inst).length),
      `${fmt(I.cases.filter(c => (state.inst==="All" || c.institute===state.inst) && c.evidence==="Documented outcome").length)} documented outcomes, each with sources`],
   ]);
-  const ref = (t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
-  document.getElementById("imMethod").innerHTML = `<ul>
-   <li><b>What can and cannot be shown.</b> No dataset can prove that a paper <i>caused</i> economic growth or a better product. What can be measured are the documented <b>pathways</b> through which research reaches users outside academia: technology, the economy, national missions and public services (${ref("Bornmann 2013","https://doi.org/10.1002/asi.22803")}; the "payback" categories of ${ref("Buxton &amp; Hanney 1996","https://doi.org/10.1177/135581969600100107")}). Every number here can be traced to a patent, a paper or an organisation.</li>
-   <li><b>Technology: patents.</b> Patents worldwide that cite our papers, from the <i>Reliance on Science</i> dataset v64 (${ref("Marx &amp; Fuegi 2020","https://doi.org/10.1002/smj.3145")}; ${ref("2022","https://doi.org/10.1111/jems.12455")}; ${ref("data","https://zenodo.org/records/11461587")}), counted at match confidence ≥ ${S.min_confidence} as its authors do. Patent citations are the standard bibliometric link between science and technology (${ref("Narin et al. 1997","https://doi.org/10.1016/S0048-7333(97)00013-9")}; ${ref("Ahmadpoor &amp; Jones 2017","https://doi.org/10.1126/science.aam9527")}). The office comes from the patent number. The dataset is built from full-text patent collections that do not include the Indian Patent Office, so patents filed only in India are missing. <i>Patents by our own authors</i> = an author of the paper is an inventor on the patent. The data runs to ${L}; counts are patent documents, so an application and its grant can both count.</li>
-   <li><b>Economy: industry.</b> Co-authorship with companies in India, a standard indicator of university–industry links (${ref("Tijssen 2012","https://doi.org/10.1093/reseval/rvs013")}; used in the ${ref("CWTS Leiden Ranking","https://www.leidenranking.com/information/indicators")}). Companies = organisations OpenAlex types as "company", plus company addresses in the authors' affiliation text (Pvt. Ltd., Limited, LLP) with an Indian location, which finds start-ups missing from the registry. Ownership: public sector company (PSU), Indian private company, or multinational (foreign headquarters). <i>Start-ups at IISc</i> = companies whose address is IISc's incubators (Society for Innovation and Development, CeNSE, CPDM) or campus. Industry use is also measured by citations from company researchers.</li>
-   <li><b>National missions and public services.</b> Co-authorship with, and citation by, Indian organisations grouped by sector from their name and OpenAlex type: space (ISRO and its centres), defence and aerospace (DRDO labs, NAL, armed forces), atomic energy (BARC, IGCAR, RRCAT, NPCIL), earth, climate and environment (MoES, IMD, IITM, INCOIS, GSI…), agriculture (ICAR institutes, agricultural universities), health (ICMR, hospitals, medical colleges), CSIR industrial R&amp;D labs, government departments and regulators, and NGOs and think tanks. Universities and basic-research institutes are not counted here.</li>
-   <li><b>Not measured.</b> Revenue, jobs, products sold and policy documents citing the research: no open data exists for Indian organisations (policy-citation databases such as Overton are commercial). Patents filed only at the Indian Patent Office are not in the patent data, and it has no assignees, so Indian companies' patents cannot be singled out. Only a minority of Indian companies are in the registry OpenAlex uses, so industry links are undercounted.</li></ul>`;
+
   // sectors
   const sec = b.sectors.slice().reverse(), allSec = I.All.sectors;
   const tip = s => (allSec.find(x => x.sector === s.sector) || {top_citers: []}).top_citers.join("<br>");
@@ -783,6 +836,7 @@ function renderImpact() {
   table("imTopPat", b.top_patented, [{k:"title",t:"Title",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
     {k:"patents",t:"Patents",n:1,f:v=>fmt(v)},{k:"patents_self",t:"Own",n:1,f:v=>fmt(v)},
     {k:"offices",t:"Offices",f:v=>esc((v||"").replace(/;/g,", "))},{k:"doi",t:"",f:doiLink}], {sort:"patents"});
+  const ref = (t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
   // case studies: filtered by area, evidence level and the institute switch
   const cat = document.getElementById("csCat");
   if (cat.options.length === 1) [...new Set(I.cases.map(c => c.category))].forEach(c => cat.add(new Option(c, c)));
@@ -841,23 +895,15 @@ function renderReputable() {
     ["Nature Index papers", fmt(k.ni_papers), `${pct(k.ni_share)} of journal papers · ${fmt(k.ni_journals)} journals`],
     ["Flagship papers", fmt(k.flagship_papers), "Nature, Science, Cell, PNAS"],
     ["Cited in India", pct(k.ni_cited_in_india), "of Nature Index papers"],
-    ["Indian citations per paper", fmt(ni.indian_citations_mean,1), `Indian Citation Index ${fmt(ni.ici_mean,2)}`],
+    ["Indian citations per paper", fmt(ni.indian_citations_mean,1), `other papers: ${fmt(b.comparison[b.comparison.length-1].indian_citations_mean,1)}`],
     ["Indian share of their citations", pct(ni.indian_share), `other papers: ${pct(b.comparison[b.comparison.length-1].indian_share)}`],
     ["India-focused", pct(k.ni_india_focus), "of Nature Index papers"],
   ]);
-  document.getElementById("rpMethod").innerHTML = `<ul>
-   <li><b>Reputable journals</b> = the <a href="https://www.nature.com/nature-index/faq" target="_blank" rel="noopener">Nature Index</a> list of 178 journals and proceedings, chosen by panels of active scientists independently of Springer Nature. Its article rules are applied: for Physical Review A/B/D only Letters, for MNRAS only its Letters, and A&amp;A not at all, since its Letters and the Editors' Suggestions cannot be identified in OpenAlex. <b>Flagship</b> = Nature, Science, Cell, PNAS.</li>
-   <li><b>Indian citations (uptake)</b> = papers citing ours that have at least one author at an Indian institution (OpenAlex institution <code>country_code</code> = IN), excluding papers that involve our own institute. Built from those papers' <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener">OpenAlex <code>referenced_works</code></a>.</li>
-   <li><b>Indian share</b> = Indian citations ÷ all citations (OpenAlex <code>cited_by_count</code>). <b>Breadth</b> = distinct Indian institutions citing. <b>Reaches wider</b> = cited by at least one state or private university or college (not IIT, NIT, IIIT, IISER, CSIR, DAE or central university).</li>
-   <li><b>Indian Citation Index</b> = a paper's Indian citations ÷ the average for our journal papers of the same field and year (1.0 = typical), built like OpenAlex's <a href="https://help.openalex.org/api-entities/works/work-object" target="_blank" rel="noopener"><code>fwci</code></a> (citations ÷ expected for the same type, year and subfield; 1.0 = world average). <b>Top 10%</b> = OpenAlex <code>citation_normalized_percentile</code>.</li>
-   <li><b>Speed</b> = years from publication to the first Indian citation. <b>Indian co-authors</b> = at least one co-author at another Indian institution.</li>
-   <li><b>India-focused</b> = the title or abstract names India, an Indian state or city, a region (Himalaya, Western Ghats, Ganga, …) or a national facility or mission (AstroSat, GMRT, Chandrayaan, …). Abstracts come from OpenAlex; ${pct(0.706)} of papers have one, so the rest are judged on the title only.</li>
-   <li><b>SDG</b> = UN Sustainable Development Goal tag from <a href="https://help.openalex.org/data/sdgs" target="_blank" rel="noopener">OpenAlex's SDG classifier</a>, counted only at score ≥ ${R.sdg_min_score} (tags at that level are correct about 7 times in 10). <a href="https://sdgs.un.org/goals" target="_blank" rel="noopener">UN goals</a>.</li>
-   <li><b>Beyond research</b>: patents, industry, start-ups and use by national missions and public services are measured on the <i>Impact on India</i> tab; the last three rows of the table compare them here. Indian citations count papers, not people or practice.</li></ul>`;
-  const metrics = [["papers","Papers","n"],["median_citations","Median citations","n1"],["mean_fwci","Mean FWCI (world = 1)","n2"],["top10_share","In global top 10% of their field","p"],
-    ["cited_in_india_share","Cited at least once in India","p"],["indian_citations_mean","Indian citations per paper","n1"],["indian_institutions_mean","Indian institutions citing, per paper","n1"],
-    ["ici_mean","Indian Citation Index (1 = typical)","n2"],["indian_share","Indian share of all citations","p"],["reaches_wider_share","Cited by a state/private university or college","p"],
-    ["median_lag","Years to first Indian citation (median)","n1"],["indian_coauthor_share","With an Indian co-author institution","p"],["india_focus_share","India-focused","p"],["sdg_share","Tagged with an SDG","p"],
+
+  const metrics = [["papers","Papers","n"],["median_citations","Median citations","n1"],["top10_share","In global top 10% of their field","p"],
+    ["cited_in_india_share","Cited at least once in India","p"],["indian_citations_mean","Indian citations per paper","n1"],
+    ["indian_share","Indian share of all citations","p"],["reaches_wider_share","Cited by a state/private university or college","p"],
+    ["india_focus_share","About India (India-focused topic)","p"],
     ["patent_share",`Cited by a patent (papers up to ${DATA.impact.settings.last_patent_year})`,"p"],    ["industry_share","With an industry co-author in India","p"],["nonacademic_share","Used outside academia in India (Impact on India tab)","p"]];
   const groups = b.comparison.map(g=>g.group);
   const rows = metrics.map(([key,label,f]) => Object.assign({metric:label}, ...b.comparison.map((g,i)=>({["g"+i]: g[key], ["f"+i]: f}))));
