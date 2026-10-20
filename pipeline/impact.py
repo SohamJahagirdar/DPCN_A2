@@ -318,23 +318,42 @@ def pathways(t):
 CASES_PATH = config.EXTERNAL / "impact_case_studies.json"
 
 
+def _match(P, m):
+    """Papers matching every condition of one rule: company (co-author company name), faculty (IISc/TIFR faculty
+    author, any of the names), title / title_re (text or regex in the title), india_term, doi (list), inst,
+    exclude_doi (papers whose attribution could not be confirmed)."""
+    sel = pd.Series(True, index=P.index)
+    if "company" in m:
+        sel &= P["companies"].str.contains(m["company"], case=False, regex=False)
+    if "faculty" in m:
+        names = m["faculty"] if isinstance(m["faculty"], list) else [m["faculty"]]
+        sel &= P["faculty"].apply(lambda fs: any(n.lower() == f.lower() for f in fs for n in names))
+    if "title" in m:
+        sel &= P["title"].fillna("").str.contains(m["title"], case=False, regex=False)
+    if "title_re" in m:
+        rx = re.compile(m["title_re"], re.I)
+        sel &= P["title"].fillna("").map(lambda x: bool(rx.search(x)))
+    if "india_term" in m:
+        sel &= P["india_terms"].fillna("").str.contains(m["india_term"], case=False, regex=False)
+    if "doi" in m:
+        sel &= P["doi"].fillna("").str.lower().isin([d.lower() for d in m["doi"]])
+    if "inst" in m:
+        sel &= P["homes"].str.contains(m["inst"], regex=False)
+    if "exclude_doi" in m:
+        sel &= ~P["doi"].fillna("").str.lower().isin([d.lower() for d in m["exclude_doi"]])
+    return sel
+
+
 def case_studies(P, pat, cit_names):
     """Documented examples (data/external/impact_case_studies.json: facts and sources checked by hand), each
     joined to the matching papers in our data and what the data shows about their use."""
     cases = json.loads(CASES_PATH.read_text(encoding="utf-8")) if CASES_PATH.exists() else []
     out = []
     for c in cases:
-        m, sel = c["match"], pd.Series(True, index=P.index)
-        if "company" in m:
-            sel &= P["companies"].str.contains(m["company"], case=False, regex=False)
-        if "india_term" in m:
-            sel &= P["india_terms"].fillna("").str.contains(m["india_term"], case=False, regex=False)
-        if "title" in m:
-            sel &= P["title"].fillna("").str.contains(m["title"], case=False, regex=False)
-        if "inst" in m:
-            sel &= P["homes"].str.contains(m["inst"], regex=False)
-        if "exclude_doi" in m:                       # papers whose attribution could not be confirmed
-            sel &= ~P["doi"].fillna("").str.lower().isin([d.lower() for d in m["exclude_doi"]])
+        sel = pd.Series(False, index=P.index)
+        rules = c.get("match") or []                # null = no paper of ours is linked to this outcome
+        for m in (rules if isinstance(rules, list) else [rules]):   # a list = any of them
+            sel |= _match(P, m)
         S = P[sel]
         users = Counter()
         for wid in S.index:
@@ -427,6 +446,9 @@ def impact_stats(t, out_dir=None):
                             citing_sectors=r.citing_sectors, many_authors=bool(r.many_authors), doi=r.doi)
                        for r in ev.head(2500).itertuples()]
     out["evidence_total"] = int(len(ev))
+    fac = t["own_auth"].dropna(subset=["person"]).drop_duplicates(["work_id", "person"])
+    names = fac.groupby("work_id")["person"].agg(lambda s: sorted(t["persons"][k]["name"] for k in s))
+    P["faculty"] = [names.get(w, []) for w in P.index]
     out["cases"] = case_studies(P, pat, cit_names)
     out["settings"] = dict(min_confidence=config.PATENT_MIN_CONFIDENCE, last_patent_year=last,
                            patents_available=bool(len(pat)))

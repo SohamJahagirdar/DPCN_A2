@@ -162,6 +162,12 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
   <section class="tab" data-tab="Impact on India">
     <div class="tiles" id="imTiles"></div>
     <div class="grid" style="margin-top:16px">
+      <div class="card c12"><h3>Case studies: documented outcomes and the papers behind them</h3>
+        <div class="hint">What IISc and TIFR research has led to in India, each case checked against the sources listed under it. <b>Documented outcome</b> = the sources report a concrete result (a product, licence, approval, court order, funded company or national facility). <b>Partly documented</b> = the link or the result is only partly shown. The numbers under each case come from our data.</div>
+        <div class="row"><select id="csCat"><option value="">All areas</option></select>
+          <select id="csEv"><option value="">All evidence levels</option><option>Documented outcome</option><option>Partly documented</option></select>
+          <span class="pill" id="csCount"></span></div>
+        <div id="imCases" class="grid"></div></div>
       <div class="card c12"><h3>Does the research lead to something in India beyond more papers?</h3><div id="imMethod" class="note"></div></div>
       <div class="card c12"><h3>Who in India uses the research, by sector</h3>
         <div class="hint">Papers co-authored with an organisation of the sector, and papers cited by one. Citing papers that involve our own institute are excluded. Hover for the main citing organisations.</div>
@@ -172,9 +178,6 @@ input[type=search],select{background:var(--surface);color:var(--ink);border:1px 
       <div class="card c6"><h3>Economy: companies in India citing our papers</h3><div class="hint">Citing papers with an author at the company (both institutes)</div><div id="imCiting" class="plot tall"></div></div>
       <div class="card c6"><h3>Per year: papers cited by a patent or with an industry co-author</h3><div class="hint" id="imYearHint"></div><div id="imYear" class="plot"></div></div>
       <div class="card c6"><h3>Most patent-cited papers</h3><div id="imTopPat" class="tablewrap" style="max-height:340px"></div></div>
-      <div class="card c12"><h3>Case studies: documented outcomes and the papers behind them</h3>
-        <div class="hint">The text of each case comes from the sources listed under it; the numbers come from our data.</div>
-        <div id="imCases" class="grid"></div></div>
       <div class="card c12"><h3>Evidence: papers with a pathway beyond academia</h3>
         <div class="row"><input type="search" id="imSearch" placeholder="Search title, company, sector…" size="34">
           <select id="imPath"><option value="">All pathways</option><option value="pat">Cited by a patent</option><option value="self">Patent by our own author</option><option value="ind">Industry co-author</option><option value="start">IISc start-up co-author</option><option value="mis">Mission or public-service co-author</option></select>
@@ -687,6 +690,8 @@ function renderImpact() {
     ["Patents by our own authors", dash(k.patents_self), "an author of the paper is an inventor on the patent"],
     ["Industry co-authored papers", fmt(k.industry_papers), `${pct(k.industry_share)} of papers · ${fmt(k.companies)} companies in India`],
     ["Start-ups at IISc co-authoring", fmt(k.iisc_startups), "address at IISc's incubators or campus"],
+    ["Case studies", fmt(I.cases.filter(c => state.inst==="All" || c.institute===state.inst).length),
+     `${fmt(I.cases.filter(c => (state.inst==="All" || c.institute===state.inst) && c.evidence==="Documented outcome").length)} documented outcomes, each with sources`],
   ]);
   const ref = (t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
   document.getElementById("imMethod").innerHTML = `<ul>
@@ -733,16 +738,26 @@ function renderImpact() {
   table("imTopPat", b.top_patented, [{k:"title",t:"Title",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
     {k:"patents",t:"Patents",n:1,f:v=>fmt(v)},{k:"patents_self",t:"Own",n:1,f:v=>fmt(v)},
     {k:"offices",t:"Offices",f:v=>esc((v||"").replace(/;/g,", "))},{k:"doi",t:"",f:doiLink}], {sort:"patents"});
-  // case studies
-  document.getElementById("imCases").innerHTML = I.cases.map(c => `<div class="card c6" style="background:var(--surface-2)">
+  // case studies: filtered by area, evidence level and the institute switch
+  const cat = document.getElementById("csCat");
+  if (cat.options.length === 1) [...new Set(I.cases.map(c => c.category))].forEach(c => cat.add(new Option(c, c)));
+  const drawCases = () => {
+    const cs = I.cases.filter(c => (state.inst==="All" || c.institute===state.inst) && (!cat.value || c.category===cat.value)
+      && (!document.getElementById("csEv").value || c.evidence===document.getElementById("csEv").value));
+    document.getElementById("csCount").textContent = `${cs.length} case${cs.length===1?"":"s"}`;
+    document.getElementById("imCases").innerHTML = cs.map(c => `<div class="card c6" style="background:var(--surface-2)">
      <h3>${esc(c.title)}</h3>
-     <div class="row">${[c.institute, ...c.pathways].map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div>
+     <div class="row"><span class="pill" style="${c.evidence==="Documented outcome"?"border-color:var(--s3);color:var(--ink)":""}">${esc(c.evidence)}</span>${[c.institute, ...c.pathways].map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div>
      <div class="note">${esc(c.summary)}</div>
-     <div class="note" style="margin-top:8px"><b>In our data:</b> ${fmt(c.papers)} papers, ${fmt(c.citations)} citations${hasPat && c.patents?`, cited by ${fmt(c.patents)} patent${c.patents===1?"":"s"}`:""}.
+     <div class="note" style="margin-top:8px">${c.papers ? `<b>In our data:</b> ${fmt(c.papers)} paper${c.papers===1?"":"s"}, ${fmt(c.citations)} citations${hasPat && c.patents?`, cited by ${fmt(c.patents)} patent${c.patents===1?"":"s"}`:""}.` : `<b>In our data:</b> ${esc(c.no_papers_note || "no linked paper.")}`}
        ${c.coauthor_orgs.length?`Co-authors: ${esc(c.coauthor_orgs.slice(0,4).join(", "))}.`:""}
        ${c.users.length?`Cited by: ${c.users.slice(0,5).map(u=>`${esc(u.name.replace(/ \(India\)$/,""))} (${fmt(u.papers)} paper${u.papers===1?"":"s"})`).join(", ")}.`:""}</div>
      <div class="note" style="margin-top:6px">${c.top.slice(0,3).map(p=>`${esc(short(p.title))} (${p.year}) ${doiLink(p.doi)}`).join("<br>")}</div>
-     <div class="hint" style="margin-top:8px">Sources: ${c.sources.map(x=>ref(esc(x.label), x.url)).join(" · ")}</div></div>`).join("");
+     <div class="hint" style="margin-top:8px">Sources: ${c.sources.map(x=>ref(esc(x.label), x.url)).join(" · ")}</div></div>`).join("")
+      || `<div class="note" style="padding:12px">No case studies for this selection.</div>`;
+  };
+  cat.onchange = drawCases; document.getElementById("csEv").onchange = drawCases;
+  drawCases();
   // evidence table
   const all = I.evidence.filter(r => state.inst==="All" || r.homes.split(";").includes(state.inst));
   document.getElementById("imNote").textContent = `${fmt(I.evidence_total)} papers have at least one pathway (both institutes); the ${fmt(I.evidence.length)} strongest are listed here. Every paper and every measure is in outputs/stats/india_pathways_per_paper.csv.`;
