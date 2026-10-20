@@ -98,12 +98,12 @@ def _network(jp, fp):
     G.remove_nodes_from([n for n in list(G) if G.degree(n) == 0])
     if G.number_of_edges() == 0:
         return dict(nodes=[], edges=[], communities=[])
-    comms = sorted(nx.community.louvain_communities(G, weight="weight", seed=42), key=len, reverse=True)
+    comms = sorted(nx.community.louvain_communities(G, weight="weight", seed=42), key=lambda c: (-len(c), min(c)))
     comm_of = {n: i for i, c in enumerate(comms) for n in c}
     labels = []
     for i, c in enumerate(comms):
-        fields = pd.Series([G.nodes[n]["field"] for n in c]).value_counts()
-        top = sorted(c, key=lambda n: -G.nodes[n]["papers"])[:3]
+        fields = pd.Series([G.nodes[n]["field"] for n in sorted(c)]).value_counts()
+        top = sorted(c, key=lambda n: (-G.nodes[n]["papers"], n))[:3]
         labels.append(dict(community=i, size=len(c), field=fields.index[0] if len(fields) else "Mixed",
                            papers=int(sum(G.nodes[n]["papers"] for n in c)), journals=", ".join(top)))
     return dict(

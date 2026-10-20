@@ -85,18 +85,22 @@ From the development checkout, using an existing Python 3 runtime:
 $py = 'C:\Users\HP\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $study = 'C:\Users\HP\Desktop\dpcn\assignment\idea_flow_study_data'
 $baseline = 'C:\Users\HP\Desktop\dpcn\assignment\follow_the_idea_review_work_2026-10-20\bundle\comparison\research-map-committed.html'
+$historical = 'C:\Users\HP\Desktop\dpcn\assignment\beginner_dashboard_verification_2026-10-20\historical-repo'
+$host = 'C:\Users\HP\Desktop\dpcn\assignment\beginner_dashboard_verification_2026-10-20\main-ui.html'
 # Record one actual UTC timestamp and use exactly the same value for both builds.
 $buildUtc = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss+00:00')
 & $py -B -m pipeline.dashboard_snapshot `
   --repo . --study $study `
   --release-manifest "$study\verification\release_manifest.json" `
   --baseline-html $baseline --build-utc $buildUtc `
+  --historical-repo $historical --host-baseline-html $host `
   --output '<new external staging directory>\a\index.html' `
   --standalone-output '<new external staging directory>\standalone\index.html'
 & $py -B -m pipeline.dashboard_snapshot `
   --repo . --study $study `
   --release-manifest "$study\verification\release_manifest.json" `
   --baseline-html $baseline --build-utc $buildUtc `
+  --historical-repo $historical --host-baseline-html $host `
   --output '<same external staging directory>\b\index.html'
 ```
 
@@ -131,7 +135,7 @@ $env:IDEA_FLOW_CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 Use installed Chrome/Playwright; no packages or research data are downloaded.
 The resilience fixture helper creates three prominently labelled synthetic or
 missing-payload pages alongside staging without changing the real staged file.
-The native browser checks cover twelve tabs in all six header scopes, complete
+The native browser checks cover thirteen tabs in all six header scopes, complete
 CSV values, direct/age/G2 details, stories, URL reload, themes, offline mobile and
 performance. The separate resilience browser test preserves removal/network,
 chart-click, variant identity, role/search/sort, export, small-component and
@@ -145,4 +149,63 @@ the exact accepted staged bytes to `dashboard/index.html` on
 CLI intentionally does not perform that branch copy or any Git operation.
 Keep manifests, raw study, test screenshots/downloads and reports outside Git.
 Do not change main or a deployment configuration. Phase 2 stops before commit,
-push or publication for review.
+push or publication for review. A subsequent user-authorized task may explicitly
+authorize the development-only commit/push; publication still requires its own
+instruction.
+
+## New main host and preserved historical study
+
+Main advanced through Impact on India, its case-study expansion, and a UI update
+to `edf3ae4a13ffaa34da42d2c56abaf3043de49944`. The development merge preserves its code,
+generated CSVs and all eleven original/upstream tabs; the unified page now has
+thirteen tabs, including the upstream story-first navigation and Method disclosures.
+The readability additions are confined to Network Resilience,
+Follow the Idea and the shared controller those two sections require.
+
+The study is still the original pinned release. It must not be silently
+relabelled as an analysis of a new data release. Supply `--historical-repo` as a
+separate external copy of its 62 protected original outputs, checked against the
+study's original hashes. On this workstation those files were preserved before
+merging main. They contain original project deliverables, not the raw study
+database or 9,102 API snapshots. Another machine needs that verified historical
+directory explicitly, in addition to the study and old baseline described above.
+
+`--host-baseline-html` supplies the newer main dashboard, extracted as raw Git
+blob bytes from the pinned main commit. Its SHA-256 is
+`07a94899783026b037513ab8594f53e06d6ae7ed49dc9308ec134cf426e3829b`.
+`pipeline/dashboard_host_snapshot.json` pins that host and 62 current-main output
+and reference files; Windows CRLF/LF differences are normalized only for these
+Git-file checks. The original study input checks remain byte-exact. The renderer
+uses the newer host's complete payloads and independently recomputes resilience
+from its exact graph and faculty metadata; it retains the original study's
+verified seed metrics. Both old/new memberships and author flags are checked.
+Missing, mismatched or mixed host/history inputs fail before writing outputs.
+Neither host mode nor historical mode acquires research data.
+
+## Beginner explanations and denominator reconciliation
+
+Both analysis tabs now introduce the research question, use explicitly labelled
+illustrative examples, provide keyboard-operable learning disclosures and a
+numbered walkthrough, and explain selected records before technical detail.
+Network Resilience explains nodes, edges, components, degree, articulation,
+global/local surviving-pair loss, betweenness, variant-specific thresholds and
+why degree/impact rankings disagree. Its walkthrough and comparison button use
+actual matching researchers, while baseline comparisons stay explicitly global.
+
+Follow the Idea distinguishes stored citing→cited direction from outward
+“is cited by” traversal, links from unique works, seed filters from worldwide
+citer scope, primary-field labels from idea adoption, query exhaustion from
+scholarly completeness, and sampled/censored/unknown evidence from zero counts.
+Header totals remain separate from local table/CSV filters. New helper text
+does not change research algorithms, payload values or CSV schemas/precision.
+
+The full-population denominator reconciles exactly: **807,678** total direct
+links − **1,339** links with unknown citing fields − **8 additional** links with
+known citing fields but unavailable seed fields = **806,331** classifiable
+incidences. **184,420 / 806,331 = 22.87%**. One other unavailable-seed-field link
+also has an unknown citing field and is already in the first exclusion; it must
+not be subtracted twice. The per-scope breakdown is derived from stored totals,
+checked for reconciliation and shown beside the cross-field tile. This is a
+descriptive link-level primary-field statistic, not unique-work idea adoption
+or research quality. The source-inspected examples retain zero independent
+human reviews.

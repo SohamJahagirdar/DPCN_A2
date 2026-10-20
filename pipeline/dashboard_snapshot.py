@@ -93,8 +93,8 @@ def validate_inputs(repo, study, release_manifest, baseline_html):
     return manifest, hashes
 
 
-def baseline_payloads(path):
-    checked_file(path, BASELINE_SHA256)
+def baseline_payloads(path, expected=BASELINE_SHA256):
+    checked_file(path, expected)
     text = Path(path).read_text(encoding="utf-8")
     payloads = {}
     for name in ("DATA_ALL", "DATA_NF", "COMPARE"):
@@ -205,8 +205,28 @@ def atomic_write(path, text):
             tmp.unlink()
 
 
-def generate(repo, study, release_manifest, baseline_html, output, build_utc, standalone_output=None):
+def validate_host(repo, host_baseline_html):
+    """Verify the newer main host independently of the historical study release."""
+    pins = read_json(Path(__file__).with_name('dashboard_host_snapshot.json'))
+    if pins['commit'] != 'edf3ae4a13ffaa34da42d2c56abaf3043de49944':
+        raise ValueError('Unreviewed main host snapshot')
+    checked_file(host_baseline_html, pins['baseline_sha256'])
+    hashes = {str(host_baseline_html): pins['baseline_sha256']}
+    for relative, expected in pins['protected_sha256'].items():
+        path = under(repo, relative)
+        # Git blobs are LF; Windows checkouts may use CRLF. CSV values stay exact.
+        actual = hashlib.sha256(path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+        if actual != expected:
+            raise ValueError('Main host input SHA-256 mismatch: ' + str(path))
+        hashes[str(path)] = actual
+    return pins, hashes
+
+
+def generate(repo, study, release_manifest, baseline_html, output, build_utc, standalone_output=None,
+             historical_repo=None, host_baseline_html=None):
     repo, study, release_manifest, baseline_html, output = map(lambda p: Path(p).resolve(), (repo, study, release_manifest, baseline_html, output))
+    historical_repo = Path(historical_repo).resolve() if historical_repo else repo
+    host_baseline_html = Path(host_baseline_html).resolve() if host_baseline_html else None
     stamp = datetime.fromisoformat(build_utc.replace("Z", "+00:00"))
     if stamp.tzinfo is None or stamp.utcoffset().total_seconds() != 0:
         raise ValueError("Explicit UTC --build-utc required")
@@ -217,19 +237,29 @@ def generate(repo, study, release_manifest, baseline_html, output, build_utc, st
     if len(set(destinations)) != len(destinations):
         raise ValueError("Output destinations must be distinct")
     for target in destinations:
-        if target.is_relative_to(repo) or target.is_relative_to(study) or target in (baseline_html, release_manifest):
+        if target.is_relative_to(repo) or target.is_relative_to(study) or target.is_relative_to(historical_repo) or target in (baseline_html, release_manifest, host_baseline_html):
             raise ValueError("Generate to external staging, separate from repository/study/baseline inputs")
         if target.exists():
             raise ValueError("Preserving existing output; choose a new staging path: " + str(target))
     def source_digests():
         return {p.name: sha256(p) for p in Path(__file__).parent.iterdir()
-                if p.name in {"dashboard.py", "dashboard_template.html", "dashboard_snapshot.py", "idea_flow_dashboard.py", "idea_flow_template.html", "idea_flow_view.js", "rankings.py", "resilience.py"}}
+                if p.name in {"dashboard.py", "dashboard_template.html", "dashboard_snapshot.py", "dashboard_host_snapshot.json", "idea_flow_dashboard.py", "idea_flow_template.html", "idea_flow_view.js", "rankings.py", "resilience.py"}}
     source_hashes = source_digests()
+    if host_baseline_html and historical_repo == repo:
+        raise ValueError('New main host requires a separate verified --historical-repo')
+    if historical_repo != repo and not host_baseline_html:
+        raise ValueError('--historical-repo requires --host-baseline-html')
     print("[snapshot] verifying pinned baseline, release, database and historical inputs", flush=True)
-    manifest, hashes = validate_inputs(repo, study, release_manifest, baseline_html)
+    manifest, hashes = validate_inputs(historical_repo, study, release_manifest, baseline_html)
     baseline, vendors = baseline_payloads(baseline_html)
+    host_pins = None
+    if host_baseline_html:
+        host_baseline_html = Path(host_baseline_html).resolve()
+        host_pins, host_hashes = validate_host(repo, host_baseline_html)
+        hashes.update(host_hashes)
+        baseline, vendors = baseline_payloads(host_baseline_html, host_pins['baseline_sha256'])
     for name, folder in (("DATA_ALL", "outputs"), ("DATA_NF", "outputs/without_flagged")):
-        enrich_resilience(baseline[name], repo / folder / "faculty_network_metrics.csv")
+        enrich_resilience(baseline[name], (repo if host_pins else historical_repo) / folder / "faculty_network_metrics.csv")
     db_path = study / "study.sqlite3"
     before = (db_path.stat().st_size, db_path.stat().st_mtime_ns)
     print("[snapshot] preparing read-only explorer payload and six exact citation scopes", flush=True)
@@ -241,7 +271,9 @@ def generate(repo, study, release_manifest, baseline_html, output, build_utc, st
         idea = build_payload(db, manifest, study, build_utc)
         if not idea["summary"]["full_quality_gate"]["passed"] or len(idea["seeds"]) != manifest["seed_count"]:
             raise ValueError("Frozen study acceptance/population mismatch")
-        attach_seed_flags(idea["seeds"], repo)
+        attach_seed_flags(idea["seeds"], historical_repo)
+        if host_pins:
+            attach_seed_flags(idea["seeds"], repo)  # fail if main no longer has the frozen seed population
         idea["scopes"] = scope_summaries(db, idea["seeds"])
     if before != (db_path.stat().st_size, db_path.stat().st_mtime_ns):
         raise ValueError("Frozen study database changed during rendering")
@@ -259,6 +291,7 @@ def generate(repo, study, release_manifest, baseline_html, output, build_utc, st
                   input_sha256=hashes, source_sha256=dict(sorted(source_hashes.items())),
                   vendor_sha256={u: hashlib.sha256(v.encode("utf-8")).hexdigest() for u, v in vendors.items()},
                   database_immutable=True, database_stat_unchanged=True, scopes=idea["scopes"],
+                  host_commit=host_pins['commit'] if host_pins else None, historical_repo=str(historical_repo),
                   output_sha256=hashlib.sha256(html.encode("utf-8")).hexdigest(), output_bytes=len(html.encode("utf-8")))
     # All validation/rendering finishes before any output is created.
     atomic_write(output, html)
@@ -275,9 +308,12 @@ def main():
         p.add_argument("--" + name, required=True, type=Path)
     p.add_argument("--build-utc", required=True)
     p.add_argument("--standalone-output", type=Path, help="Optional NEW external compatibility preview; never the released artifact")
+    p.add_argument('--historical-repo', type=Path, help='External frozen historical protected outputs, separately hash-verified')
+    p.add_argument('--host-baseline-html', type=Path, help='Pinned newer main dashboard; preserves all newer main payloads')
     a = p.parse_args()
     try:
-        generate(a.repo, a.study, a.release_manifest, a.baseline_html, a.output, a.build_utc, a.standalone_output)
+        generate(a.repo, a.study, a.release_manifest, a.baseline_html, a.output, a.build_utc, a.standalone_output,
+                 a.historical_repo, a.host_baseline_html)
     except (ValueError, KeyError, OSError, sqlite3.Error) as e:
         p.exit(2, "[snapshot] " + str(e) + "\n")
 

@@ -433,6 +433,52 @@ def fetch_relevance(oa: OpenAlex):
     print(f"[relevance] {n} papers: SDG tags, top-percentile flags and India terms")
 
 
+# --------------------------------------------------------------------------- patents citing our papers
+PATENTS_PATH = config.RAW / "patent_citations.csv.gz"
+
+
+def fetch_patent_citations(source=None):
+    """Patents citing our papers, from the Reliance on Science dataset (no OpenAlex calls).
+
+    Streams the 2.5 GB `_pcs_oa.csv` (config.PATENT_CITATIONS_URL, or a local copy given by `source` / env
+    DPCN_PATENT_FILE) and keeps only the rows for our papers. Its `oaid` is the number of the OpenAlex work ID.
+    """
+    import csv
+    import gzip
+    import io
+    import requests
+    works, _ = load_corpus()
+    ours = {wid[1:] for wid in works}
+    source = source or os.environ.get("DPCN_PATENT_FILE")
+    if source:
+        stream = open(source, encoding="utf-8", newline="")
+    else:
+        print(f"[patents] streaming {config.PATENT_CITATIONS_URL} (~2.5 GB) ...")
+        r = requests.get(config.PATENT_CITATIONS_URL, stream=True, timeout=600)
+        r.raise_for_status()
+        stream = io.TextIOWrapper(r.raw, encoding="utf-8", newline="")
+    reader = csv.reader(stream)
+    head = next(reader)
+    col = {c: i for i, c in enumerate(head)}
+    keep, n = [], 0
+    for row in reader:
+        n += 1
+        if row[col["oaid"]] in ours:
+            keep.append(("W" + row[col["oaid"]], row[col["patent"]], row[col["confscore"]], row[col["reftype"]],
+                         row[col["wherefound"]], row[col["self"]]))
+        if n % 10_000_000 == 0:
+            print(f"[patents] {n:,} rows read, {len(keep):,} cite our papers", flush=True)
+    stream.close()
+    keep.sort()
+    tmp = PATENTS_PATH.with_suffix(".tmp")
+    with gzip.open(tmp, "wt", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["work_id", "patent", "confscore", "reftype", "wherefound", "self"])
+        w.writerows(keep)
+    tmp.replace(PATENTS_PATH)
+    print(f"[patents] {n:,} rows read; {len(keep):,} patent citations to {len({k[0] for k in keep}):,} of our papers")
+
+
 # --------------------------------------------------------------------------- partner topics
 def fetch_partner_topics(oa: OpenAlex, partner_ids):
     """Subfield publication counts 2016-2026 for each partner institution (1 group_by call each)."""

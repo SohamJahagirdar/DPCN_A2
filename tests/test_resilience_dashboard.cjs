@@ -16,11 +16,17 @@ const payloads = generated ? Object.fromEntries(['DATA_ALL','DATA_NF'].map(name=
   [name,JSON.parse(template.match(new RegExp('^const '+name+' = (.*);[^\\r\\n]*$', 'm'))[1])])) : JSON.parse(execFileSync(python, ['-B', '-c',
   "import json,sys;sys.path.insert(0,'tests');from test_resilience_snapshot import snapshot_result;out={};\nfor name in ['DATA_ALL','DATA_NF']:\n r,p,_=snapshot_result(name);p['resilience']=r;out[name]=p\nprint(json.dumps(out,ensure_ascii=True))"],
   {cwd:root,encoding:'utf8',maxBuffer:30*1024*1024,env:{...process.env,PYTHONIOENCODING:'utf-8'}}));
+if(!generated){
+  // The upstream main update adds an Impact on India tab. Preserve the original
+  // resilience fixture while supplying its actual pinned upstream impact data.
+  const host=execFileSync('git',['show','edf3ae4a13ffaa34da42d2c56abaf3043de49944:dashboard/index.html'],{cwd:root,encoding:'utf8',maxBuffer:140*1024*1024});
+  for(const name of ['DATA_ALL','DATA_NF'])payloads[name].impact=JSON.parse(host.match(new RegExp('^const '+name+' = (.*);[^\\r\\n]*$','m'))[1]).impact;
+}
 
 function dashboard(withFilteredData=true, hasFilteredPayload=true, resilience=null, hash='#tab=Network%20Resilience') {
   const elements = new Map(), networks = [], blobs = [];
   class Element {
-    constructor(id) { this.id=id;this.value='';this.checked=false;this.textContent='';this.hidden=false;this.listeners={};this.children=[];this.classList={toggle(){}};this._html=''; }
+    constructor(id) { this.id=id;this.value='';this.checked=false;this.textContent='';this.hidden=false;this.listeners={};this.children=[];this.options=id==='csCat'?[{value:''}]:[];this.classList={toggle(){}};this._html=''; }
     set innerHTML(value) {
       this._html=value;
       if(value.startsWith('<table>')) this.children=[...value.matchAll(/<th[^>]*data-k="([^"]+)"/g)].map(m=>{const th=new Element('header');th.dataset={k:m[1]};return th;});
@@ -36,10 +42,11 @@ function dashboard(withFilteredData=true, hasFilteredPayload=true, resilience=nu
     on(name,fn){this.listeners[name]=fn;}
     removeAllListeners(name){delete this.listeners[name];}
     click(){this.clicked=true;}
+    add(option){this.options.push(option);}
   }
   const el=id=>{if(!elements.has(id))elements.set(id,new Element(id));return elements.get(id);};
   const section=el('resilience-section');section.children=[new Element('grid'),new Element('tiles')];
-  const document={getElementById:el,querySelector:()=>section,querySelectorAll:()=>[],createElement:()=>new Element('download'),documentElement:{dataset:{}}};
+  const document={getElementById:el,querySelector:()=>section,querySelectorAll:()=>[],createElement:()=>new Element('download'),addEventListener(){},documentElement:{dataset:{}}};
   const nf=hasFilteredPayload?structuredClone(payloads.DATA_NF):null;
   if(nf && !withFilteredData)delete nf.resilience;
   const all=structuredClone(payloads.DATA_ALL);
@@ -56,7 +63,7 @@ function dashboard(withFilteredData=true, hasFilteredPayload=true, resilience=nu
   const context=vm.createContext({document,console,URLSearchParams,Blob,
     location,history:{replaceState:(_state,_title,url)=>{location.hash=url.slice(url.indexOf('#'));}},localStorage:{getItem:()=>null,setItem(){}},
     getComputedStyle:()=>({getPropertyValue:()=> '#335577'}),matchMedia:()=>({matches:false}),
-    window:{scrollTo(){}},setTimeout:fn=>fn(),URL:{createObjectURL:b=>{blobs.push(b);return 'blob:test';},revokeObjectURL(){}},
+    window:{scrollTo(){}},Option:class{constructor(text,value){this.text=text;this.value=value;}},setTimeout:fn=>fn(),URL:{createObjectURL:b=>{blobs.push(b);return 'blob:test';},revokeObjectURL(){}},
     Plotly:{react:(id,traces,layout)=>{el(id).plot={traces,layout};}},
     vis:{Network:class {
       constructor(element,data,options){this.data=data;this.options=options;networks.push(this);}
@@ -198,10 +205,37 @@ test('metric headers, titles, role labels and current hub cutoff agree with acti
     assert.ok(d.el('rsMethod').innerHTML.includes(r.summary.degree_top10_impact_top10_tie_inclusive_overlap+' including all cutoff-score ties'));
     assert.match(d.el('rsDetail').innerHTML,/Component-local pair loss/);
     assert.match(d.el('rsFragmentHint').textContent,/All surviving members/);
-    assert.match(d.el('subtitle').textContent,/Statistics built/);
-    assert.match(d.el('subtitle').textContent,/Corpus snapshot date unrecorded/);
-    assert.ok(d.el('subtitle').textContent.includes((flag==='in'?payloads.DATA_ALL:payloads.DATA_NF).meta.generated));
+    const meta=(flag==='in'?payloads.DATA_ALL:payloads.DATA_NF).meta;
+    if(meta.data_collected){assert.match(d.el('subtitle').textContent,/OpenAlex data collected/);assert.ok(d.el('subtitle').textContent.includes(meta.data_collected));}
+    else {assert.match(d.el('subtitle').textContent,/Statistics built/);assert.match(d.el('subtitle').textContent,/Corpus snapshot date unrecorded/);assert.ok(d.el('subtitle').textContent.includes(meta.generated));}
   }
+});
+
+test('beginner walkthrough uses current variant and matching researchers; compare action selects a real high-degree row',()=>{
+ const d=dashboard();
+ for(const flag of ['in','out'])for(const inst of ['All','IISc','TIFR']){
+  d.run('state.flag='+JSON.stringify(flag)+';state.inst='+JSON.stringify(inst)+';render();');
+  const r=(flag==='in'?payloads.DATA_ALL:payloads.DATA_NF).resilience;
+  const rows=r.researchers.filter(x=>inst==='All'||x.inst===inst);
+  const hub=rows.slice().sort((a,b)=>b.degree-a.degree||a.person.localeCompare(b.person))[0];
+  assert.equal((d.el('rsWalkthrough').innerHTML.match(/<li>/g)||[]).length,7);
+  assert.ok(d.el('rsWalkthrough').innerHTML.includes(hub.name));
+  assert.ok(d.el('rsWalkthrough').innerHTML.includes(''+r.baseline.nodes));
+  d.el('rsCompare').onclick();assert.equal(d.el('rsPerson').value,hub.person);
+  assert.match(d.el('rsDetail').innerHTML,/In ordinary language/);
+  assert.ok(d.el('rsDetail').innerHTML.includes(''+hub.degree));
+  assert.ok(!d.el('rsLearningSummary').innerHTML.includes('undefined'));
+ }
+});
+
+test('cross-variant explanation keeps maxima and hypothetical limits explicit and handles empty filters',()=>{
+ const d=dashboard();
+ for(const p of Object.values(payloads))assert.ok(d.el('rsLearningSummary').innerHTML.includes(Number(p.resilience.summary.max_lost_pairs).toLocaleString('en-IN')));
+ assert.match(d.el('rsLearningSummary').innerHTML,/not harmfulness of large teams/);
+ assert.match(d.el('rsMetricHelp').innerHTML,/4\/6 = 66.7%/);
+ d.el('rsSearch').value='NO_MATCH_a83fe';d.el('rsSearch').oninput();
+ assert.equal(d.el('rsCompare').disabled,true);
+ assert.match(d.el('rsWalkthrough').innerHTML,/No researcher matches/);
 });
 
 test('more than twelve fragments expose exact omitted fragments and survivor coverage',()=>{

@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {filterRows,csvText,eligible}=require('../pipeline/idea_flow_view.js');
+const {filterRows,csvText,eligible,denominatorBreakdown,learningMarkup}=require('../pipeline/idea_flow_view.js');
 const state={search:'',institution:'All',field:'All',year:'All',coverage:'All',pilot:false,sort:'id'};
 const rows=[
  {original_id:'W1',title:'Joint known',canonical_id:'W1',homes:['IISc','TIFR'],authors_gt_12:false,field_id:'f1',year:2020,pilot:true,query_complete:true,query_status:'complete',observed_citers:2,cross_field_share:0.123456789},
@@ -34,4 +34,22 @@ test('CSV includes every filtered row, precision, escaped quotes and empty heade
 });
 test('unknown seed author flag cannot silently enter excluded population',()=>{
  assert.equal(eligible({...rows[0],authors_gt_12:undefined},{inst:'All',flag:'out'}),false);
+});
+
+test('headline denominator reconciles unknown citing fields and additional unknown seed fields without double counting',()=>{
+ const s={direct_edges:807678,known_field_citers:806339,unknown_field_citers:1339,cross_numerator:184420,cross_denominator:806331};
+ assert.deepEqual(denominatorBreakdown(s),{valid:true,total:807678,unknownCiter:1339,unknownSeed:8,classifiable:806331,cross:184420});
+ assert.equal((100*s.cross_numerator/s.cross_denominator).toFixed(2),'22.87');
+ assert.equal(denominatorBreakdown({...s,cross_denominator:806340}).valid,false);
+ assert.equal(denominatorBreakdown({...s,direct_edges:807679}).valid,false);
+});
+
+test('teaching example distinguishes stored citation direction, displayed direction and G2; walkthrough uses scoped IDs',()=>{
+ const text=learningMarkup('if-');
+ for(const phrase of ['B → A','A → B → D','Illustrative example','2 links but 1 unique citing work','unknown field','not higher quality']){
+  assert.ok(text.includes(phrase),phrase);
+ }
+ assert.equal((text.match(/<li>/g)||[]).length,9);
+ assert.ok(text.includes('id="if-walkExample"'));
+ assert.ok(!text.includes('807678'),'Frozen totals must come from the scope payload, not teaching markup');
 });

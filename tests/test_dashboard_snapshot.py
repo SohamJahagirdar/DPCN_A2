@@ -3,12 +3,13 @@ import copy
 import json
 from pathlib import Path
 import sqlite3
+from unittest.mock import patch
 import tempfile
 import unittest
 
 from pipeline.dashboard import render_dashboard
 from pipeline.dashboard_snapshot import (VENDOR_URLS, atomic_write, canonical_rows,
-                                       checked_file, generate, scope_summaries, under)
+                                       checked_file, generate, scope_summaries, under, validate_host)
 from pipeline.idea_flow import SCHEMA
 from pipeline.idea_flow_dashboard import build_payload, render_standalone
 
@@ -143,6 +144,27 @@ class SnapshotGenerationTests(unittest.TestCase):
                 checked_file(p, "0" * 64)
             with self.assertRaisesRegex(ValueError, "escapes"):
                 under(p.parent, "../outside")
+
+    def test_new_main_host_checks_pinned_html_and_protected_file_values(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            html = root / 'main.html'
+            html.write_bytes(b'host')
+            source = root / 'outputs/example.csv'
+            source.parent.mkdir()
+            source.write_bytes(b'a,b\r\n1,2\r\n')
+            import hashlib
+            pins = dict(commit='edf3ae4a13ffaa34da42d2c56abaf3043de49944',
+                        baseline_sha256=hashlib.sha256(b'host').hexdigest(),
+                        protected_sha256={'outputs/example.csv':hashlib.sha256(b'a,b\n1,2\n').hexdigest()})
+            with patch('pipeline.dashboard_snapshot.read_json', return_value=pins):
+                self.assertEqual(validate_host(root, html)[0], pins)
+                source.write_bytes(b'a,b\n1,3\n')
+                with self.assertRaisesRegex(ValueError, 'host input SHA-256 mismatch'):
+                    validate_host(root, html)
+                html.write_bytes(b'changed host')
+                with self.assertRaisesRegex(ValueError, 'SHA-256 mismatch'):
+                    validate_host(root, html)
 
 
 if __name__ == "__main__":

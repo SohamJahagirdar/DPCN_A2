@@ -1,0 +1,328 @@
+[
+  {
+    "id": "oxygen-concentrator",
+    "title": "Oxygen concentrators for COVID-19, licensed to 24 companies",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Documented outcome",
+    "pathways": ["Health", "Technology transfer", "State procurement"],
+    "summary": "During COVID-19, Praveen Ramamurthy's team at IISc designed an oxygen concentrator. IISc transferred the technology to 24 companies, which had supplied about 35 units to hospitals, and the Government of Karnataka issued a circular for the licensees to supply two units each to 2,508 public health centres. A second IISc system, from S. Dasappa's group at the Centre for Sustainable Technologies, was licensed to four agencies; its first unit was installed at the Pobbathi Medical Centre in Bengaluru.",
+    "match": null,
+    "no_papers_note": "This outcome came from engineering work, not from a paper, so no paper in our data is linked to it.",
+    "sources": [
+      {"label": "IISc: IISc solutions to tackle oxygen shortage (2021)", "url": "https://www.iisc.ac.in/events/iisc-solutions-to-tackle-oxygen-shortage/"}
+    ]
+  },
+  {
+    "id": "strand-hboc",
+    "title": "Hereditary cancer gene tests from an IISc-founded company",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Documented outcome",
+    "pathways": ["Health", "Economy: spin-off"],
+    "summary": "Strand Life Sciences was founded in 2000 by four IISc professors. Its studies with IISc's Ramesh Hariharan screened Indian breast and ovarian cancer patients with multi-gene panels: pathogenic mutations were found in 36.2% of 141 patients (2016) and in 30.1% of over 1,000 patients (2018). Strand sells hereditary breast and ovarian cancer tests in India, a 4-gene and a 19-gene panel; Reliance Industries invested in Strand in 2021.",
+    "match": [{"doi": ["https://doi.org/10.1038/jhg.2016.4", "https://doi.org/10.1007/s10549-018-4726-x"]}, {"company": "Strand Life Sciences"}],
+    "sources": [
+      {"label": "Strand Life Sciences: About us", "url": "https://strandls.com/about-us"},
+      {"label": "Strand: HBOC test FAQ", "url": "https://diagnostics.strandls.com/genetic-test-for-hboc-cancer/faq"},
+      {"label": "Asian Scientist, 14 Apr 2016", "url": "https://www.asianscientist.com/2016/04/in-the-lab/multigene-panel-detects-breast-cancer-early/"}
+    ]
+  },
+  {
+    "id": "equine-rtpcr",
+    "title": "An ICMR-approved COVID-19 test kit from an IISc start-up",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Documented outcome",
+    "pathways": ["Health", "Economy: start-up"],
+    "summary": "Equine Biotech, a start-up incubated at IISc and founded by Utpal Tatu, professor of biochemistry at IISc, developed an RT-PCR kit for COVID-19. In September 2020 the Indian Council of Medical Research approved it for use in authorised COVID-19 diagnostic labs.",
+    "match": null,
+    "no_papers_note": "No paper on the kit is in our data.",
+    "sources": [
+      {"label": "PTI via Careers360, 26 Sep 2020", "url": "https://news.careers360.com/startup-incubated-at-iisc-develops-covid-19-diagnostic-kit"}
+    ]
+  },
+  {
+    "id": "mynvax",
+    "title": "A heat-stable COVID-19 vaccine from an IISc start-up",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Documented outcome",
+    "pathways": ["Health", "Economy: start-up"],
+    "summary": "Mynvax was founded in 2017 by IISc professor Raghavan Varadarajan and alumnus Gautham Nadig, and incubated at IISc. Its vaccine formulations stayed stable at 37 °C for up to a month and at 100 °C for up to 90 minutes, so they would not need a cold chain. In 2021 it signed agreements to raise a $4.2 million Series A round led by Accel. No approved vaccine is reported yet.",
+    "match": {"company": "Mynvax", "title_re": "SARS|spike|vaccin|immunogen|influenza|receptor binding|neutraliz|HIV|antigen"},
+    "sources": [
+      {"label": "BioSpectrum India, 21 Jul 2021", "url": "https://biospectrumindia.com/news/20/19200/biotech-startup-mynvax-offers-warm-vaccine-for-covid-19.html"},
+      {"label": "Entrepreneur India, 20 Jul 2021", "url": "https://india.entrepreneur.com/finance/mynvax-raises-42-mn-series-a-funding/377825"}
+    ]
+  },
+  {
+    "id": "mumbai-serosurvey",
+    "title": "Mumbai's first COVID-19 sero-survey, run with the city corporation",
+    "institute": "TIFR",
+    "category": "Health",
+    "evidence": "Partly documented",
+    "pathways": ["Public health", "City government"],
+    "summary": "In July 2020 Mumbai's municipal corporation (BMC) ran the city's first serological survey of SARS-CoV-2 with NITI Aayog and TIFR; the principal investigator was TIFR's Ullas Kolthur-Seetharam, with Sandeep Juneja as co-investigator. It estimated that about 57% of slum residents and 16% of other residents had been infected. BMC released a second round in October 2020 (45% and 18%). The sources do not document a specific policy decision based on the survey.",
+    "match": [{"doi": ["https://doi.org/10.1016/s2214-109x(20)30467-8"]}, {"title_re": "seroprevalence|sero-survey|serosurvey", "inst": "TIFR"}],
+    "sources": [
+      {"label": "Scroll.in, 29 Jul 2020", "url": "https://scroll.in/latest/968839/covid-19-mumbai-sero-survey-shows-57-in-slums-16-in-residential-areas-may-have-been-exposed"},
+      {"label": "Down To Earth, 2 Oct 2020", "url": "https://www.downtoearth.org.in/health/covid-19-antibody-prevalence-in-mumbai-decline-in-slums-rises-outside-73641"}
+    ]
+  },
+  {
+    "id": "antivenom",
+    "title": "Snake-venom research leads to an antivenom partnership",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Partly documented",
+    "pathways": ["Health", "Industry partnership"],
+    "summary": "Kartik Sunagar's lab at IISc showed in 2019 that India's commercial antivenoms worked poorly against several medically important but neglected snakes, for example the Arunachal monocled cobra. In August 2022 the antivenom maker Bharat Serums and Vaccines announced a collaboration with the lab to develop region-specific antivenoms. The lab's synthetic antibody (2024) has so far been tested only in mice, and IISc says clinicians cannot yet rely on it.",
+    "match": {"faculty": "Kartik Sunagar", "title_re": "venom|snake|toxin|antivenom"},
+    "sources": [
+      {"label": "IISc: Snake venom study reveals shortcomings in antivenom therapy (2019)", "url": "https://www.iisc.ac.in/events/snake-venom-study-reveals-troubling-shortcomings-in-antivenom-therapy-in-india/"},
+      {"label": "BioVoice News, 10 Aug 2022", "url": "https://biovoicenews.com/bsv-partners-indian-institute-of-science-for-research-on-next-gen-snakebite-therapy/"},
+      {"label": "IISc, 22 Feb 2024", "url": "https://www.iisc.ac.in/events/synthetic-antibody-neutralises-deadly-snakebite-toxin/"}
+    ]
+  },
+  {
+    "id": "pathshodh",
+    "title": "A handheld point-of-care testing device from an IISc start-up",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Partly documented",
+    "pathways": ["Health", "Economy: start-up"],
+    "summary": "PathShodh Healthcare was incubated at IISc and co-founded by Navakanta Bhat of IISc's Centre for Nano Science and Engineering. It commercialised anuPath, a handheld point-of-care device for tests used in chronic diseases such as diabetes, and a 2021 profile reports ICMR, NIB and CDSCO/DCGI approvals for its tests. In 2020 it received a DST grant to develop a COVID-19 antibody test. Deployment numbers are not published.",
+    "match": [{"company": "PathShodh"}, {"faculty": "Navakanta Bhat", "title_re": "point.of.care|HbA1c|glycated|hemoglobin|haemoglobin|albumin|biosensor"}],
+    "sources": [
+      {"label": "IISc CeNSE: Navakanta Bhat", "url": "https://nnfc.cense.iisc.ac.in/nano/PI.html"},
+      {"label": "BioSpectrum India, 25 Oct 2021", "url": "https://biospectrumindia.com/features/85/19650/startupoftheday-38-pathshodh-healthcare-pvt-ltd.html"},
+      {"label": "Outlook, 8 Aug 2020", "url": "https://outlookindia.com/national/india-news-new-flint-knapping-news-303537"}
+    ]
+  },
+  {
+    "id": "theranautilus",
+    "title": "Dental nanorobots from an IISc start-up",
+    "institute": "IISc",
+    "category": "Health",
+    "evidence": "Partly documented",
+    "pathways": ["Health", "Economy: start-up"],
+    "summary": "Theranautilus was founded in 2020 by IISc's Ambarish Ghosh with Debayan Dasgupta and Shanmukh Peddi, and incubated at IISc. It develops magnetic nanorobots for dental treatment and raised $1.2 million in seed funding led by pi Ventures in November 2024. In 2025 IISc reported nanobots for tooth sensitivity developed with the company; they had been tested only in mice.",
+    "match": [{"company": "Theranautilus"}, {"faculty": "Ambarish Ghosh", "title_re": "nanobot|nanorobot|nanomotor|dentin|helical|micro.?robot|nanomachine"}],
+    "sources": [
+      {"label": "The Bio Startups, 21 Nov 2024", "url": "https://thebiostartups.com/news/8/1034/theranautilus-raises-1-2-m-seed-round-led-by-pi-ventures-to-pioneer-nanorobot-technology-in-healthcare.html"},
+      {"label": "IISc, 11 Aug 2025", "url": "https://iisc.ac.in/news/magnetically-guided-nanobots-for-tooth-sensitivity-relief/"}
+    ]
+  },
+  {
+    "id": "agnit",
+    "title": "Gallium-nitride chips made in India",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Technology", "Economy: start-up", "Defence & space"],
+    "summary": "AGNIT Semiconductors was founded in 2019 and incubated at IISc, and licenses background IP from IISc. It makes gallium-nitride (GaN) wafers and RF transistors and amplifiers; its markets include defence, space and telecom.",
+    "match": {"company": "AGNIT"},
+    "sources": [
+      {"label": "Electronics For You, 1 Dec 2025", "url": "https://www.electronicsforu.com/india-corner/from-lab-to-fab-how-agnitis-making-gallium-nitride-chips-in-india"},
+      {"label": "Compound Semiconductor, 1 Nov 2024", "url": "https://compoundsemiconductor.net/article/120483/Putting_India_on_the_global_GaN_stage"}
+    ]
+  },
+  {
+    "id": "simyog",
+    "title": "Electromagnetic-compliance software from an IISc spin-off",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Technology", "Economy: spin-off"],
+    "summary": "Simyog Technology is an IISc spin-off whose CEO, Dipanjan Gope, is an associate professor at IISc. It makes simulation software that checks electronics, mainly for cars, for electromagnetic interference and compliance. It reported operating revenue of ₹2.63 crore in FY22 and raised ₹20 crore in a pre-Series A round in December 2023.",
+    "match": [{"company": "Simyog"}, {"faculty": "Dipanjan Gope"}],
+    "sources": [
+      {"label": "Electronics For You, 26 Dec 2022", "url": "https://www.electronicsforu.com/electronics-startups/simyog-technology"},
+      {"label": "Entrackr, 14 Dec 2023", "url": "https://entrackr.com/2023/12/mela-ventures-leads-rs-20-cr-round-in-simyog"}
+    ]
+  },
+  {
+    "id": "morphing-machines",
+    "title": "A reconfigurable processor from IISc research",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Technology", "Economy: start-up"],
+    "summary": "Morphing Machines, incubated at IISc, designs REDEFINE, a reconfigurable processor whose technology traces to more than a decade of IISc research; IISc's S. K. Nandy is its chief scientific advisor. In October 2025 it raised ₹38.36 crore in a Series A round to take the processor to data centres.",
+    "match": [{"company": "Morphing Machines"}, {"faculty": "Nandy S K", "title_re": "reconfigur|REDEFINE|CGRA|coarse.grain"}],
+    "sources": [
+      {"label": "Outlook Business, 6 Oct 2025", "url": "https://www.outlookbusiness.com/corporate/morphing-machines-raises-3836cr-to-fast-track-redefine-processor-for-data-centres"}
+    ]
+  },
+  {
+    "id": "infab",
+    "title": "MEMS chip manufacturing from an IISc spin-off",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Technology", "Economy: spin-off"],
+    "summary": "INFAB Semiconductor is a spin-off from IISc, incubated at its Centre for Nano Science and Engineering. It makes MEMS (micro-electro-mechanical) devices through multi-project wafer runs, funded by government money and customer projects, as part of India's entry into chipmaking.",
+    "match": {"company": "INFAB"},
+    "sources": [
+      {"label": "eeNews Europe, 28 Mar 2023", "url": "https://www.eenewseurope.com/en/mems-startup-is-part-of-indian-entry-into-chipmaking"}
+    ]
+  },
+  {
+    "id": "bosch",
+    "title": "Industry-funded research: the Robert Bosch Centre for Cyber-Physical Systems",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Economy: industry partnership"],
+    "summary": "In 2011 Bosch made a ₹115 crore (€22 million) grant to IISc over ten years, which set up the Robert Bosch Centre for Cyber-Physical Systems.",
+    "match": {"company": "Robert Bosch"},
+    "sources": [
+      {"label": "BioSpectrum India, 5 Nov 2015", "url": "https://biospectrumindia.com/news/97/4517/bosch-signs-mou-with-iisc.html"},
+      {"label": "RBCCPS, IISc: About", "url": "https://cps.iisc.ac.in/about-rbccps"}
+    ]
+  },
+  {
+    "id": "satyukt",
+    "title": "Satellite soil-moisture advice for farmers, from IISc doctoral research",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Partly documented",
+    "pathways": ["Agriculture", "Economy: start-up"],
+    "summary": "Satyukt Analytics was founded in 2018 by Sat Kumar Tomer, whose IISc PhD (advisers M. Sekhar and M. S. Mohan Kumar) was on soil moisture from satellite microwave data. Its Sat2Farm app gives farmers soil-moisture, irrigation and crop-health advice. In 2023 it partnered with the Karnataka government's Grama One centres and raised ₹10 crore in pre-Series A funding.",
+    "match": [{"company": "Satyukt"}, {"faculty": "Sekhar M", "title_re": "soil moisture"}],
+    "sources": [
+      {"label": "IISc thesis record (Tomer)", "url": "https://etd.iisc.ac.in/handle/2005/2508?show=full"},
+      {"label": "IamRenew, 24 Nov 2023", "url": "https://www.iamrenew.com/agriculture/satyukt-analytics-karnataka-government-collaborate-to-further-sustainable-farming/"},
+      {"label": "Inc42, 13 Jun 2023", "url": "https://inc42.com/?p=402150"}
+    ]
+  },
+  {
+    "id": "vaani",
+    "title": "Vaani: an open speech dataset of India's languages",
+    "institute": "IISc",
+    "category": "Technology & industry",
+    "evidence": "Documented outcome",
+    "pathways": ["Technology: open data", "Language inclusion"],
+    "summary": "Project Vaani, by IISc and ARTPARK and funded by Google, was launched in 2022 to capture the diversity of India's spoken languages. Its recordings are released free on Hugging Face under an open licence, and its target is over 150,000 hours of speech from about 1 million people across all 773 districts.",
+    "match": {"faculty": "Prasanta Kumar Ghosh", "title_re": "Indian|Indic|Kannada|Hindi|Telugu|Tamil|Bengali|multilingual|low.resource"},
+    "sources": [
+      {"label": "IISc: Project Vaani", "url": "https://vaani.iisc.ac.in"},
+      {"label": "Hugging Face blog, 27 Feb 2025", "url": "https://huggingface.co/blog/iisc-huggingface-collab"}
+    ]
+  },
+  {
+    "id": "nqm-hub",
+    "title": "IISc hosts the National Quantum Mission's quantum-computing hub",
+    "institute": "IISc",
+    "category": "National missions",
+    "evidence": "Documented outcome",
+    "pathways": ["National mission: quantum"],
+    "summary": "Under the ₹6,003.65 crore National Quantum Mission (2023–24 to 2030–31), IISc was selected through a competitive process to host the Quantum Computing hub, one of four thematic hubs set up in 2024–25. The hub involves 30 researchers and 21 institutions, among them TIFR Mumbai.",
+    "match": {"inst": "IISc", "title_re": "qubit|quantum comput|quantum processor|single.photon|quantum key|quantum photonic"},
+    "sources": [
+      {"label": "PIB, 30 Sep 2024", "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2060438"},
+      {"label": "PIB (Parliament reply), 20 Aug 2025", "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2158388"},
+      {"label": "India Science & Technology portal: NQM", "url": "https://www.indiascienceandtechnology.gov.in/st-visions/national-mission/national-quantum-mission-nqm"}
+    ]
+  },
+  {
+    "id": "tifr-qubits",
+    "title": "TIFR-designed qubits in DRDO's 6-qubit quantum processor",
+    "institute": "TIFR",
+    "category": "National missions",
+    "evidence": "Documented outcome",
+    "pathways": ["Defence technology", "National mission: quantum"],
+    "summary": "In August 2024 the Ministry of Defence announced that DRDO's Young Scientists Laboratory for Quantum Technologies and TIFR had completed end-to-end testing of a 6-qubit superconducting quantum processor. The qubits were designed and fabricated at TIFR, and the processor is based on a ring-resonator design invented at TIFR. The system was still being optimised before becoming operational.",
+    "match": {"faculty": "R Vijayaraghavan"},
+    "sources": [
+      {"label": "PIB (Ministry of Defence), 28 Aug 2024", "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2049356"}
+    ]
+  },
+  {
+    "id": "astrosat",
+    "title": "Instruments for India's first astronomy satellite",
+    "institute": "TIFR",
+    "category": "National missions",
+    "evidence": "Documented outcome",
+    "pathways": ["National mission: space"],
+    "summary": "ISRO launched AstroSat on 28 September 2015. TIFR developed three of its five payloads: the Large Area X-ray Proportional Counter (LAXPC), the Cadmium Zinc Telluride Imager (CZTI) and the Soft X-ray Telescope (SXT). The papers here describe and calibrate those instruments and use their data.",
+    "match": {"india_term": "astrosat"},
+    "sources": [
+      {"label": "ISRO: AstroSat", "url": "https://www.isro.gov.in/Astrosat_Spacecraft.html"},
+      {"label": "ISSDC: AstroSat payloads", "url": "https://www.issdc.gov.in/docs/as1/AstroSat_Payloads.pdf"}
+    ]
+  },
+  {
+    "id": "ligo-india",
+    "title": "Gravitational-wave discoveries and the LIGO-India observatory",
+    "institute": "TIFR",
+    "category": "National missions",
+    "evidence": "Partly documented",
+    "pathways": ["International project", "Mega-science facility"],
+    "summary": "TIFR scientists were among the 39 Indian authors, from nine institutions, of the 2016 paper announcing the first detection of gravitational waves, and TIFR researchers represented the IndIGO consortium in the LIGO collaboration. The Union Cabinet approved LIGO-India, a ₹2,600 crore observatory at Hingoli, in April 2023. TIFR is not one of LIGO-India's lead institutions.",
+    "match": {"inst": "TIFR", "title_re": "gravitational.wave|GW1[5-9]\\d|GW2\\d|binary black hole|binary neutron"},
+    "sources": [
+      {"label": "DST (2017): Indian authors of the discovery paper", "url": "https://dst.gov.in/node/2544"},
+      {"label": "Deccan Herald, 18 Apr 2025", "url": "https://www.deccanherald.com/science/2-years-after-cabinet-nod-india-begins-to-set-up-gravitational-wave-observatory-3500264"},
+      {"label": "LIGO-India", "url": "https://www.ligo-india.in/"}
+    ]
+  },
+  {
+    "id": "bengaluru-lakes",
+    "title": "IISc wetland studies used by the National Green Tribunal to protect Bengaluru's lakes",
+    "institute": "IISc",
+    "category": "Environment & policy",
+    "evidence": "Documented outcome",
+    "pathways": ["Court decision", "Environment"],
+    "summary": "Studies by IISc's Energy & Wetlands Research Group (T. V. Ramachandra) were used before the National Green Tribunal. An IISc study showed that the wetland between Agara and Bellandur lakes shrank from 32.8 ha in 2007 to 5.95 ha in 2012. In 2016 the tribunal raised the no-construction buffer around Bengaluru's lakes and wetlands from 30 m to 75 m, and in December 2018 it ordered Karnataka to put ₹500 crore in escrow to revive the lakes, with Ramachandra on the monitoring committee.",
+    "match": {"inst": "IISc", "title_re": "bellandur|varthur|(bangalore|bengaluru).*(lake|wetland|urbani|land use)|(lake|wetland|urbani|land use).*(bangalore|bengaluru)"},
+    "sources": [
+      {"label": "SCC Online, 21 May 2015", "url": "https://www.scconline.com/blog/post/2015/05/21/penalty-imposed-upon-two-companies-for-commencing-construction-on-lake-banks-before-obtaining-environmental-clearance/"},
+      {"label": "Down To Earth, 11 May 2016", "url": "https://www.downtoearth.org.in/news/water/ngt-halts-construction-on-wetland-between-bengaluru-lakes-53909"},
+      {"label": "LiveLaw, 8 Dec 2018", "url": "https://www.livelaw.in/amp/nothing-short-of-environmental-emergency-ngt-passes-stern-directions-to-revive-bangalore-lakes-read-order"}
+    ]
+  },
+  {
+    "id": "climate-vulnerability",
+    "title": "The national framework states use to plan climate adaptation",
+    "institute": "IISc",
+    "category": "Environment & policy",
+    "evidence": "Documented outcome",
+    "pathways": ["Public policy", "Climate adaptation"],
+    "summary": "IISc, with IIT Mandi and IIT Guwahati, developed the Common Framework for climate vulnerability assessment, funded by DST and the Swiss development agency. It was first applied to the 12 Indian Himalayan states, which DST says have begun prioritising adaptation actions based on it, and it underlies DST's 2021 national vulnerability report, steered by retired IISc professor N. H. Ravindranath. IISc scientists also wrote chapters of Karnataka's State Action Plan on Climate Change 2.0 (2021).",
+    "match": {"inst": "IISc", "title_re": "vulnerability.*(forest|climate|himalaya|district|hazard)|(forest|climate|himalaya|district|hazard).*vulnerability"},
+    "sources": [
+      {"label": "PIB, 17 Apr 2021", "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1712450"},
+      {"label": "Karnataka State Action Plan on Climate Change 2.0", "url": "https://napccindia.moef.gov.in/resources/pdfs/karnataka-sapcc-2.0.pdf"}
+    ]
+  },
+  {
+    "id": "monsoon",
+    "title": "Monsoon research used by India's forecasting agencies",
+    "institute": "IISc",
+    "category": "Environment & policy",
+    "evidence": "Partly documented",
+    "pathways": ["Public services: weather and climate"],
+    "summary": "India's seasonal and extended-range monsoon forecasts come from models built under the Ministry of Earth Sciences' Monsoon Mission and run operationally by IMD. IISc's monsoon papers are cited by the agencies in that chain: IMD, IITM Pune, NCMRWF and INCOIS. This shows use of the research by forecasters, not a causal link to a specific forecast.",
+    "match": {"title": "monsoon", "inst": "IISc", "exclude_doi": ["https://doi.org/10.1175/bams-d-17-0330.1"]},
+    "note": "exclude_doi: OpenAlex attaches every listed institution to every author of this paper, so its IISc authorship cannot be confirmed.",
+    "sources": [
+      {"label": "IMD, Mausam: Evolution of monitoring and forecasting of the southwest monsoon", "url": "https://mausamjournal.imd.gov.in/index.php/MAUSAM/article/view/6468"}
+    ]
+  },
+  {
+    "id": "wifex",
+    "title": "Fog forecasting at Delhi airport",
+    "institute": "IISc",
+    "category": "Environment & policy",
+    "evidence": "Partly documented",
+    "pathways": ["Public services: aviation weather"],
+    "summary": "The Winter Fog Experiment at Delhi's airport, led by IITM with IMD since 2015, produced a high-resolution (3 km) fog prediction model used for operational forecasting. IISc's part is smaller: G. S. Bhat of IISc is the second author of the 2017 paper describing the experiment.",
+    "match": {"doi": ["https://doi.org/10.18520/cs/v112/i04/767-784"]},
+    "sources": [
+      {"label": "PIB (MoES), 22 Jul 2025", "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2146721"},
+      {"label": "Current Science, 25 Feb 2017", "url": "https://www.currentscience.ac.in/Volumes/112/04/0767.pdf"}
+    ]
+  }
+]
