@@ -100,7 +100,8 @@ The pipeline is written in Python. `python run.py fetch`, then `python run.py bu
     - *How:* trends over time (high-impact, open access), publishers, and a journal co-usage network. Journals are linked by shared faculty; Louvain communities = publication ecosystems.
 13. **Reputable journals and impact on India** (`pipeline/reputable.py`, instructor's request). See section 3.4 for every definition and its source.
 14. **Impact on India beyond research** (`pipeline/impact.py`): patents, industry and start-ups, national missions and public services, case studies. See section 3.5.
-15. **Statistics and dashboard** (`pipeline/stats.py`, `pipeline/dashboard.py`): all metrics go into one self-contained HTML file. The data and the chart libraries (Plotly, vis-network) are embedded, so the file works fully offline and can be sent as a single attachment. Tabs: Overview (key numbers, key findings, trend, research areas) · Impact on India · Reputable journals & India · Journal choice · Publications · Faculty · Large-team papers (with vs without flagged, full list) · Citation network · Co-authorship network · Indian connectivity · Method. Switches: IISc / TIFR / Both, flagged papers included / excluded, light / dark.
+15. **Network tests** (`pipeline/netstats.py`): the faculty network against 20 degree-preserving random rewirings (Maslov & Sneppen 2002): clustering, path length and small-world index, Louvain modularity z-score, degree and department/institute assortativity, rich club; cumulative network growth; a maximum-likelihood power-law fit of citation in-degree (Clauset et al. 2009).
+16. **Statistics and dashboard** (`pipeline/stats.py`, `pipeline/dashboard.py`): all metrics go into one self-contained HTML file. The data and the chart libraries (Plotly, vis-network) are embedded, so the file works fully offline and can be sent as a single attachment. Tabs: Overview (key numbers, key findings, trend, research areas) · Impact on India · Reputable journals & India · Journal choice · Publications · Faculty · Large-team papers (with vs without flagged, full list) · Citation network · Co-authorship network · Indian connectivity · Method. Switches: IISc / TIFR / Both, flagged papers included / excluded, light / dark.
 
 ### 3.3 Headline numbers
 *(Data collected from OpenAlex, 13–15 Oct 2026.)*
@@ -326,6 +327,8 @@ pipeline/
   journals.py             journal choice: who / why / how
   reputable.py            reputable (Nature Index) papers and their research uptake in India
   impact.py               impact on India beyond research: patents, industry, start-ups, missions, case studies
+  netstats.py             network tests vs degree-preserving random networks, growth, power-law fit
+  report.py               first-round PDF report (python run.py report)
   variants.py             the analysis repeated without flagged (> 12 authors) papers
   stats.py                all statistics -> data/processed/stats.json + outputs/stats/
   dashboard.py + dashboard_template.html   interactive dashboard

@@ -298,6 +298,8 @@ def build_networks(t, out_dir=None):
         mega_papers_excluded=int(pap_mega.sum()),
     )
     nets["faculty_metrics"] = fm
+    nets["faculty_graph"], nets["faculty_communities"] = F, comms   # in memory only (pipeline/netstats.py)
+    nets["citation_graph"] = G
     nets["communities"] = comms_df
     nets["authorship_vis"] = dict(
         nodes=[dict(id=n, name=d["name"], inst=d["inst"], dept=d["dept"], papers=d["papers"],

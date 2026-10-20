@@ -193,6 +193,8 @@ def compute_stats(t, nets, out_dir=None, json_path=None):
     st["reputable"] = reputable_stats(t, out_dir)
     from pipeline.impact import impact_stats
     st["impact"] = impact_stats(t, out_dir)
+    from pipeline.netstats import network_tests
+    st["network_tests"] = network_tests(t, nets)
     st = _clean(st)
     json_path.write_text(json.dumps(st, indent=1), encoding="utf-8")
     write_stat_tables(st, out_dir)

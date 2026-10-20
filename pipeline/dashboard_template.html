@@ -237,7 +237,7 @@ details.m .note{margin-top:6px}
         <div id="citNet" class="net"></div>
         <div class="legend" id="citLegend"></div></div>
       <div class="card c8"><h3>Top 10 papers by PageRank</h3><div class="hint"><label><input type="checkbox" id="citMega"> include mega-collaboration papers (&gt; 50 authors; mostly CMS)</label></div><div id="citTop" class="tablewrap"></div></div>
-      <div class="card c4"><h3>In-degree distribution</h3><div class="hint">Citations received from within the corpus (log–log)</div><div id="citDeg" class="plot"></div></div>
+      <div class="card c4"><h3>In-degree distribution</h3><div class="hint" id="citDegHint">Citations received from within the corpus (log–log)</div><div id="citDeg" class="plot"></div></div>
       <div class="card c6"><h3>Citation flow with other Indian institutions, by year</h3><div class="hint">In = citing papers from other Indian institutes; Out = our papers citing them (year of the citing paper)</div><div id="flowYear" class="plot"></div></div>
       <div class="card c6"><h3>Top 10 Indian institutes citing our work</h3><div id="flowTop" class="plot"></div></div>
     </div>
@@ -250,6 +250,10 @@ details.m .note{margin-top:6px}
         <div class="hint">Undirected graph: nodes = faculty, edges = co-authored papers (mega-collaborations excluded), width = number of joint papers. Colour by <select id="auColor"><option value="comm">Louvain community</option><option value="inst">institution</option></select> · show links with ≥ <select id="auMinW"><option>1</option><option selected>2</option><option>3</option><option>5</option></select> joint papers</div>
         <div id="auNet" class="net"></div>
         <div class="legend" id="auLegend"></div></div>
+      <div class="card c7"><h3>Is this structure more than chance?</h3>
+        <div class="hint">Observed faculty network vs 20 random networks in which every faculty member keeps their number of co-authors (degree-preserving rewiring). Faculty with at least one faculty co-author. Methods and references: <a href="#" data-goto="Method">Method</a>.</div>
+        <div id="auTests" class="tablewrap" style="max-height:none"></div></div>
+      <div class="card c5"><h3>How the network grew</h3><div class="hint">Network of joint papers published up to each year: share of linked faculty in the largest connected group (hover for mean co-authors)</div><div id="auGrowth" class="plot"></div></div>
       <div class="card c6"><h3>Most collaborative faculty (degree centrality)</h3><div id="auDeg" class="tablewrap"></div></div>
       <div class="card c6"><h3>Bridging faculty (betweenness centrality)</h3><div id="auBtw" class="tablewrap"></div></div>
       <div class="card c6"><h3>Collaboration communities (Louvain)</h3><div id="auComm" class="tablewrap"></div></div>
@@ -506,6 +510,8 @@ function renderCitation() {
   table("citTop", document.getElementById("citMega").checked ? c.top_pagerank : c.top_pagerank_nonmega, [{k:"title",t:"Title",f:v=>esc(short(v))},{k:"year",t:"Year",n:1},{k:"homes",t:"Inst."},
     {k:"in_degree",t:"In-degree",n:1},{k:"citations",t:"Citations",n:1,f:v=>fmt(v)},{k:"pagerank",t:"PageRank",n:1,f:v=>v==null?"–":v.toExponential(2)},{k:"doi",t:"",f:doiLink}]);
   const dd = Object.entries(c.indegree_dist).filter(([k])=>+k>0);
+  const pl = ((DATA.network_tests||{}).citation||{}).powerlaw;
+  if (pl) document.getElementById("citDegHint").textContent = `Citations received from within the corpus (log–log). Heavy tail: power-law fit α = ${fmt(pl.alpha,2)} ± ${fmt(pl.alpha_se,2)} for in-degree ≥ ${pl.xmin} (${fmt(pl.n_tail)} papers; Clauset et al. 2009 method)`;
   plot("citDeg", [{type:"scatter", mode:"markers", x:dd.map(d=>+d[0]), y:dd.map(d=>d[1]), marker:{size:8,color:css("--s1"),line:{width:2,color:css("--surface")}},
     hovertemplate:"in-degree %{x}: %{y:,} papers<extra></extra>"}], {xaxis:{type:"log",dtick:1,title:"in-degree",gridcolor:css("--grid")}, yaxis:{type:"log",dtick:1,title:"papers",gridcolor:css("--grid"),automargin:true}});
   const yrs = DATA.inst.All.trend.years;
@@ -520,7 +526,29 @@ function renderCitation() {
     marker:{color:top.map(t=>instColor(t.inst))}, customdata:top.map(t=>t.partner_cluster), hovertemplate:"%{y}: %{x:,} citations (%{customdata})<extra></extra>"}], {margin:{l:8,r:16,t:8,b:36}});
 }
 
+function renderNetTests() {
+  const T = DATA.network_tests || {}, f = T.faculty;
+  if (!f) { document.getElementById("auTests").innerHTML = `<div class="note" style="padding:12px">No data available.</div>`; return; }
+  const rc = (f.rich_club||[]).filter(r => r.ratio!=null), top = rc[rc.length-1];
+  const rows = [
+    {m:"Clustering (friends of friends work together)", o:fmt(f.clustering,3), n:fmt(f.clustering_null,3), r:`${fmt(f.clustering/f.clustering_null,0)}× random`},
+    {m:"Mean distance between faculty (largest group)", o:fmt(f.path,2), n:fmt(f.path_null,2), r:`small world: σ = ${fmt(f.sigma,1)} (> 1)`},
+    {m:"Modularity of communities (Louvain, unweighted)", o:fmt(f.modularity,3), n:`${fmt(f.modularity_null,3)} ± ${fmt(f.modularity_null_sd,3)}`, r:`z = ${fmt(f.modularity_z,0)}: far stronger than chance`},
+    {m:"Links inside the same department", o:pct(f.within_dept_share), n:pct(f.within_dept_expected), r:`${fmt(f.within_dept_share/f.within_dept_expected,0)}× expected; assortativity ${fmt(f.dept_assortativity,2)}`},
+    {m:"Links between IISc and TIFR faculty", o:fmt(f.cross_institute_links), n:"", r:`of ${fmt(f.edges)} links; institute assortativity ${fmt(f.inst_assortativity,2)}`},
+    {m:"Degree assortativity (well-connected with well-connected)", o:fmt(f.degree_assortativity,2), n:fmt(f.degree_assortativity_null,2), r:"positive, typical of collaboration networks"},
+    ...(top ? [{m:`Rich club: links among faculty with > ${top.k} co-authors`, o:fmt(top.observed,3), n:fmt(top.null,3), r:`${fmt(top.ratio,2)}× random: the best-connected collaborate with each other`}] : []),
+  ];
+  table("auTests", rows, [{k:"m",t:"Measure"},{k:"o",t:"Observed",n:1},{k:"n",t:"Random (degree-preserving)",n:1},{k:"r",t:"Reading"}]);
+  const g = T.growth || [];
+  plot("auGrowth", [{type:"scatter", mode:"lines+markers", x:g.map(d=>d.year), y:g.map(d=>d.giant_share), line:{color:css("--s1")},
+    customdata:g.map(d=>[d.faculty, d.mean_degree]),
+    hovertemplate:"Up to %{x}: %{y:.0%} of %{customdata[0]:,} linked faculty in the largest group; %{customdata[1]:.1f} co-authors on average<extra></extra>"}],
+    {yaxis:{tickformat:".0%", range:[0,1], gridcolor:css("--grid")}});
+}
+
 function renderAuthorship() {
+  renderNetTests();
   const a = DATA.authorship, s = a.summary;
   tiles("auTiles", [["Faculty nodes", fmt(s.faculty_nodes)], ["Faculty–faculty links", fmt(s.faculty_edges)],
     ["Louvain communities", fmt(s.n_communities), s.modularity!=null?`modularity ${fmt(s.modularity,2)}`:""],
@@ -649,6 +677,7 @@ function renderMethod() {
    <li><b>National missions and public services.</b> Co-authorship with, and citation by, Indian organisations grouped by sector from their name and OpenAlex type: space (ISRO and its centres), defence and aerospace (DRDO labs, NAL, armed forces), atomic energy (BARC, IGCAR, RRCAT, NPCIL), earth, climate and environment (MoES, IMD, IITM, INCOIS, GSI…), agriculture (ICAR institutes, agricultural universities), health (ICMR, hospitals, medical colleges), CSIR industrial R&amp;D labs, government departments and regulators, and NGOs and think tanks. Universities and basic-research institutes are not counted here.</li>
    <li><b>Not measured.</b> Revenue, jobs, products sold and policy documents citing the research: no open data exists for Indian organisations (policy-citation databases such as Overton are commercial). Patents filed only at the Indian Patent Office are not in the patent data, and it has no assignees, so Indian companies' patents cannot be singled out. Only a minority of Indian companies are in the registry OpenAlex uses, so industry links are undercounted.</li></ul>`) +
   sec("Networks", `<ul>
+   <li><b>Is the structure more than chance?</b> The faculty network is compared with 20 degree-preserving random rewirings (${ref("Maslov &amp; Sneppen 2002","https://doi.org/10.1126/science.1065103")}): clustering and mean shortest path give the small-world index σ (${ref("Watts &amp; Strogatz 1998","https://doi.org/10.1038/30918")}; ${ref("Humphries &amp; Gurney 2008","https://doi.org/10.1371/journal.pone.0002051")}); Louvain modularity (${ref("Blondel et al. 2008","https://doi.org/10.1088/1742-5468/2008/10/P10008")}) against the same algorithm on the random graphs (z-score); degree and attribute assortativity (${ref("Newman 2003","https://doi.org/10.1103/PhysRevE.67.026126")}); rich-club coefficient (${ref("Colizza et al. 2006","https://doi.org/10.1038/nphys209")}). Citation in-degree: discrete power-law fit by maximum likelihood, x<sub>min</sub> by Kolmogorov–Smirnov distance (${ref("Clauset, Shalizi &amp; Newman 2009","https://doi.org/10.1137/070710111")}).</li>
    <li><b>Citation network:</b> nodes = our papers, edges = OpenAlex references among them; PageRank α = 0.85. Citations to and from other Indian institutes are in citation_network.csv.</li>
    <li><b>Co-authorship network:</b> nodes = faculty, edges = joint papers with ≤ ${m.mega_threshold} authors; Louvain communities (seed 42), degree and betweenness centrality (NetworkX).</li>
    <li><b>Indian connectivity:</b> partner institutions = Indian institutions in the author lists; clusters follow the course PPT; topic similarity = Jaccard over OpenAlex subfields.</li>

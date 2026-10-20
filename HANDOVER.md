@@ -71,6 +71,7 @@ The course (instructor: **Prof. Chittaranjan Hens**) maps the research output of
 | 15 Oct | Per-author analysis: which journals they choose, Q1, IF > 10 | ✅ | `pipeline/journals.py`; tab *Journal choice*; Faculty table |
 | 15 Oct | Papers in very reputable journals and how they impact India | ✅ | `pipeline/reputable.py`; tab *Reputable journals & India*; README §3.4 |
 | 15 Oct | "Find more interesting and more network-based analysis" ("do whatever you wish") | ⏳ **open** | section 12 |
+| 20 Oct | First-round report (PDF + dashboard link; "go beyond descriptive statistics") | ✅ | `report/18_IISc_TIFR.pdf` (git-ignored; submit it); network tests in `pipeline/netstats.py` |
 | 20 Oct | Team review: impact on India must show real-world outcomes (technology, economy), not only citations | ✅ | `pipeline/impact.py`; tab *Impact on India*; README §3.5 |
 
 ### 2.2 Other open items
@@ -116,6 +117,7 @@ Tested on 20 Oct 2026: a fresh clone plus this zip, without an API key, rebuilt 
 ### 3.3 Everyday commands
 ```bash
 python run.py build                         # rebuild everything from data/raw (no API calls)
+python run.py report                        # PDF report from the last build (needs Chrome)
 python run.py fetch --steps sources         # run one fetch step (cached, resumable)
 python run.py fetch --max-calls 500         # cap API calls for this run
 DPCN_SAMPLE=1 python run.py build           # experiments: writes to *_sample folders, real outputs untouched
@@ -189,6 +191,8 @@ Wall time: flows and relevance pages are large (references, abstracts), so expec
 | `pipeline/journals.py` | journal choice (who / why / how), regression, journal co-usage network | `journal_stats` |
 | `pipeline/reputable.py` | Nature Index papers and their research uptake in India | `indian_uptake`, `reputable_stats` |
 | `pipeline/impact.py` | impact on India beyond research: patents, industry and start-ups, national missions and public services, case studies | `pathways`, `impact_stats`, `sector_of`, `company_from_text`, `case_studies` |
+| `pipeline/netstats.py` | network tests against degree-preserving random networks (small world, modularity, assortativity, rich club), network growth, citation power-law fit | `network_tests`, `powerlaw_fit` |
+| `pipeline/report.py` | the first-round PDF report (`python run.py report` → `report/18_IISc_TIFR.pdf`), every number read from the last build | `write_report` |
 | `pipeline/variants.py` | without-flagged variant and comparison | `without_flagged`, `compare` |
 | `pipeline/stats.py` | assembles all statistics; writes stats CSVs | `compute_stats`, `inst_block`, `write_stat_tables` |
 | `pipeline/dashboard.py` | fills the HTML template; embeds Plotly and vis-network | `write_dashboard` |
